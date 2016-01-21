@@ -22,7 +22,6 @@ import it.unich.scalafix._
 import it.unich.scalafix.drivers.Driver._
 import it.unich.scalafix.finite._
 import it.unich.scalafix.lattice._
-import it.unich.scalafix.structured.GraphBasedEquationSystem
 import it.unich.scalafix.utils.PMaps._
 
 /**
@@ -89,7 +88,7 @@ object StructuredDriver extends Driver {
     * @param scope    an input parameters which determines how we want to apply boxes (such as localized or standard)
     * @param ordering an optional ordering on unknowns to be used for localized boxes.
     */
-  private def boxApply[U, V, E](eqs: GraphBasedEquationSystem[U, V, E], optBoxes: Option[BoxAssignment[U, V]], scope: BoxScope.Value, ordering: Option[Ordering[U]]): FiniteEquationSystem[U, V] = {
+  private def boxApply[U, V, E](eqs: GraphEquationSystem[U, V, E], optBoxes: Option[BoxAssignment[U, V]], scope: BoxScope.Value, ordering: Option[Ordering[U]]): FiniteEquationSystem[U, V] = {
     if (optBoxes.isEmpty)
       eqs
     else scope match {
@@ -98,16 +97,13 @@ object StructuredDriver extends Driver {
     }
   }
 
-  def addLocalizedBoxes[U, V <: DirectedPartiallyOrdered[V], E](eqs: GraphBasedEquationSystem[U, V, E], widening: BoxAssignment[U, V], narrowing: BoxAssignment[U, V], ordering: Ordering[U]): FiniteEquationSystem[U, V] = {
-    val ingoing = eqs.targets.inverse
+  def addLocalizedBoxes[U, V <: DirectedPartiallyOrdered[V], E](eqs: GraphEquationSystem[U, V, E], widening: BoxAssignment[U, V], narrowing: BoxAssignment[U, V], ordering: Ordering[U]): FiniteEquationSystem[U, V] = {
     val newbody = new Body[U, V] {
       def apply(rho: Assignment[U, V]) = {
         (x: U) =>
-          val contributions = for (e <- ingoing.image(x)) yield {
-            val contrib = eqs.edgeBody(e)(rho)(x)
-            val boxapply = eqs.sources.image(e).exists {
-              ordering.lteq(x, _)
-            } && !(contrib <= rho(x))
+          val contributions = for (e <- eqs.ingoing(x)) yield {
+            val contrib = eqs.edgeAction(rho)(e)
+            val boxapply = eqs.sources(e).exists (ordering.lteq(x, _)) && !(contrib <= rho(x))
             (contrib, boxapply)
           }
           // if contribution is empty the unknown x has no right hand side... it seems
@@ -138,7 +134,7 @@ object StructuredDriver extends Driver {
     * @param eqs the equation system to solve
     * @param p   parameters passed through a PMap
     */
-  def apply[U, V <: DirectedPartiallyOrdered[V], E](eqs: GraphBasedEquationSystem[U, V, E], p: PNil): U => V = {
+  def apply[U, V <: DirectedPartiallyOrdered[V], E](eqs: GraphEquationSystem[U, V, E], p: PNil): U => V = {
     val solver = p(Driver.solver)
     val boxlocation = p(Driver.boxlocation)
     val boxstrategy = p(Driver.boxstrategy)

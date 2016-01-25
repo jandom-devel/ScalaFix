@@ -38,7 +38,7 @@ abstract class EquationSystem[U, V] {
     * with the property that if `rho'` differs from `rho` only for variables which are not in `uks`, then
     * `body(rho)(u)==body(rho')(u)`.
     */
-  def bodyWithDependencies(rho: Assignment[U, V])(u: U): (V, Iterable[U])
+  val bodyWithDependencies: Assignment[U, V] => Assignment[U, (V, Iterable[U])]
 
   /**
     * Add boxes to the equation system
@@ -64,14 +64,17 @@ object EquationSystem {
   trait BodyWithDependenciesFromBody[U, V] {
     this: EquationSystem[U, V] =>
 
-    def bodyWithDependencies(rho: Assignment[U, V])(x: U) = {
-      val queried = mutable.Buffer.empty[U]
-      val trackrho = { y: U =>
-        queried.append(y)
-        rho(y)
-      }
-      val newval = body(trackrho)(x)
-      (newval, queried.toSeq)
+    val bodyWithDependencies = {
+      rho: Assignment[U, V] =>
+        x: U => {
+          val queried = mutable.Buffer.empty[U]
+          val trackrho = { y: U =>
+            queried.append(y)
+            rho(y)
+          }
+          val newval = body(trackrho)(x)
+          (newval, queried.toSeq)
+        }
     }
   }
 

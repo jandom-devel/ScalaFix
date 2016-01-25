@@ -63,7 +63,7 @@ class GraphEquationSystemTest extends FunSpec {
     }
 
     it("correctly computes the body with dependencies") {
-      val body = simpleEqs.bodyWithDependencies _
+      val body = simpleEqs.bodyWithDependencies
       assertResult(0 -> Seq())(body(rho)(0))
       assertResult(3 -> Seq(0, 3))(body(rho)(1))
       assertResult(1 -> Seq(1))(body(rho)(2))

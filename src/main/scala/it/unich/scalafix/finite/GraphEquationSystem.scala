@@ -30,7 +30,7 @@ abstract class GraphEquationSystem[U, V, E](implicit val magma: Magma[V]) extend
   /**
     * It returns a possible initial value for the analysis
     */
-  val initial: Assignment[U,V]
+  val initial: Assignment[U, V]
 
   /**
     * A function which, given an assignment and edge, returns the output value of
@@ -110,7 +110,7 @@ object GraphEquationSystem {
       }
       if (boxes.areIdempotent) {
         new SimpleGraphEquationSystem[U, V, E](unknowns, inputUnknowns, newEdgeAction, sources, target, outgoing, ingoing, initial) {
-          def bodyWithDependencies(rho: Assignment[U, V])(x: U) = self.bodyWithDependencies(rho)(x)
+          val bodyWithDependencies = self.bodyWithDependencies
           val infl = self.infl
         }
       } else {
@@ -140,10 +140,13 @@ object GraphEquationSystem {
   trait ComputedDependencies[U, V, E] {
     this: GraphEquationSystem[U, V, E] =>
 
-    def bodyWithDependencies(rho: Assignment[U, V])(x: U) = {
-      val deps = ingoing(x).foldLeft(Iterable.empty[U])((acc: Iterable[U], e: E) => acc ++ sources(e))
-      val res = body(rho)(x)
-      (res, deps)
+    val bodyWithDependencies = {
+      rho: Assignment[U, V] =>
+        x: U => {
+          val deps = ingoing(x).foldLeft(Iterable.empty[U])((acc: Iterable[U], e: E) => acc ++ sources(e))
+          val res = body(rho)(x)
+          (res, deps)
+        }
     }
 
     val infl: InfluenceRelation[U] = InfluenceRelation({ (u: U) =>
@@ -162,7 +165,7 @@ object GraphEquationSystem {
                                                             val target: E => U,
                                                             val outgoing: U => Iterable[E],
                                                             val ingoing: U => Iterable[E],
-                                                            val initial: Assignment[U,V]
+                                                            val initial: Assignment[U, V]
                                                           )
     extends GraphEquationSystem[U, V, E] with FiniteEquationSystem.WithBaseAssignment[U, V]
       with FiniteEquationSystem.WithBoxes[U, V] with BodyFromEdgeAction[U, V, E] with WithLocalizedBoxes[U, V, E]
@@ -177,7 +180,7 @@ object GraphEquationSystem {
                             target: E => U,
                             outgoing: U => Iterable[E],
                             ingoing: U => Iterable[E],
-                            initial: Assignment[U,V]
+                            initial: Assignment[U, V]
                            ): GraphEquationSystem[U, V, E] =
     new SimpleGraphEquationSystem(unknowns, inputUnknowns, edgeAction, source, target, outgoing, ingoing, initial) with
       ComputedDependencies[U, V, E]

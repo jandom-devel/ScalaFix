@@ -19,7 +19,7 @@
 package it.unich.scalafix
 
 import it.unich.scalafix.BoxAssignment.RestrictAssignment
-import it.unich.scalafix.lattice.{DirectedPartiallyOrdered, DirectedPartialOrdering}
+import it.unich.scalafix.lattice.DirectedPartialOrdering
 
 import scala.language.implicitConversions
 

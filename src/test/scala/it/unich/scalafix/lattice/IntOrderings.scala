@@ -21,19 +21,6 @@ package it.unich.scalafix.lattice
 import it.unich.scalafix.Box
 
 object IntOrderings {
-
-  case class IntDirectedSet(v: Int) extends DirectedPartiallyOrdered[IntDirectedSet] {
-    def upperBound[B >: IntDirectedSet](that: B)(implicit evidence: (B) => DirectedPartiallyOrdered[B]): B = that match {
-      case that: IntDirectedSet => IntDirectedSet(that.v max v)
-      case _ => that upperBound this
-    }
-
-    override def tryCompareTo[B >: IntDirectedSet](that: B)(implicit evidence: (B) => PartiallyOrdered[B]): Option[Int] = that match {
-      case that: IntDirectedSet => Some(v - that.v)
-      case _ => that tryCompareTo this
-    }
-  }
-
   implicit object IntOrdering extends DirectedPartialOrdering[Int] {
     def upperBound(x: Int, y: Int): Int = x max y
 

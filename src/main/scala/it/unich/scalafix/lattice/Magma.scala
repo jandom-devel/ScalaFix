@@ -38,5 +38,10 @@ trait Magma[A] {
 }
 
 object Magma {
+  /**
+    * Add a syntactic sugar to easily get the current implicit Magma.
+    */
+  def apply[A](implicit magma: Magma[A]) = magma
+
   implicit def magmaOps[A](a: A)(implicit magma: Magma[A]) = new magma.Ops(a)
 }

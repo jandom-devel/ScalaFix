@@ -27,17 +27,7 @@ class BoxTest extends FunSpec with PropertyChecks {
 
   val maxbox: Box[Int] = { (x: Int, y: Int) => x max y }
 
-  val orderintbox: Box[Int] = Box.upperBound[Int]
-
-  val intdirectedbox: Box[IntDirectedSet] = Box.upperBound
-
-  val intdirectedwidening: Box[IntDirectedSet] = { (x: IntDirectedSet, y: IntDirectedSet) =>
-    IntDirectedSet(intwidening(x.v, y.v))
-  }
-
-  val intdirectednarrowing: Box[IntDirectedSet] = { (x: IntDirectedSet, y: IntDirectedSet) =>
-    IntDirectedSet(intnarrowing(x.v, y.v))
-  }
+  val intbox: Box[Int] = Box.upperBound[Int]
 
   def testIsNotRight[V](box: Box[V]): Unit = {
     it("is not a right box") {
@@ -103,21 +93,10 @@ class BoxTest extends FunSpec with PropertyChecks {
   }
 
   describe("The box obtained from the upper bound of integer ordering") {
-    val box = orderintbox
+    val box = intbox
     it("returns the maximum element") {
       forAll { (x: Int, y: Int) =>
         assertResult(x max y)(box(x, y))
-      }
-    }
-    testIsNotRight(box)
-    testImmutable(box)
-  }
-
-  describe("The box obtained from the upper bound of the directed set of integers") {
-    val box = intdirectedbox
-    it("returns the maximum element") {
-      forAll { (x: Int, y: Int) =>
-        assertResult(x max y)(box(IntDirectedSet(x), IntDirectedSet(y)).v)
       }
     }
     testIsNotRight(box)
@@ -129,16 +108,6 @@ class BoxTest extends FunSpec with PropertyChecks {
     it("returns the expected results") {
       assertResult(4)(box(box(3, 5), 4))
       assertResult(3)(box(box(3, 2), 1))
-    }
-    testIsNotRight(box)
-    testImmutable(box)
-  }
-
-  describe("The warrowing obtained by combining standard widening and narrowing on a directed set") {
-    val box = Box.warrowing(intdirectedwidening, intdirectednarrowing)
-    it("returns the expected results") {
-      assertResult(IntDirectedSet(4))(box(box(IntDirectedSet(3), IntDirectedSet(5)), IntDirectedSet(4)))
-      assertResult(IntDirectedSet(3))(box(box(IntDirectedSet(3), IntDirectedSet(2)), IntDirectedSet(1)))
     }
     testIsNotRight(box)
     testImmutable(box)

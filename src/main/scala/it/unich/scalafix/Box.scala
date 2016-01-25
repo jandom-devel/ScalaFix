@@ -18,7 +18,7 @@
 
 package it.unich.scalafix
 
-import it.unich.scalafix.lattice.{DirectedPartiallyOrdered, DirectedPartialOrdering}
+import it.unich.scalafix.lattice.{Magma, DirectedPartialOrdering}
 
 import scala.language.implicitConversions
 
@@ -111,12 +111,6 @@ object Box {
     def isRight = false
   }
 
-  private final class FromDirectedPartiallyOrdered[V <: DirectedPartiallyOrdered[V]](val isIdempotent: Boolean) extends ImmutableBox[V] {
-    def apply(x: V, y: V) = x upperBound y
-
-    def isRight = false
-  }
-
   private final class Warrowing[V](lteq: (V, V) => Boolean, widening: Box[V], narrowing: Box[V]) extends Box[V] {
     def apply(x: V, y: V) = if (lteq(y, x)) narrowing(x, y) else widening(x, y)
 
@@ -157,6 +151,7 @@ object Box {
     */
   def left[V]: ImmutableBox[V] = LeftBox.asInstanceOf[ImmutableBox[V]]
 
+
   /**
     * A box built from a function `f: (V,V) => V`. The box is declared to be idempotent and immutable.
     *
@@ -179,13 +174,13 @@ object Box {
     * A box given by the upper bound of a type `V` endowed with a directed partial ordering.
     */
   def upperBound[V: DirectedPartialOrdering]: ImmutableBox[V] =
-    new FromFunction(implicitly[DirectedPartialOrdering[V]].upperBound, true)
+    new FromFunction(DirectedPartialOrdering[V].upperBound, true)
 
   /**
-    * A box given by the upper bound of a directed partially ordered type `V`.
+    * A box given by the magma operator on a type `V`.
     */
-  def upperBound[V <: DirectedPartiallyOrdered[V]]: ImmutableBox[V] =
-    new FromDirectedPartiallyOrdered[V](true)
+  def magma[V: Magma]: ImmutableBox[V] =
+    new FromFunction(Magma[V].op, true)
 
   /**
     * A mutable box which behaves as `this` for the first `delay` steps and as `that` for the rest of its

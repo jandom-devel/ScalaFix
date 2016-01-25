@@ -58,7 +58,7 @@ object StructuredDriver extends Driver {
     *
     * @param u input parameter which drives the generation of the mixed assignment.
     */
-  private def warrowingDefine[V <: PartiallyOrdered[V]](u: Updates.Update): Box[V] = {
+  private def warrowingDefine[V: DirectedPartialOrdering](u: Updates.Update): Box[V] = {
     u match {
       case Updates.Combine(widening, narrowing) => Box.warrowing(wideningDefine[V](widening), narrowingDefine[V](narrowing))
     }
@@ -97,13 +97,14 @@ object StructuredDriver extends Driver {
     }
   }
 
-  def addLocalizedBoxes[U, V <: DirectedPartiallyOrdered[V], E](eqs: GraphEquationSystem[U, V, E], widening: BoxAssignment[U, V], narrowing: BoxAssignment[U, V], ordering: Ordering[U]): FiniteEquationSystem[U, V] = {
+  def addLocalizedBoxes[U, V: DirectedPartialOrdering, E](eqs: GraphEquationSystem[U, V, E], widening: BoxAssignment[U, V], narrowing: BoxAssignment[U, V], ordering: Ordering[U]): FiniteEquationSystem[U, V] = {
+    val dop = DirectedPartialOrdering[V]
     val newbody = new Body[U, V] {
       def apply(rho: Assignment[U, V]) = {
         (x: U) =>
           val contributions = for (e <- eqs.ingoing(x)) yield {
             val contrib = eqs.edgeAction(rho)(e)
-            val boxapply = eqs.sources(e).exists (ordering.lteq(x, _)) && !(contrib <= rho(x))
+            val boxapply = eqs.sources(e).exists (ordering.lteq(x, _)) && !dop.lteq(contrib, rho(x))
             (contrib, boxapply)
           }
           // if contribution is empty the unknown x has no right hand side... it seems
@@ -111,11 +112,11 @@ object StructuredDriver extends Driver {
           if (contributions.isEmpty)
             rho(x)
           else {
-            val result = contributions reduce { (x: (V, Boolean), y: (V, Boolean)) => (x._1 upperBound y._1, x._2 || y._2) }
+            val result = contributions reduce { (x: (V, Boolean), y: (V, Boolean)) => (dop.upperBound(x._1,y._1), x._2 || y._2) }
             //println((x, rho(x), contributions))
             if (result._2) {
               widening(x)(rho(x), result._1)
-            } else if (result._1 < rho(x)) narrowing(x)(rho(x), result._1) else result._1
+            } else if (dop.lt(result._1, rho(x))) narrowing(x)(rho(x), result._1) else result._1
           }
       }
     }
@@ -134,7 +135,7 @@ object StructuredDriver extends Driver {
     * @param eqs the equation system to solve
     * @param p   parameters passed through a PMap
     */
-  def apply[U, V <: DirectedPartiallyOrdered[V], E](eqs: GraphEquationSystem[U, V, E], p: PNil): U => V = {
+  def apply[U, V: DirectedPartialOrdering, E](eqs: GraphEquationSystem[U, V, E], p: PNil): U => V = {
     val solver = p(Driver.solver)
     val boxlocation = p(Driver.boxlocation)
     val boxstrategy = p(Driver.boxstrategy)
@@ -158,7 +159,7 @@ object StructuredDriver extends Driver {
     }
 
     val restart: (V, V) => Boolean =
-      if (restartstrategy) { (x, y) => x < y }
+      if (restartstrategy) { (x, y) => DirectedPartialOrdering[V].lt(x, y) }
       else { (x, y) => false }
 
     boxstrategy match {

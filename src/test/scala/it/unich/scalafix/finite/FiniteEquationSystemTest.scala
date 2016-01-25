@@ -33,7 +33,7 @@ class FiniteEquationSystemTest extends FunSpec with PropertyChecks {
   import HierarchicalOrdering._
 
   val simpleEqs = FiniteEquationSystem[Int, Double](
-    body = Body { (rho: Int => Double) =>
+    body = { (rho: Int => Double) =>
       x: Int =>
         x match {
           case 0 => rho(0)

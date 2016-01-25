@@ -18,7 +18,6 @@
 
 package it.unich.scalafix
 
-
 import it.unich.scalafix.Body.{BodyWithBaseAssignment, BodyWithBoxAssignment}
 import it.unich.scalafix.lattice.Magma
 
@@ -90,6 +89,6 @@ object Body {
   /**
     * A body given by a function between assignments.
     */
-  def apply[U, V](f: Assignment[U, V] => Assignment[U, V]): Body[U, V] =
+  implicit def apply[U, V](f: Assignment[U, V] => Assignment[U, V]): Body[U, V] =
     new BodyFromFunction(f)
 }

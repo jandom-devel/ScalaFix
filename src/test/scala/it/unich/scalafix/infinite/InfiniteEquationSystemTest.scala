@@ -33,7 +33,7 @@ import org.scalatest.prop.PropertyChecks
 class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
 
   val simpleEqs = EquationSystem[Int, Int](
-    body = Body { (rho: Int => Int) =>
+    body = { (rho: Int => Int) =>
       x: Int =>
         if (x % 2 == 0)
           rho(rho(x)) max x / 2

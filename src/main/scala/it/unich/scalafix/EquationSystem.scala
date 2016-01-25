@@ -129,17 +129,4 @@ object EquationSystem {
     */
   def apply[U, V](body: Body[U, V], initial: Assignment[U, V], inputUnknowns: U => Boolean): EquationSystem[U, V] =
     new SimpleEquationSystem(body, initial, inputUnknowns)
-
-  /**
-    * An equation system whose body is given by a function between assignments.
-    */
-  def apply[U, V](body: Assignment[U, V] => Assignment[U, V], initial: Assignment[U, V]): EquationSystem[U, V] =
-    new SimpleEquationSystem(Body(body), initial, { _ => false })
-
-  /**
-    * An equation system whose body is given by a function between assignments and set of input unknowns.
-    */
-  def apply[U, V](body: Assignment[U, V] => Assignment[U, V], initial: Assignment[U, V], inputUnknowns: U => Boolean): EquationSystem[U, V] =
-    new SimpleEquationSystem(Body(body), initial, inputUnknowns)
-
 }

@@ -159,7 +159,7 @@ object GraphEquationSystem {
     */
   abstract class SimpleGraphEquationSystem[U, V: Magma, E](
                                                             val unknowns: Iterable[U],
-                                                            val inputUnknowns: Iterable[U],
+                                                            val inputUnknowns: Set[U],
                                                             val edgeAction: Assignment[U, V] => E => V,
                                                             val sources: E => Iterable[U],
                                                             val target: E => U,
@@ -174,7 +174,7 @@ object GraphEquationSystem {
     * Returns an implementation of a `GraphEquationSystem` from a subset of its constituents.
     */
   def apply[U, V: Magma, E](unknowns: Iterable[U],
-                            inputUnknowns: Iterable[U],
+                            inputUnknowns: Set[U],
                             edgeAction: Assignment[U, V] => E => V,
                             source: E => Iterable[U],
                             target: E => U,

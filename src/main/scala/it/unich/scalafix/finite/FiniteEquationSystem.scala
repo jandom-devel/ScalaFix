@@ -20,6 +20,7 @@ package it.unich.scalafix.finite
 
 import it.unich.scalafix._
 import it.unich.scalafix.lattice.Magma
+import it.unich.scalafix.utils.IterableFunction
 
 /**
   * This is the abstract class for an equation system with a finite set of unknowns AND static dependencies between
@@ -33,9 +34,9 @@ abstract class FiniteEquationSystem[U, V] extends EquationSystem[U, V] {
   val unknowns: Iterable[U]
 
   /**
-    * The collection of all unknowns which may be considered as the input to this equation system.
+    * The unknowns which may be considered the input to this equation system.
     */
-  val inputUnknowns: Iterable[U]
+  val inputUnknowns: Set[U]
 
   /**
     * The static relation between an unknown x and the unknowns y it influences. If `infl(x)` does not contain `y`, it
@@ -95,7 +96,7 @@ object FiniteEquationSystem {
   final class SimpleFiniteEquationSystem[U, V](
                                                 val body: Body[U, V],
                                                 val unknowns: Iterable[U],
-                                                val inputUnknowns: Iterable[U],
+                                                val inputUnknowns: Set[U],
                                                 val infl: InfluenceRelation[U]
                                               )
     extends FiniteEquationSystem[U, V] with EquationSystem.BodyWithDependenciesFromBody[U, V] with WithBaseAssignment[U, V] with WithBoxes[U, V]
@@ -104,6 +105,6 @@ object FiniteEquationSystem {
     * A finite equation system given its constituents parts (with the exception of the body with dependencies which
     * is automatically computed).
     */
-  def apply[U, V](body: Body[U, V], unknowns: Iterable[U], inputUnknowns: Iterable[U], infl: InfluenceRelation[U]): FiniteEquationSystem[U, V] =
+  def apply[U, V](body: Body[U, V], unknowns: Iterable[U], inputUnknowns: Set[U], infl: InfluenceRelation[U]): FiniteEquationSystem[U, V] =
     new SimpleFiniteEquationSystem(body, unknowns, inputUnknowns, infl)
 }

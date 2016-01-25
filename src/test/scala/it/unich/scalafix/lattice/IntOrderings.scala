@@ -29,6 +29,14 @@ object IntOrderings {
     def lteq(x: Int, y: Int): Boolean = x <= y
   }
 
+  implicit object DoubleOrdering extends DirectedPartialOrdering[Double] {
+    def upperBound(x: Double, y: Double): Double = x max y
+
+    def tryCompare(x: Double, y: Double): Option[Int] = Some(math.signum(x - y).toInt)
+
+    def lteq(x: Double, y: Double): Boolean = x <= y
+  }
+
   val intwidening: Box[Int] = { (x: Int, y: Int) => if (x >= y) x else Int.MaxValue }
 
   val intnarrowing: Box[Int] = { (x: Int, y: Int) => if (x == Int.MaxValue) y else x }

@@ -27,12 +27,6 @@ trait DirectedPartialOrdering[A] extends PartialOrdering[A] {
     */
   def upperBound(x: A, y: A): A
 
-  /**
-    * An implicit magma whose op operator corresponds to the upper bound.
-    */
-  implicit object Magma extends Magma[A] {
-    def op(x: A, y:A) = upperBound(x,y)
-  }
 }
 
 object DirectedPartialOrdering {

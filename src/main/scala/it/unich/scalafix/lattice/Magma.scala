@@ -44,4 +44,11 @@ object Magma {
   def apply[A](implicit magma: Magma[A]) = magma
 
   implicit def magmaOps[A](a: A)(implicit magma: Magma[A]) = new magma.Ops(a)
+
+  /**
+    * An implicit magma whose op operator corresponds to the upper bound of a directed partial ordering.
+    */
+  implicit def magmaOp[A: DirectedPartialOrdering] = new Magma[A] {
+    def op(x: A, y:A) = implicitly[DirectedPartialOrdering[A]].upperBound(x,y)
+  }
 }

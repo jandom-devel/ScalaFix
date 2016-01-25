@@ -18,136 +18,89 @@
 
 package it.unich.scalafix.drivers
 
-import it.unich.scalafix.FixpointSolverListener
-import it.unich.scalafix.utils.PMaps._
+/**
+  * A driver class has two aims: (1) it makes  easier to use fixpoint solvers when the parameters for
+  * the algorithms are obtained by an user interface, and therefore may not be statically known; (2) combines
+  * together different classes to implement standard behaviors. A driver is still a fixpoint solver,
+  * but it does not implement any algorithm and just delegates to other fixpoint solvers by passing them suitable
+  * parameters.
+  *
+  * This is only a marker trait.
+  */
+trait Driver
 
 /**
- * The driver class has two aims: (1) it makes  easier to use fixpoint solvers when the parameters for
- * the algorithms are obtained by an user interface, and therefore may not be statically known; (2) combines
- * together different classes to implement standard behaviors. A driver is still a fixpoint solver,
- * but it does not implement any algorithm and just delegates to other fixpoint solvers by passing them suitable
- * parameters.
- */
-abstract class Driver {
-  /**
-   * This exception is thrown when the parameters provided to the `Driver` are not correct.
-   */
-  class DriverBadParameters(msg: String) extends Exception(msg)
-}
-
-/**
- * The driver companion object collects all parameters which may be passed to drivers.
- */
+  * The driver companion object collects all parameters which may be passed to drivers.
+  */
 object Driver {
 
-  // Parameters for the solver
-  val solver = Parameter[Solver.Solver](Solver.WorkListSolver)
-  val widening = Parameter[Widenings.Widening](Widenings.None)
-  val narrowing = Parameter[Narrowings.Narrowing](Narrowings.None)
-  val update = Parameter[Updates.Update](Updates.Combine(Widenings.None, Narrowings.None))
-  val boxlocation = Parameter[BoxLocation.BoxLocation](BoxLocation.Loop)
-  val boxscope = Parameter[BoxScope.Value](BoxScope.Standard)
-  val boxstrategy = Parameter[BoxStrategy.Value](BoxStrategy.TwoPhases)
-  val restartstrategy = Parameter[Boolean](false)
-  val listener = Parameter[FixpointSolverListener[Any, Any]](FixpointSolverListener.EmptyListener)
+  /**
+    * This exception is thrown when the parameters provided to the `Driver` are not correct.
+    */
+  class DriverBadParameters(msg: String) extends Exception(msg)
 
   /**
-   * An enumeration with the solvers supported by this driver.
-   */
+    * An enumeration with the solvers supported by this driver.
+    */
   object Solver extends Enumeration {
+    type Solver = Value
+
     val KleeneSolver = Value
     val RoundRobinSolver = Value
     val PriorityWorkListSolver = Value
     val WorkListSolver = Value
     val HierarchicalOrderingSolver = Value
-    type Solver = Value
-  }
-
-  object Widenings {
-    sealed abstract class Widening
-
-    /**
-     * No widening at all.
-     */
-    object None extends Widening
-
-    /**
-     * Delayed narrowing. `first` is used for `delay` iteration, then `next` is used.
-     */
-    final case class Delayed(first: Widening, delay: Int, next: Widening) extends Widening
-  }
-
-  object Narrowings {
-    sealed abstract class Narrowing
-
-    /**
-     * A narrowing which immediatly stop the descending chain.
-     */
-    object Stop extends Narrowing
-
-    /**
-     * No narrowing at all.
-     */
-    object None extends Narrowing
-
-    /**
-     * Delayed narrowing. `first` is used for `delay` iteration, then `next` is used.
-     */
-    final case class Delayed(first: Narrowing, delay: Int, next: Narrowing) extends Narrowing
-  }
-
-  object Updates {
-    sealed abstract class Update
-
-    /**
-     * A mixed box obtained combining the specified widening and narrowing.
-     */
-    final case class Combine(widening: Widenings.Widening, narrowing: Narrowings.Narrowing) extends Update
   }
 
   object BoxStrategy extends Enumeration {
     type BoxStrategy = Value
+
     /**
-     * Only apply widening.
-     */
+      * Only apply widening.
+      */
     val OnlyWidening = Value
 
     /**
-     * Standard two pass widening/narrowing iteration.
-     */
+      * Standard two pass widening/narrowing iteration.
+      */
     val TwoPhases = Value
 
     /**
-     * Single pass with a mixed box.
-     */
-    val Mixed = Value
+      * Single pass with a warrowing.
+      */
+    val Warrowing = Value
   }
 
   object BoxScope extends Enumeration {
     type BoxScope = Value
+
     /**
-     * Use standard widening.
-     */
+      * Use standard widening.
+      */
     val Standard = Value
+
     /**
-     * Use localized widening.
-     */
+      * Use localized widening.
+      */
     val Localized = Value
   }
 
   object BoxLocation extends Enumeration {
     type BoxLocation = Value
+
     /**
-     * Put widening/narrowing points nowhere
-     */
+      * Put widening/narrowing points nowhere
+      */
     val None = Value
+
     /**
-     * Put widening/narrowing points at each unknown.
-     */
+      * Put widening/narrowing points at each unknown.
+      */
     val All = Value
+
     /**
-     * Put widening/narrowing points at each loop head.
-     */
+      * Put widening/narrowing points at each loop head.
+      */
     val Loop = Value
   }
 }

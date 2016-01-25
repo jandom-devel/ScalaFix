@@ -18,7 +18,7 @@
 
 package it.unich.scalafix.infinite
 
-import it.unich.scalafix.{FixpointSolverListenerAdapter, EquationSystem, Box}
+import it.unich.scalafix.{Body, FixpointSolverListenerAdapter, EquationSystem, Box}
 import it.unich.scalafix.utils.IterableFunction
 
 import scala.collection.mutable.Buffer
@@ -33,7 +33,7 @@ import org.scalatest.prop.PropertyChecks
 class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
 
   val simpleEqs = EquationSystem[Int, Int](
-    { (rho: Int => Int) =>
+    body = Body { (rho: Int => Int) =>
       x: Int =>
         if (x % 2 == 0)
           rho(rho(x)) max x / 2
@@ -41,10 +41,12 @@ class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
           val n = (x - 1) / 2
           rho(6 * n + 4)
         }
-    })
+    },
+    initial =  { x: Int => 0 }
+  )
 
   val maxBox: Box[Int] = { (x, y) => x max y }
-  val startRho = { x: Int => 0 }
+  val startRho = simpleEqs.initial
 
   type SimpleSolver[U, V] = (EquationSystem[U, V], U => V, Seq[U]) => IterableFunction[U, V]
 

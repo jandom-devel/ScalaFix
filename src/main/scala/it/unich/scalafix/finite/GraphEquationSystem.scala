@@ -28,11 +28,6 @@ import it.unich.scalafix.lattice.Magma
   */
 abstract class GraphEquationSystem[U, V, E](implicit val magma: Magma[V]) extends FiniteEquationSystem[U, V] {
   /**
-    * It returns a possible initial value for the analysis
-    */
-  val initial: Assignment[U, V]
-
-  /**
     * A function which, given an assignment and edge, returns the output value of
     * the edge.
     */

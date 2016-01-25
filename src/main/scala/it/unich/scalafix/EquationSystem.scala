@@ -34,6 +34,11 @@ abstract class EquationSystem[U, V] {
   val body: Body[U, V]
 
   /**
+    * An initial value for starting the analyzer
+    */
+  val initial: Assignment[U, V]
+
+  /**
     * The unknowns which may be considered the input to this equation system.
     */
   val inputUnknowns: U => Boolean
@@ -90,7 +95,7 @@ object EquationSystem {
     this: EquationSystem[U, V] =>
 
     def withBaseAssignment(init: PartialFunction[U, V])(implicit magma: Magma[V]): EquationSystem[U, V] =
-      new SimpleEquationSystem(body.withBaseAssignment(init), inputUnknowns)
+      new SimpleEquationSystem(body.withBaseAssignment(init), initial, inputUnknowns)
   }
 
   /**
@@ -100,40 +105,41 @@ object EquationSystem {
     this: EquationSystem[U, V] =>
 
     def withBoxes(boxes: BoxAssignment[U, V]): EquationSystem[U, V] =
-      new SimpleEquationSystem(body.withBoxAssignment(boxes), inputUnknowns)
+      new SimpleEquationSystem(body.withBoxAssignment(boxes), initial, inputUnknowns)
   }
 
   /**
     * This is a simple implementation of an equation systems, obtained by a body.
     */
-  final class SimpleEquationSystem[U, V](
-                                          val body: Body[U, V],
-                                          val inputUnknowns: U => Boolean
-                                        )
+  final case class SimpleEquationSystem[U, V](
+                                               val body: Body[U, V],
+                                               val initial: Assignment[U, V],
+                                               val inputUnknowns: U => Boolean
+                                             )
     extends EquationSystem[U, V] with BodyWithDependenciesFromBody[U, V] with WithBaseAssignment[U, V] with WithBoxes[U, V]
 
   /**
     * An equation system determined by a given body.
     */
-  def apply[U, V](body: Body[U, V]): EquationSystem[U, V] =
-    new SimpleEquationSystem(body, { _ => false })
+  def apply[U, V](body: Body[U, V], initial: Assignment[U, V]): EquationSystem[U, V] =
+    new SimpleEquationSystem(body, initial, { _ => false })
 
   /**
     * An equation system determined by a given body and set of input unknowns.
     */
-  def apply[U, V](body: Body[U, V], inputUnknowns: U => Boolean ): EquationSystem[U, V] =
-    new SimpleEquationSystem(body, inputUnknowns)
+  def apply[U, V](body: Body[U, V], initial: Assignment[U, V], inputUnknowns: U => Boolean): EquationSystem[U, V] =
+    new SimpleEquationSystem(body, initial, inputUnknowns)
 
   /**
     * An equation system whose body is given by a function between assignments.
     */
-  def apply[U, V](f: Assignment[U, V] => Assignment[U, V]): EquationSystem[U, V] =
-    new SimpleEquationSystem(Body(f), { _ => false })
+  def apply[U, V](body: Assignment[U, V] => Assignment[U, V], initial: Assignment[U, V]): EquationSystem[U, V] =
+    new SimpleEquationSystem(Body(body), initial, { _ => false })
 
   /**
     * An equation system whose body is given by a function between assignments and set of input unknowns.
     */
-  def apply[U, V](f: Assignment[U, V] => Assignment[U, V], inputUnknowns: U => Boolean): EquationSystem[U, V] =
-    new SimpleEquationSystem(Body(f), inputUnknowns)
+  def apply[U, V](body: Assignment[U, V] => Assignment[U, V], initial: Assignment[U, V], inputUnknowns: U => Boolean): EquationSystem[U, V] =
+    new SimpleEquationSystem(Body(body), initial, inputUnknowns)
 
 }

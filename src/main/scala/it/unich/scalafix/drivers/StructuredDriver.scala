@@ -123,6 +123,7 @@ object StructuredDriver extends Driver {
 
     FiniteEquationSystem(
       body = newbody,
+      initial = eqs.initial,
       inputUnknowns = eqs.inputUnknowns,
       unknowns = eqs.unknowns,
       infl = if (widening.areIdempotent && narrowing.areIdempotent) eqs.infl else eqs.infl.withDiagonal

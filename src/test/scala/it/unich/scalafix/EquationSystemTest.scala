@@ -23,7 +23,7 @@ import org.scalatest.FunSpec
 class EquationSystemTest extends FunSpec {
 
   val simpleEqs = EquationSystem(
-    { (rho: Int => Int) =>
+    body = { (rho: Int => Int) =>
       x: Int =>
         x match {
           case 0 => rho(0)
@@ -31,9 +31,10 @@ class EquationSystemTest extends FunSpec {
           case 2 => rho(1) + 1
           case 3 => rho(3)
         }
-    })
-
-  val rho = { x: Int => x }
+    },
+    initial = { x: Int => x }
+  )
+  val rho = simpleEqs.initial
   val box: Box[Int] = { _ * _ }
 
   describe("An equation system") {

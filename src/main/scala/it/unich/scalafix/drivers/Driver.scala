@@ -56,12 +56,12 @@ object Driver {
     type BoxStrategy = Value
 
     /**
-      * Only apply widening.
+      * Only apply widenings.
       */
     val OnlyWidening = Value
 
     /**
-      * Standard two pass widening/narrowing iteration.
+      * Standard two pass widenings/narrowings iteration.
       */
     val TwoPhases = Value
 
@@ -75,12 +75,12 @@ object Driver {
     type BoxScope = Value
 
     /**
-      * Use standard widening.
+      * Use standard widenings.
       */
     val Standard = Value
 
     /**
-      * Use localized widening.
+      * Use localized widenings.
       */
     val Localized = Value
   }
@@ -89,17 +89,17 @@ object Driver {
     type BoxLocation = Value
 
     /**
-      * Put widening/narrowing points nowhere
+      * Put widenings/narrowings points nowhere
       */
     val None = Value
 
     /**
-      * Put widening/narrowing points at each unknown.
+      * Put widenings/narrowings points at each unknown.
       */
     val All = Value
 
     /**
-      * Put widening/narrowing points at each loop head.
+      * Put widenings/narrowings points at each loop head.
       */
     val Loop = Value
   }

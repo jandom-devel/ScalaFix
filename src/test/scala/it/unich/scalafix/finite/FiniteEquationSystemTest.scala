@@ -18,6 +18,7 @@
 
 package it.unich.scalafix.finite
 
+import it.unich.scalafix.utils.Relation
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 import org.scalatest.FunSpec
@@ -45,7 +46,7 @@ class FiniteEquationSystemTest extends FunSpec with PropertyChecks {
     inputUnknowns = Set(0, 1, 2, 3),
     initial = { (x: Int) => if (x == 3) 10.0 else 0.0 },
     unknowns = Set(0, 1, 2, 3),
-    infl = InfluenceRelation(Map(0 -> Set(0, 1, 2), 1 -> Set(2), 2 -> Set(1), 3 -> Set(1, 3))))
+    infl = Relation(Map(0 -> Set(0, 1, 2), 1 -> Set(2), 2 -> Set(1), 3 -> Set(1, 3))))
 
   val simpleEqsStrategy = HierarchicalOrdering[Int](Left, Val(0), Left, Val(1), Val(2), Val(3), Right, Right)
   val wideningBox: Box[Double] = { (x1, x2) => if (x2 > x1) Double.PositiveInfinity else x1 }
@@ -95,7 +96,7 @@ class FiniteEquationSystemTest extends FunSpec with PropertyChecks {
       assert(finalRho(3) === 10.0)
     }
 
-    it("gives the expected result starting from startRho with widening") {
+    it("gives the expected result starting from startRho with widenings") {
       val finalRho = solver(simpleEqs.withBoxes(wideningBox), startRho)
       assert(finalRho(0) === 0.0)
       assert(finalRho(1) === Double.PositiveInfinity)
@@ -103,7 +104,7 @@ class FiniteEquationSystemTest extends FunSpec with PropertyChecks {
       assert(finalRho(3) === 10.0)
     }
 
-    it("always returns a box solution with widening") {
+    it("always returns a box solution with widenings") {
       testCorrectness(simpleEqs.withBoxes(wideningBox), solver)
     }
   }

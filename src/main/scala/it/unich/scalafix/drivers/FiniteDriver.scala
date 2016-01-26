@@ -18,24 +18,18 @@
 
 package it.unich.scalafix.drivers
 
-import it.unich.scalafix.FixpointSolverListener.EmptyListener
 import it.unich.scalafix._
 import it.unich.scalafix.drivers.Driver._
 import it.unich.scalafix.finite._
-import it.unich.scalafix.lattice._
+import it.unich.scalafix.lattice.Domain
+import it.unich.scalafix.FixpointSolverListener.EmptyListener
 
 /**
   * This driver is a commodity interface for solving finite equation systems.
   */
 object FiniteDriver extends FixpointSolver with Driver {
   /**
-    * @inheritdoc
-    * This solver only works with finite equation systems.
-    */
-  type EQS[U, V] = FiniteEquationSystem[U, V]
-
-  /**
-    * Given an equation system and a box assignment, filter the assignment according to what specified in the input
+    * Given an equation system and a box assignment, filter the assignment according to what specified in the
     * parameter location and the graph ordering.
     *
     * @param eqs      an equation system
@@ -69,42 +63,8 @@ object FiniteDriver extends FixpointSolver with Driver {
     }
   }
 
-  def addLocalizedBoxes[U, V: DirectedPartialOrdering, E](eqs: GraphEquationSystem[U, V, E], widening: BoxAssignment[U, V],
-                                                          narrowing: BoxAssignment[U, V], ordering: Ordering[U]): FiniteEquationSystem[U, V] = {
-    val dop = DirectedPartialOrdering[V]
-    val newbody = new Body[U, V] {
-      def apply(rho: Assignment[U, V]) = {
-        (x: U) =>
-          val contributions = for (e <- eqs.ingoing(x)) yield {
-            val contrib = eqs.edgeAction(rho)(e)
-            val boxapply = eqs.sources(e).exists(ordering.lteq(x, _)) && !dop.lteq(contrib, rho(x))
-            (contrib, boxapply)
-          }
-          // if contribution is empty the unknown x has no right hand side... it seems
-          // reasonable to return the old value.
-          if (contributions.isEmpty)
-            rho(x)
-          else {
-            val result = contributions reduce { (x: (V, Boolean), y: (V, Boolean)) => (dop.upperBound(x._1, y._1), x._2 || y._2) }
-            //println((x, rho(x), contributions))
-            if (result._2) {
-              widening(x)(rho(x), result._1)
-            } else if (dop.lt(result._1, rho(x))) narrowing(x)(rho(x), result._1) else result._1
-          }
-      }
-    }
-
-    FiniteEquationSystem(
-      body = newbody,
-      initial = eqs.initial,
-      inputUnknowns = eqs.inputUnknowns,
-      unknowns = eqs.unknowns,
-      infl = if (widening.areIdempotent && narrowing.areIdempotent) eqs.infl else eqs.infl.withDiagonal
-    )
-  }
-
   /**
-    * Apply a finite fixpoint solver given standard paramete
+    * Apply a fixpoint solver given standard parameters
     *
     * @param solver   the solver to apply
     * @param eqs      the equation system
@@ -114,7 +74,7 @@ object FiniteDriver extends FixpointSolver with Driver {
     * @param listener a fixpoint listener
     * @return an assignment with the solution of the equation system
     */
-  def applySolver[U, V](
+  private def applySolver[U, V](
                          solver: Solver.Solver,
                          eqs: FiniteEquationSystem[U, V],
                          start: Assignment[U, V],
@@ -130,7 +90,7 @@ object FiniteDriver extends FixpointSolver with Driver {
       case Solver.HierarchicalOrderingSolver =>
         ordering.get match {
           case ho: HierarchicalOrdering[U] => HierarchicalOrderingSolver(eqs, start, ho, listener)
-          case _ => throw new DriverBadParameters("Ordering bust me a hierarchical order for the HierarchicalOrderingSolver")
+          case _ => throw new DriverBadParameters("Ordering must be hierarchical for the HierarchicalOrderingSolver to work")
         }
     }
   }
@@ -144,8 +104,8 @@ object FiniteDriver extends FixpointSolver with Driver {
     * @param boxscope        how to apply boxes (standard, localized, etc...)
     * @param boxstrategy     single phase, two phase, warrowing
     * @param restartstrategy if true, apply restart strategy in supported solvers
-    * @param wideningBox     a box used for widening
-    * @param narrowingBox    a box used for narrowing
+    * @param wideningBox     a box used for widenings
+    * @param narrowingBox    a box used for narrowings
     * @param listener        a fixpoint listener
     */
   case class Params[U, V](
@@ -161,11 +121,17 @@ object FiniteDriver extends FixpointSolver with Driver {
                          ) extends BaseParams[U, V]
 
   /**
+    * @inheritdoc
+    * This solver only works with finite equation systems.
+    */
+  type EQS[U, V] = FiniteEquationSystem[U, V]
+
+  /**
     * Returns parameters for solving an equation system with the standard CC77 approach
     *
     * @param solver       the real solver to use
-    * @param wideningBox  a box used for widening
-    * @param narrowingBox a box used for narrowing
+    * @param wideningBox  a box used for widenings
+    * @param narrowingBox a box used for narrowings
     */
   def CC77[U, V](solver: Solver.Solver, wideningBox: Box[V], narrowingBox: Box[V]) =
     Params[U, V](solver, null, BoxLocation.Loop, BoxScope.Standard, BoxStrategy.TwoPhases, false, wideningBox, narrowingBox, EmptyListener)
@@ -176,7 +142,7 @@ object FiniteDriver extends FixpointSolver with Driver {
     * @param eqs    the equation system to solve
     * @param params the parameters for the solver
     */
-  def apply[U, V: DirectedPartialOrdering, E](eqs: GraphEquationSystem[U, V, E], params: Params[U, V]): Assignment[U, V] = {
+  def apply[U, V: Domain, E](eqs: GraphEquationSystem[U, V, E], params: Params[U, V]): Assignment[U, V] = {
     import params._
 
     val startAssn = if (params.start == null) eqs.initial else start
@@ -198,7 +164,7 @@ object FiniteDriver extends FixpointSolver with Driver {
     }
 
     val restart: (V, V) => Boolean =
-      if (restartstrategy) { (x, y) => DirectedPartialOrdering[V].lt(x, y) }
+      if (restartstrategy) { (x, y) => Domain[V].lt(x, y) }
       else { (x, y) => false }
 
     boxstrategy match {
@@ -209,10 +175,12 @@ object FiniteDriver extends FixpointSolver with Driver {
       case BoxStrategy.TwoPhases =>
         val widening = boxFilter[U, V](eqs, wideningBox, boxlocation, ordering)
         val withWidening = boxApply(eqs, widening, boxscope, ordering)
+        listener.ascendingBegins(startAssn)
         val ascendingAssignment = applySolver(solver, withWidening, startAssn, ordering, restart, listener)
         val narrowing = boxFilter[U, V](eqs, narrowingBox, boxlocation, ordering)
-        // localizing narrowing does not seem useful
+        // localizing narrowings does not seem useful
         val withNarrowing = boxApply(eqs, narrowing, BoxScope.Standard, ordering)
+        listener.descendingBegins(startAssn)
         applySolver(solver, withNarrowing, ascendingAssignment, ordering, restart, listener)
       case BoxStrategy.Warrowing =>
         if (boxscope == BoxScope.Localized) {
@@ -221,7 +189,7 @@ object FiniteDriver extends FixpointSolver with Driver {
           val withUpdate = if (widening.isEmpty && narrowing.isEmpty)
             eqs
           else
-            addLocalizedBoxes(eqs, widening, narrowing, ordering.get)
+            eqs.withLocalizedWarrowing(widening, narrowing, ordering.get)
           applySolver(solver, withUpdate, startAssn, ordering, restart, listener)
         } else {
           val warrowingAssignment = boxFilter[U, V](eqs, Box.warrowing(wideningBox, narrowingBox), boxlocation, ordering)

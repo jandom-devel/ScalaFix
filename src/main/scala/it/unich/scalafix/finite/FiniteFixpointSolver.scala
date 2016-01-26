@@ -36,7 +36,7 @@ abstract class FiniteFixpointSolver extends FixpointSolver {
 
   /**
     * The solve methods takes a finite equations system and parameters. If it terminates, the result is a
-    * solution of the equation set.
+    * solution of the equation system.
     *
     * @param eqs    the equation system to solve
     * @param params the parameters to apply for solving the equation system

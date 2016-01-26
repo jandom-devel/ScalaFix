@@ -34,8 +34,16 @@ object HierarchicalOrderingSolver extends FiniteFixpointSolver {
     * @param ordering the hierarchical ordering which drives the analysis.
     * @param listener the listener whose callbacks are invoked for debugging and tracing.
     */
-  case class Params[U, V](start: Assignment[U, V], ordering: HierarchicalOrdering[U], listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener) extends BaseParams[U, V]
+  case class Params[U, V](
+                           start: Assignment[U, V],
+                           ordering: HierarchicalOrdering[U],
+                           listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener
+                         ) extends BaseParams[U, V]
 
+  /**
+    * @inheritdoc
+    * This solver only works with finite equation systems.
+    */
   type EQS[U, V] = FiniteEquationSystem[U, V]
 
   def solve[U, V](eqs: EQS[U, V], params: Params[U, V]) = {
@@ -77,12 +85,18 @@ object HierarchicalOrderingSolver extends FiniteFixpointSolver {
           }
       }
     }
+    listener.completed(current)
     current
   }
 
   /**
     * A convenience method for calling the solver
     */
-  def apply[U, V](eqs: EQS[U, V], start: Assignment[U, V], ordering: HierarchicalOrdering[U], listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener) =
+  def apply[U, V](
+                   eqs: EQS[U, V],
+                   start: Assignment[U, V],
+                   ordering: HierarchicalOrdering[U],
+                   listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener
+                 ) =
     solve(eqs, Params(start, ordering, listener))
 }

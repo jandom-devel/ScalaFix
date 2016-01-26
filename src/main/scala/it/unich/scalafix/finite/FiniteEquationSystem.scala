@@ -20,7 +20,7 @@ package it.unich.scalafix.finite
 
 import it.unich.scalafix._
 import it.unich.scalafix.lattice.Magma
-import it.unich.scalafix.utils.IterableFunction
+import it.unich.scalafix.utils.{Relation, IterableFunction}
 
 /**
   * This is the abstract class for an equation system with a finite set of unknowns AND static dependencies between
@@ -42,7 +42,7 @@ abstract class FiniteEquationSystem[U, V] extends EquationSystem[U, V] {
     * The static relation between an unknown x and the unknowns y it influences. If `infl(x)` does not contain `y`, it
     * means that `eqs(rho)(y) == eqs(rho')(y)`, when `rho' = rho[x / eqs(rho)(x)]`.
     */
-  val infl: InfluenceRelation[U]
+  val infl: Relation[U]
 
   /**
     * Add boxes to the equation system.
@@ -100,7 +100,7 @@ object FiniteEquationSystem {
                                                 val initial: Assignment[U, V],
                                                 val inputUnknowns: Set[U],
                                                 val unknowns: Iterable[U],
-                                                val infl: InfluenceRelation[U]
+                                                val infl: Relation[U]
                                               )
     extends FiniteEquationSystem[U, V] with EquationSystem.BodyWithDependenciesFromBody[U, V] with WithBaseAssignment[U, V] with WithBoxes[U, V]
 
@@ -108,6 +108,6 @@ object FiniteEquationSystem {
     * A finite equation system given its constituents parts (with the exception of the body with dependencies which
     * is automatically computed).
     */
-  def apply[U, V](body: Body[U, V], initial: Assignment[U, V], inputUnknowns: Set[U], unknowns: Iterable[U], infl: InfluenceRelation[U]): FiniteEquationSystem[U, V] =
+  def apply[U, V](body: Body[U, V], initial: Assignment[U, V], inputUnknowns: Set[U], unknowns: Iterable[U], infl: Relation[U]): FiniteEquationSystem[U, V] =
     new SimpleFiniteEquationSystem(body, initial, inputUnknowns, unknowns, infl)
 }

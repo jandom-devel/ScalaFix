@@ -19,22 +19,22 @@
 package it.unich.scalafix.utils
 
 /**
-  * An `IterableFunction` is a partial function which may be iterated to get a collection
+  * An `IterableFunction` is a partial function with an iterator which returns the collection
   * of all its bindings. It is half way between a `PartialFunction` and a `Map`.
   *
-  * @tparam U the domain of the function.
-  * @tparam T the codomain of the function.
+  * @tparam A the domain of the function.
+  * @tparam B the codomain of the function.
   */
-abstract class IterableFunction[U, +T] extends PartialFunction[U, T] with Iterable[(U, T)] {
+trait IterableFunction[A, +B] extends PartialFunction[A, B] with Iterable[(A, B)] {
   /**
     * Returns the domain of the function.
     */
-  def keys: Iterable[U]
+  def keys: Iterable[A]
 
-  /**
-    * Prints a sequence of all the bindings.
-    */
-  override def toString = (for ((u, v) <- iterator) yield s"${u} -> ${v}").mkString("[", " ,", "]")
+  override def addString(b: StringBuilder, start: String, sep: String, end: String): StringBuilder =
+    this.iterator.map { case (k, v) => k + " -> " + v }.addString(b, start, sep, end)
+
+  override def stringPrefix: String = "IterableFunction"
 }
 
 object IterableFunction {
@@ -52,7 +52,7 @@ object IterableFunction {
   /**
     * An iterable function returned by an (eventually mutable) map.
     */
-  implicit class MapIterableFunction[U,T](m: collection.Map[U,T]) extends IterableFunction[U,T] {
+  implicit class MapIterableFunction[U, T](m: collection.Map[U, T]) extends IterableFunction[U, T] {
     def apply(x: U) = m(x)
 
     def isDefinedAt(x: U) = m.isDefinedAt(x)

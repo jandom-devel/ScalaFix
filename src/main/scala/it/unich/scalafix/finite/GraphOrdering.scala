@@ -19,9 +19,9 @@
 package it.unich.scalafix.finite
 
 /**
-  * A GraphOrdering is an ordering on objects of the type `T` (which should be thought of
+  * A GraphOrdering is an ordering on objects of the type `N` (which should be thought of
   * as nodes of a graph), where for each object we mark whether it is an head element or not.
-  * Note that a graph ordering generally considers only a subset of the elements of type `T`,
+  * Note that a graph ordering generally considers only a subset of the elements of type `N`,
   * those returned by the `toSeq` method. The result of applying any method of this trait
   * on any element which is not part of the domain is not specified.
   *
@@ -34,15 +34,20 @@ abstract class GraphOrdering[N] extends Ordering[N] {
   def toSeq: Seq[N]
 
   /**
-    * It returns whether `u` is an head element.
+    * Defines the prefix of this object's toString representation.
     */
-  def isHead(x: N): Boolean
+  def stringPrefix: String
+
+  /**
+    * It returns whether `n` is an head element.
+    */
+  def isHead(n: N): Boolean
 
   /**
     * Converts a GraphOrdering into a string composed by the sequence of its elements in the correct order. Head
     * elements are marked with parenthesis.
     */
-  override def toString = (toSeq map { x => if (isHead(x)) x.toString else "(" + x.toString + ")" }).mkString("[ ", " ", " ]")
+  override def toString = stringPrefix + (toSeq map { x => if (isHead(x)) x.toString else "(" + x.toString + ")" }).mkString("( ", " ", " )")
 }
 
 object GraphOrdering {
@@ -50,17 +55,19 @@ object GraphOrdering {
   /**
     * A graph ordering where each element is an head, and the order is given by the sequence `elements`.
     */
-  private final class TrivialGraphOrdering[N](val elements: Seq[N]) extends GraphOrdering[N] {
-    def toSeq = elements
+  private final class TrivialGraphOrdering[N](seq: Seq[N]) extends GraphOrdering[N] {
+    val stringPrefix = "GraphOrdering"
+
+    def toSeq = seq
 
     def isHead(x: N) = true
 
-    def compare(x: N, y: N) = elements.indexOf(x) - elements.indexOf(y)
+    def compare(x: N, y: N) = seq.indexOf(x) - seq.indexOf(y)
   }
 
   /**
     * Build a graph ordering where each element is an head, and the order is given by the sequence of `elements`.
-    * @todo Implementation is not particularly efficient and can be improved using memoization
+    * @todo Implementation is inefficient and can be improved using memoization
     */
   def apply[N](elements: N*): GraphOrdering[N] = new TrivialGraphOrdering(elements)
 }

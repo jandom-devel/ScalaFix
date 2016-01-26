@@ -19,7 +19,7 @@
 package it.unich.scalafix.infinite
 
 import scala.collection.mutable
-import it.unich.scalafix.{FixpointSolverListener, EquationSystem}
+import it.unich.scalafix.{Assignment, FixpointSolverListener, EquationSystem}
 
 /**
   * A local fixpoint solver based on a worklist with priorities.
@@ -31,13 +31,14 @@ object PriorityWorkListSolver extends LocalFixpointSolver {
     *
     * @param start    the initial assignment.
     * @param wanted   the collection of unknowns for which we want a solution.
-    * @param ordering an ordering on all unknowns.
+    * @param ordering an optional ordering on all unknowns.
     * @param listener the listener whose callbacks are called for debugging and tracing.
     */
-  case class Params[U, V](start: U => V,
-                          wanted: Iterable[U],
-                          ordering: Ordering[U] = new DynamicPriority[U],
-                          listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener
+  case class Params[U, V](
+                           start: Assignment[U,V],
+                           wanted: Iterable[U],
+                           ordering: Ordering[U] = new DynamicPriority[U],
+                           listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener
                          ) extends LocalBaseParams[U, V]
 
   type EQS[U, V] = EquationSystem[U, V]
@@ -64,7 +65,7 @@ object PriorityWorkListSolver extends LocalFixpointSolver {
     }
   }
 
-  def solve[U, V](eqs: EquationSystem[U, V], params: Params[U, V]) = {
+  def solve[U, V](eqs: EQS[U, V], params: Params[U, V]) = {
     import params._
 
     val infl = new mutable.HashMap[U, mutable.Set[U]] with mutable.MultiMap[U, U] {
@@ -91,16 +92,19 @@ object PriorityWorkListSolver extends LocalFixpointSolver {
         workList ++= infl(x)
       }
     }
+    listener.completed(current)
     current
   }
 
   /**
     * A convenience method for calling the solver
     */
-  def apply[U, V](eqs: EquationSystem[U, V],
-                  start: U => V,
-                  wanted: Iterable[U],
-                  ordering: Ordering[U] = new DynamicPriority[U],
-                  listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener) =
+  def apply[U, V](
+                   eqs: EQS[U, V],
+                   start: Assignment[U,V],
+                   wanted: Iterable[U],
+                   ordering: Ordering[U] = new DynamicPriority[U],
+                   listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener
+                 ) =
     solve(eqs, Params(start, wanted, ordering, listener))
 }

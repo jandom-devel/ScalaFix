@@ -18,14 +18,14 @@
 
 package it.unich.scalafix
 
-import it.unich.scalafix.lattice.{Magma, DirectedPartialOrdering}
+import it.unich.scalafix.lattice.{Domain, Magma}
 
 import scala.language.implicitConversions
 
 /**
   * A Box is a way to combine two values into a new one. It is a specialization of the functional type
   * `(V,V) => V`, where the first parameter is the old value of an unknown and the second parameter
-  * is the new contribution. Both widening and narrowing are examples of boxes. Boxes are mutable, i.e.,
+  * is the new contribution. Both widenings and narrowings are examples of boxes. Boxes are mutable, i.e.,
   * the apply method may give different results for the same input when called multiple times.
   *
   * Another function of boxes is to be blueprints for building other equivalent boxes. Each box has a copy
@@ -173,8 +173,8 @@ object Box {
   /**
     * A box given by the upper bound of a type `V` endowed with a directed partial ordering.
     */
-  def upperBound[V: DirectedPartialOrdering]: ImmutableBox[V] =
-    new FromFunction(DirectedPartialOrdering[V].upperBound, true)
+  def upperBound[V: Domain]: ImmutableBox[V] =
+    new FromFunction(Domain[V].upperBound, true)
 
   /**
     * A box given by the magma operator on a type `V`.
@@ -184,7 +184,7 @@ object Box {
 
   /**
     * A mutable box which behaves as `this` for the first `delay` steps and as `that` for the rest of its
-    * existence. This may be used to implement delayed widening and narrowing.
+    * existence. This may be used to implement delayed widenings and narrowings.
     */
   def cascade[V](first: Box[V], delay: Int, second: Box[V]): Box[V] = {
     require(delay >= 0)
@@ -197,14 +197,14 @@ object Box {
   }
 
   /**
-    * A warrowing, obtained combining the given widening and narrowing, as defined in the paper:
+    * A warrowing, obtained combining the given widenings and narrowings, as defined in the paper:
     * Amato, Scozzari, Seidl, Apinis, Vodjani
-    * "Efficiently intertwining widening and narrowing".
+    * "Efficiently intertwining widenings and narrowings".
     * Science of Computer Programming
     *
     * @tparam V the type of values, should be partially ordered
-    * @param widening  is a widening over V
-    * @param narrowing is a narrowing over V
+    * @param widening  is a widenings over V
+    * @param narrowing is a narrowings over V
     */
   def warrowing[V <: PartiallyOrdered[V]](widening: Box[V], narrowing: Box[V]): Box[V] = {
     if (widening.isRight && narrowing.isRight)
@@ -224,14 +224,14 @@ object Box {
   }
 
   /**
-    * A warrowing, obtaiend combining the given widening and narrowing, as defined in the paper:
+    * A warrowing, obtaiend combining the given widenings and narrowings, as defined in the paper:
     * Amato, Scozzari, Seidl, Apinis, Vodjani
-    * "Efficiently intertwining widening and narrowing".
+    * "Efficiently intertwining widenings and narrowings".
     * Science of Computer Programming
     *
     * @tparam V the type of values, should be endowed with a partial ordering
-    * @param widening  is widening over V
-    * @param narrowing is a narrowing over V
+    * @param widening  is widenings over V
+    * @param narrowing is a narrowings over V
     */
   def warrowing[V: PartialOrdering](widening: Box[V], narrowing: Box[V]): Box[V] = {
     if (widening.isRight && narrowing.isRight)

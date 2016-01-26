@@ -76,7 +76,7 @@ object Body {
       if (init.isDefinedAt(x)) comb(init(x), body(rho)(x)) else body(rho)(x)
     }
   }
-  
+
   private final class BodyFromFunction[U, V](f: Assignment[U, V] => Assignment[U, V]) extends Body[U, V] {
     def apply(rho: Assignment[U, V]) = f(rho)
   }

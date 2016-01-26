@@ -21,9 +21,9 @@ package it.unich.scalafix.lattice
 import scala.language.implicitConversions
 
 /**
-  * A magma is a set with a binary operation. The magma trait is a typeclass for magmas,
+  * A magma is a set with a binary operation. The magma trait is a type class for magmas,
   * which defines a single binary operation called `op`.
-  * If an implicit object of type `Magma[A]` is available, then a binary operator `|+|`
+  * If an implicit object of type `Magma[A]` is in scope, then a binary operator `|+|`
   * corresponding to the magma operation is available for objects of type `A`.
   */
 trait Magma[A] {
@@ -32,23 +32,27 @@ trait Magma[A] {
     */
   def op(x: A, y: A): A
 
-  class Ops(val lhs: A) {
+  class Ops(lhs: A) {
     def |+|(rhs: A): A = op(lhs, rhs)
   }
 }
 
 object Magma {
   /**
-    * Add a syntactic sugar to easily get the current implicit Magma.
+    * Add syntactic sugar to easily get the current implicit Magma.
     */
   def apply[A](implicit magma: Magma[A]) = magma
-
-  implicit def magmaOps[A](a: A)(implicit magma: Magma[A]) = new magma.Ops(a)
 
   /**
     * An implicit magma whose op operator corresponds to the upper bound of a directed partial ordering.
     */
-  implicit def magmaOp[A: DirectedPartialOrdering] = new Magma[A] {
-    def op(x: A, y:A) = implicitly[DirectedPartialOrdering[A]].upperBound(x,y)
+  implicit def domainIsMagma[A](implicit dom: Domain[A]) = new Magma[A] {
+    def op(x: A, y:A) = dom.upperBound(x,y)
   }
+
+  /**
+    * An implicit conversion from `A` to `Magma[A].Ops`, which allows the seamsless
+    * use of the `|+|` operator.
+    */
+  implicit def infixMagmaOps[A](a: A)(implicit magma: Magma[A]): Magma[A]#Ops = new magma.Ops(a)
 }

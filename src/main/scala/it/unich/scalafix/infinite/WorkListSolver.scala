@@ -19,7 +19,7 @@
 package it.unich.scalafix.infinite
 
 import scala.collection.mutable
-import it.unich.scalafix.{FixpointSolverListener, EquationSystem}
+import it.unich.scalafix.{Assignment, FixpointSolverListener, EquationSystem}
 
 /**
   * A local fixpoint solver based on a worklist.
@@ -33,14 +33,15 @@ object WorkListSolver extends LocalFixpointSolver {
     * @param wanted   the collection of unknowns for which we want a solution.
     * @param listener the listener whose callbacks are invoked for debugging and tracing.
     */
-  case class Params[U, V](start: U => V,
-                          wanted: Iterable[U],
-                          listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener
+  case class Params[U, V](
+                           start: Assignment[U,V],
+                           wanted: Iterable[U],
+                           listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener
                          ) extends LocalBaseParams[U, V]
 
   type EQS[U, V] = EquationSystem[U, V]
 
-  def solve[U, V](eqs: EquationSystem[U, V], params: Params[U, V]) = {
+  def solve[U, V](eqs: EQS[U, V], params: Params[U, V]) = {
     import params._
 
     val infl = new mutable.HashMap[U, mutable.Set[U]] with mutable.MultiMap[U, U] {
@@ -67,12 +68,18 @@ object WorkListSolver extends LocalFixpointSolver {
         workList ++= infl(x)
       }
     }
+    listener.completed(current)
     current
   }
 
   /**
     * A convenience method for calling the solver
     */
-  def apply[U, V](eqs: EquationSystem[U, V], start: U => V, wanted: Iterable[U], listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener) =
+  def apply[U, V](
+                   eqs: EQS[U, V],
+                   start: Assignment[U,V],
+                   wanted: Iterable[U],
+                   listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener
+                 ) =
     solve(eqs, Params(start, wanted, listener))
 }

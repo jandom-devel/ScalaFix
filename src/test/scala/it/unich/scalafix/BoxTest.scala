@@ -18,16 +18,17 @@
 
 package it.unich.scalafix
 
-import it.unich.scalafix.lattice.IntOrderings._
-
+import it.unich.scalafix.lattice.Domain
 import org.scalatest.FunSpec
 import org.scalatest.prop.PropertyChecks
 
 class BoxTest extends FunSpec with PropertyChecks {
+  implicit val IntIsPartialOrdering: PartialOrdering[Int] = implicitly[Ordering[Int]]
 
-  val maxbox: Box[Int] = { (x: Int, y: Int) => x max y }
-
-  val intbox: Box[Int] = Box.upperBound[Int]
+  val intWidening: Box[Int] = { (x: Int, y: Int) => if (x >= y) x else Int.MaxValue }
+  val intNarrowing: Box[Int] = { (x: Int, y: Int) => if (x == Int.MaxValue) y else x }
+  val intMax: Box[Int] = { (x: Int, y: Int) => x max y }
+  val intUpperBound: Box[Int] = Box.upperBound[Int]
 
   def testIsNotRight[V](box: Box[V]): Unit = {
     it("is not a right box") {
@@ -82,7 +83,7 @@ class BoxTest extends FunSpec with PropertyChecks {
   }
 
   describe("The box obtained from the max function using fromFunction") {
-    val box = maxbox
+    val box = intMax
     it("returns the maximum element") {
       forAll { (x: Int, y: Int) =>
         assertResult(x max y)(box(x, y))
@@ -93,7 +94,7 @@ class BoxTest extends FunSpec with PropertyChecks {
   }
 
   describe("The box obtained from the upper bound of integer ordering") {
-    val box = intbox
+    val box = intUpperBound
     it("returns the maximum element") {
       forAll { (x: Int, y: Int) =>
         assertResult(x max y)(box(x, y))
@@ -103,8 +104,8 @@ class BoxTest extends FunSpec with PropertyChecks {
     testImmutable(box)
   }
 
-  describe("The warrowing obtained by combining standard widening and narrowing on a directed partial ordering") {
-    val box = Box.warrowing(intwidening, intnarrowing)
+  describe("The warrowing obtained by combining standard widenings and narrowings on a directed partial ordering") {
+    val box = Box.warrowing(intWidening, intNarrowing)
     it("returns the expected results") {
       assertResult(4)(box(box(3, 5), 4))
       assertResult(3)(box(box(3, 2), 1))
@@ -121,7 +122,7 @@ class BoxTest extends FunSpec with PropertyChecks {
 
   describe("The box obtained by cascading") {
     it("generate an exception if delay is negative") {
-      intercept[IllegalArgumentException](Box.cascade(Box.right[Int], -3, maxbox))
+      intercept[IllegalArgumentException](Box.cascade(Box.right[Int], -3, intMax))
     }
     describe("when combining two right boxes") {
       val box = Box.cascade(Box.right[Int], 2, Box.right)
@@ -129,7 +130,7 @@ class BoxTest extends FunSpec with PropertyChecks {
       testImmutable(box)
     }
     describe("when combining a right box with a max box with positive delay") {
-      val box = Box.cascade(Box.right[Int], 2, maxbox)
+      val box = Box.cascade(Box.right[Int], 2, intMax)
       it("behaves as a right box for delay steps") {
         assertResult(2)(box(3, 2))
         assertResult(2)(box(3, 2))
@@ -143,7 +144,7 @@ class BoxTest extends FunSpec with PropertyChecks {
       testMutable(box)
     }
     describe("when combining a right box with a max box with null delay") {
-      val box = Box.cascade(Box.right[Int], 0, maxbox)
+      val box = Box.cascade(Box.right[Int], 0, intMax)
       it("behaves as the max box") {
         assertResult(3)(box(3, 2))
         assertResult(3)(box(3, 2))
@@ -152,7 +153,7 @@ class BoxTest extends FunSpec with PropertyChecks {
       testImmutable(box)
     }
     describe("when the second box is a right box and delay is zero") {
-      val box = Box.cascade(maxbox, 0, Box.right[Int])
+      val box = Box.cascade(intMax, 0, Box.right[Int])
       testIsRight(box)
       testImmutable(box)
     }
@@ -160,10 +161,10 @@ class BoxTest extends FunSpec with PropertyChecks {
 
   describe("Delaying the max box") {
     it("generate an exception if delay is negative") {
-      intercept[IllegalArgumentException](maxbox.delayed(-3))
+      intercept[IllegalArgumentException](intMax.delayed(-3))
     }
     describe("when combining a right box with a max box with positive delay") {
-      val box = maxbox.delayed(2)
+      val box = intMax.delayed(2)
       it("behaves as a right box for delay steps") {
         assertResult(2)(box(3, 2))
         assertResult(2)(box(3, 2))
@@ -177,7 +178,7 @@ class BoxTest extends FunSpec with PropertyChecks {
       testMutable(box)
     }
     describe("when combining a right box with a max box with null delay") {
-      val box = maxbox.delayed(0)
+      val box = intMax.delayed(0)
       it("behaves as the max box") {
         assertResult(3)(box(3, 2))
         assertResult(3)(box(3, 2))
@@ -193,8 +194,8 @@ class BoxTest extends FunSpec with PropertyChecks {
     testImmutable(box)
   }
 
-  describe("A warrowing built from a delayed widening") {
-    val box = Box.warrowing(maxbox.delayed(2), Box.left[Int])
+  describe("A warrowing built from a delayed widenings") {
+    val box = Box.warrowing(intMax.delayed(2), Box.left[Int])
     testIsNotRight(box)
     testMutable(box)
   }

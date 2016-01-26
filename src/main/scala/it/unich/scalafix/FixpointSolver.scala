@@ -54,3 +54,7 @@ abstract class FixpointSolver {
     */
   type EQS[U, V] <: EquationSystem[U, V]
 }
+
+object FixpointSolver {
+
+}

@@ -35,7 +35,7 @@ abstract class HierarchicalOrdering[N] extends GraphOrdering[N] {
   /**
     * Converts a hierarchical ordering into a string on the basis of its parenthesized sequence
     */
-  override def toString = toSeqWithParenthesis.mkString(" ")
+  override def toString = toSeqWithParenthesis.mkString(stringPrefix, " ", "")
 }
 
 /**
@@ -67,7 +67,7 @@ object HierarchicalOrdering {
     *
     * @param seq a sequence of HOElements.
     */
-   def validateSeqWithParenthesis[N](seq: TraversableOnce[HOElement[N]]): Boolean = {
+  private def validateSeqWithParenthesis[N](seq: TraversableOnce[HOElement[N]]): Boolean = {
     var opened = 0
     var lastopened = false
     for (s <- seq) {
@@ -102,15 +102,19 @@ object HierarchicalOrdering {
     * A hierarchical ordering defined by a sequence of HOElements.
     */
   private final class SequenceBasedHierarchicalOrdering[N](seq: IndexedSeq[HOElement[N]]) extends HierarchicalOrdering[N] {
-    if (!validateSeqWithParenthesis(seq)) throw new IllegalArgumentException("Invalid sequence of elements and parenthesis")
+    require(validateSeqWithParenthesis(seq), "Invalid sequence of elements and parenthesis")
 
-    private lazy val orderingIndex: Map[N, Int] = ( for { (x, i) <- seq.zipWithIndex; if x.isInstanceOf[Val[N]]; Val(u) = x} yield u -> i) (collection.breakOut)
+    val stringPrefix = "HierarchicalOrdering"
+
+    private lazy val orderingIndex: Map[N, Int] = (for {
+      (x, i) <- seq.zipWithIndex; if x.isInstanceOf[Val[N]]; Val(u) = x
+    } yield u -> i) (collection.breakOut)
 
     def toSeq = for (x <- seq; if x.isInstanceOf[Val[N]]; Val(u) = x) yield u
 
     def toSeqWithParenthesis = seq
 
-    def isHead(x: N) = (0 until seq.length).exists { (i) => seq(i) == Left && seq(i+1) == Val(x) }
+    def isHead(x: N) = (0 until seq.length).exists { (i) => seq(i) == Left && seq(i + 1) == Val(x) }
 
     def compare(x: N, y: N) = orderingIndex(x) - orderingIndex(y)
   }
@@ -121,6 +125,8 @@ object HierarchicalOrdering {
     * graph.
     */
   private final class GraphOrderingBasedHO[N](o: GraphOrdering[N]) extends HierarchicalOrdering[N] {
+    val stringPrefix = "HierarchicalOrdering"
+
     def toSeq = o.toSeq
 
     def isHead(x: N) = o.isHead(x)
@@ -143,4 +149,5 @@ object HierarchicalOrdering {
       buffer.toSeq
     }
   }
+
 }

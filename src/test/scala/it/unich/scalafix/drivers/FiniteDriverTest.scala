@@ -18,18 +18,15 @@
 
 package it.unich.scalafix
 
-import it.unich.scalafix.FixpointSolverListener.EmptyListener
 import it.unich.scalafix.drivers.FiniteDriver
 import it.unich.scalafix.drivers.Driver
 import it.unich.scalafix.finite.GraphEquationSystem
-import it.unich.scalafix.lattice.IntOrderings
 import org.scalatest.FunSpec
 import org.scalatest.prop.PropertyChecks
 
 class FiniteDriverTest extends FunSpec with PropertyChecks {
 
   import Driver._
-  import IntOrderings._
 
   val simpleEqs = GraphEquationSystem[Int, Double, Char](
     edgeAction = { (rho: Int => Double) => {

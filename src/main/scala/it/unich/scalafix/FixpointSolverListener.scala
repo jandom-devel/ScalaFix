@@ -38,6 +38,14 @@ trait FixpointSolverListener[-U, -V] {
   def initialized[U1 <: U, V1 <: V](rho: U1 => V1)
 
   /**
+    * This method is called when the final assignment has been computed.
+    *
+    * @param rho the current assignment
+    */
+  @elidable(ASSERTION)
+  def completed[U1 <: U, V1 <: V](rho: U1 => V1)
+
+  /**
     * This method is called when an unknown `u` is evaluated.
     *
     * @param rho    the current assignment
@@ -73,6 +81,8 @@ abstract class FixpointSolverListenerAdapter[-U, -V] extends FixpointSolverListe
 
   def initialized[U1, V1](rho: U1 => V1) {}
 
+  def completed[U1, V1](rho: U1 => V1) {}
+
   def ascendingBegins[U1, V1](rho: U1 => V1) {}
 
   def descendingBegins[U1, V1](rho: U1 => V1) {}
@@ -91,6 +101,10 @@ object FixpointSolverListener {
   object DebugListener extends FixpointSolverListener[Any, Any] {
     def evaluated[U1, V1](rho: U1 => V1, u: U1, newval: V1) {
       println(s"evaluated: ${u} oldvalue: ${rho(u)} newvalue ${newval}")
+    }
+
+    def completed[U1, V1](rho: U1 => V1) {
+      println(s"completed with assignment ${rho}")
     }
 
     def initialized[U1, V1](rho: U1 => V1) {

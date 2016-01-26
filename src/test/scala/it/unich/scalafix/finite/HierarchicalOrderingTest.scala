@@ -19,6 +19,7 @@
 package it.unich.scalafix.finite
 
 import HierarchicalOrdering._
+import it.unich.scalafix.utils.Relation
 import org.scalatest.FunSpec
 import org.scalatest.prop.TableDrivenPropertyChecks
 
@@ -28,22 +29,22 @@ class HierarchicalOrderingTest extends FunSpec with TableDrivenPropertyChecks {
   val seq1 = Seq(0, 1, 2, 3)
   val heads1 = Set(0, 1)
   val o1 = HierarchicalOrdering[Int](seqp1: _*)
-  val out1 = "( 0 ( 1 2 3 ) )"
+  val out1 = "HierarchicalOrdering( 0 ( 1 2 3 ) )"
 
   val seqp2 = Seq(Left, Val(3), Left, Val(2), Val(1), Right, Val(0), Right)
   val seq2 = Seq(3, 2, 1, 0)
   val heads2 = Set(3, 2)
   val o2 = HierarchicalOrdering[Int](seqp2: _*)
-  val out2 = "( 3 ( 2 1 ) 0 )"
+  val out2 = "HierarchicalOrdering( 3 ( 2 1 ) 0 )"
 
   val graph = Seq(1 -> 3, 1 -> 2, 2 -> 3, 3 -> 4, 4 -> 6, 4 -> 5, 4 -> 8, 5 -> 7, 6 -> 7, 7 -> 4, 7 -> 8, 8 -> 4, 8 -> 3, 8 -> 10, 8 -> 9, 9 -> 1, 10 -> 7)
-  val r = InfluenceRelation(graph)
+  val r = Relation(graph)
   val dfo = DFOrdering(r, 1 to 10, List(1))
   val o3 = HierarchicalOrdering(dfo)
   val seq3 = dfo.toSeq
   val heads3 = Seq(1,3,4,7)
   val seqp3 = Seq(Left, Val(1), Val(2), Left, Val(3), Left, Val(4), Val(5), Val(6), Left, Val(7), Val(8), Val(9), Val(10), Right, Right, Right, Right)
-  val out3 = "( 1 2 ( 3 ( 4 5 6 ( 7 8 9 10 ) ) ) )"
+  val out3 = "HierarchicalOrdering( 1 2 ( 3 ( 4 5 6 ( 7 8 9 10 ) ) ) )"
 
   val table = Table(("Ordering", "Parenthesized Sequence", "Sequence", "Heads", "Output"),
     (o1, seqp1, seq1, heads1, out1),

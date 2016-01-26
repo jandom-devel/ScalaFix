@@ -19,7 +19,7 @@
 package it.unich.scalafix
 
 import it.unich.scalafix.BoxAssignment.RestrictAssignment
-import it.unich.scalafix.lattice.DirectedPartialOrdering
+import it.unich.scalafix.lattice.Domain$
 
 import scala.language.implicitConversions
 
@@ -69,7 +69,7 @@ object BoxAssignment {
   /**
     * A constant box assignment maps the same box to all program points. Be careful because
     * if box has internal state, this is shared among all program points. For example, this
-    * is not suited for delayed widening or narrowing.
+    * is not suited for delayed widenings or narrowings.
     *
     * @tparam V the type of the values
     * @param box the box to return for each program point

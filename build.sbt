@@ -1,5 +1,3 @@
-// Project configuration
-
 version := "0.9"
 
 scalaVersion := "2.11.7"
@@ -14,3 +12,8 @@ libraryDependencies ++=  Seq(
 // Eclipse plugin
 
 EclipseKeys.eclipseOutput := Some("target.eclipse")
+
+// sbt-ide plugin
+
+ideOutputDirectory in Compile := Some(new File("target/idea/classes"))
+ideOutputDirectory in Test := Some(new File("target/idea/test-classes"))

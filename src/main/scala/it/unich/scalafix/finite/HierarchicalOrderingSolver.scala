@@ -18,37 +18,31 @@
 
 package it.unich.scalafix.finite
 
+import it.unich.scalafix.FixpointSolverListener.EmptyListener
+import it.unich.scalafix.{Assignment, FixpointSolverListener}
+
 import scala.collection.mutable
-import it.unich.scalafix.Assignment
-import it.unich.scalafix.FixpointSolverListener
 
 /**
   * A solver whose strategy in based on a hierarchical ordering.
   */
-object HierarchicalOrderingSolver extends FiniteFixpointSolver {
-
+object HierarchicalOrderingSolver {
   /**
-    * Parameters needed for the hierarchical ordering solver
+    * Solve a finite equation system.
     *
-    * @param start    the initial assignment.
-    * @param ordering the hierarchical ordering which drives the analysis.
-    * @param listener the listener whose callbacks are invoked for debugging and tracing.
+    * @tparam U type of the unknowns for the equation system
+    * @tparam V type of values of the equatiom system
+    * @param eqs      equation system to solve
+    * @param start    assignment to start the evaluation (defaults to `eqs.initial`)
+    * @param ordering a hierarchical ordering which specifies priorities between unknowns (defaults to the
+    *                 hierarchical ordering induce by the depth-first ordering over `eqs`)
+    * @param listener a listener to track the behaviour of the solver (defaults to `EmptyListener`)
+    * @return the solution of the equation system
     */
-  case class Params[U, V](
-                           start: Assignment[U, V],
-                           ordering: HierarchicalOrdering[U],
-                           listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener
-                         ) extends BaseParams[U, V]
-
-  /**
-    * @inheritdoc
-    * This solver only works with finite equation systems.
-    */
-  type EQS[U, V] = FiniteEquationSystem[U, V]
-
-  def solve[U, V](eqs: EQS[U, V], params: Params[U, V]) = {
+  def apply[U, V](eqs: FiniteEquationSystem[U, V])
+                 (start: Assignment[U, V], ordering: HierarchicalOrdering[U] = HierarchicalOrdering(DFOrdering(eqs)))
+                 (implicit listener: FixpointSolverListener[U, V] = EmptyListener): Assignment[U, V] = {
     import HierarchicalOrdering._
-    import params._
 
     val current = mutable.HashMap.empty[U, V].withDefault(start)
     listener.initialized(current)
@@ -88,15 +82,4 @@ object HierarchicalOrderingSolver extends FiniteFixpointSolver {
     listener.completed(current)
     current
   }
-
-  /**
-    * A convenience method for calling the solver
-    */
-  def apply[U, V](
-                   eqs: EQS[U, V],
-                   start: Assignment[U, V],
-                   ordering: HierarchicalOrdering[U],
-                   listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener
-                 ) =
-    solve(eqs, Params(start, ordering, listener))
 }

@@ -110,18 +110,18 @@ class FiniteEquationSystemTest extends FunSpec with PropertyChecks {
   }
 
   describe("The RoundRobinSolver") {
-    testExpectedResult(RoundRobinSolver(_, _))
+    testExpectedResult(RoundRobinSolver(_)(_))
   }
   describe("The WorkListSolver") {
-    testExpectedResult(WorkListSolver(_, _))
+    testExpectedResult(WorkListSolver(_)(_))
   }
   describe("The KleeneSolver") {
-    testExpectedResult(KleeneSolver(_, _))
+    testExpectedResult(KleeneSolver(_)(_))
   }
   describe("The PriorityWorkListSolver") {
-    testExpectedResult(PriorityWorkListSolver(_, _, simpleEqsStrategy))
+    testExpectedResult(PriorityWorkListSolver(_)(_, simpleEqsStrategy))
   }
   describe("The HierarchicalOrderingSolver") {
-    testExpectedResult(HierarchicalOrderingSolver(_, _, simpleEqsStrategy))
+    testExpectedResult(HierarchicalOrderingSolver(_)(_, simpleEqsStrategy))
   }
 }

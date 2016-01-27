@@ -18,13 +18,12 @@
 
 package it.unich.scalafix.infinite
 
-import it.unich.scalafix.{Body, FixpointSolverListenerAdapter, EquationSystem, Box}
 import it.unich.scalafix.utils.IterableFunction
-
-import scala.collection.mutable.Buffer
-
+import it.unich.scalafix.{Box, EquationSystem, FixpointSolverListenerAdapter}
 import org.scalatest.FunSpec
 import org.scalatest.prop.PropertyChecks
+
+import scala.collection.mutable.Buffer
 
 
 /**
@@ -48,7 +47,7 @@ class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
   val maxBox: Box[Int] = { (x, y) => x max y }
   val startRho = simpleEqs.initial
 
-  type SimpleSolver[U, V] = (EquationSystem[U, V], U => V, Seq[U]) => IterableFunction[U, V]
+  type SimpleSolver[U, V] = (EquationSystem[U, V],  Seq[U], U => V) => IterableFunction[U, V]
 
   class EvaluationOrderListener extends FixpointSolverListenerAdapter {
     val buffer = Buffer.empty[Any]
@@ -64,7 +63,7 @@ class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
     */
   def testExpectedResult(solver: SimpleSolver[Int, Int]) {
     it("gives the expected result starting from startRho with max") {
-      val finalRho = solver(simpleEqs.withBoxes(maxBox), startRho, Seq(4))
+      val finalRho = solver(simpleEqs.withBoxes(maxBox), Seq(4), startRho)
       assertResult(Set(0, 1, 2, 4))(finalRho.keys)
       assertResult(2)(finalRho(1))
       assertResult(2)(finalRho(2))
@@ -103,10 +102,10 @@ class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
   }
 
   describe("The WorkListSolver") {
-    testExpectedResult(WorkListSolver(_, _, _))
+    testExpectedResult(WorkListSolver(_)(_, _))
   }
 
   describe("The PriorityWorkListSolver") {
-    testExpectedResult(PriorityWorkListSolver(_, _, _))
+    testExpectedResult(PriorityWorkListSolver(_)(_, _))
   }
 }

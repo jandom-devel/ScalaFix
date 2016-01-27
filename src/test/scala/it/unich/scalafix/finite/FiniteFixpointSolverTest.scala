@@ -16,17 +16,15 @@
   * along with ScalaFix.  If not, see <http://www.gnu.org/licenses/>.
   */
 
-package it.unich.scalafix
+package it.unich.scalafix.finite
 
-import it.unich.scalafix.drivers.FiniteDriver
-import it.unich.scalafix.drivers.Driver
-import it.unich.scalafix.finite.GraphEquationSystem
+import it.unich.scalafix.FixpointSolver
 import org.scalatest.FunSpec
 import org.scalatest.prop.PropertyChecks
 
-class FiniteDriverTest extends FunSpec with PropertyChecks {
+class FiniteFixpointSolverTest extends FunSpec with PropertyChecks {
 
-  import Driver._
+  import FixpointSolver._
 
   val simpleEqs = GraphEquationSystem[Int, Double, Char](
     edgeAction = { (rho: Int => Double) => {
@@ -52,7 +50,7 @@ class FiniteDriverTest extends FunSpec with PropertyChecks {
   val onlyWideningSol = Map[Int, Double](0 -> 0, 1 -> Double.PositiveInfinity, 2 -> 10, 3 -> 11)
   val doublewidening = { (x: Double, y: Double) => if (x.isNegInfinity) y else if (x >= y) x else Double.PositiveInfinity }
   val doublenarrowing = { (x: Double, y: Double) => if (x.isPosInfinity) y else x }
-  val CC77params = FiniteDriver.CC77[Int, Double](Solver.WorkListSolver, doublewidening, doublenarrowing)
+  val CC77params = FiniteFixpointSolver.CC77[Int, Double](Solver.WorkListSolver, doublewidening, doublenarrowing)
 
   def assertSolution(m: Map[Int, Double])(b: Int => Double): Unit = {
     for (u <- simpleEqs.unknowns) assertResult(m(u),s"at unknown $u")(b(u))
@@ -61,27 +59,27 @@ class FiniteDriverTest extends FunSpec with PropertyChecks {
   describe("The finite driver") {
     it("may be called with CC77 parameters") {
       val params = CC77params
-      assertSolution(solution)(FiniteDriver(simpleEqs, params))
+      assertSolution(solution)(FiniteFixpointSolver(simpleEqs, params))
     }
 
     it("may use explicit initial assignment") {
-      val params = CC77params.copy[Int, Double](start = { _ => Double.NegativeInfinity })
-      assertSolution(emptysol)(FiniteDriver(simpleEqs, params))
+      val params = CC77params.copy[Int, Double](start = Some({ _ => Double.NegativeInfinity }))
+      assertSolution(emptysol)(FiniteFixpointSolver(simpleEqs, params))
     }
 
     it("may use a priority worklist solver") {
       val params = CC77params.copy[Int, Double](solver = Solver.PriorityWorkListSolver)
-      assertSolution(solution)(FiniteDriver(simpleEqs, params))
+      assertSolution(solution)(FiniteFixpointSolver(simpleEqs, params))
     }
 
     it("may use a hierarchical ordering solver") {
       val params = CC77params.copy[Int, Double](solver = Solver.HierarchicalOrderingSolver)
-      assertSolution(solution)(FiniteDriver(simpleEqs, params))
+      assertSolution(solution)(FiniteFixpointSolver(simpleEqs, params))
     }
 
     it("may avoid the descending chain") {
       val params = CC77params.copy[Int, Double](boxstrategy = BoxStrategy.OnlyWidening)
-      assertSolution(onlyWideningSol)(FiniteDriver(simpleEqs, params))
+      assertSolution(onlyWideningSol)(FiniteFixpointSolver(simpleEqs, params))
     }
   }
 }

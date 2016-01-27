@@ -18,35 +18,28 @@
 
 package it.unich.scalafix.finite
 
+import it.unich.scalafix.FixpointSolverListener.EmptyListener
+import it.unich.scalafix.{Assignment, FixpointSolverListener}
+
 import scala.collection.mutable
-import it.unich.scalafix.Assignment
-import it.unich.scalafix.FixpointSolverListener
 
 /**
   * A fixpoint solver based on a worklist.
   */
-object WorkListSolver extends FiniteFixpointSolver {
-
+object WorkListSolver {
   /**
-    * Parameters needed for the round robin solver
+    * Solve a finite equation system.
     *
-    * @param start    the initial assignment.
-    * @param listener the listener whose callbacks are invoked for debugging and tracing.
+    * @tparam U type of the unknowns for the equation system
+    * @tparam V type of values of the equatiom system
+    * @param eqs      equation system to solve
+    * @param start    a assignment to start the evaluation (defaults to `eqs.initial`)
+    * @param listener a listener to track the behaviour of the solver (defaults to `EmptyListener`)
+    * @return the solution of the equation system
     */
-  case class Params[U, V](
-                           start: Assignment[U, V],
-                           listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener
-                         ) extends BaseParams[U, V]
-
-  /**
-    * @inheritdoc
-    * This solver only works with finite equation systems.
-    */
-  type EQS[U, V] = FiniteEquationSystem[U, V]
-
-  def solve[U, V](eqs: EQS[U, V], params: Params[U, V]) = {
-    import params._
-
+  def apply[U, V](eqs: FiniteEquationSystem[U, V])
+                 (start: Assignment[U, V] = eqs.initial)
+                 (implicit listener: FixpointSolverListener[U, V] = EmptyListener): Assignment[U, V] = {
     val current = mutable.HashMap.empty[U, V].withDefault(start)
     listener.initialized(current)
     // is it better to use a Queue for a worklist ?
@@ -67,11 +60,4 @@ object WorkListSolver extends FiniteFixpointSolver {
     listener.completed(current)
     current
   }
-
-  def apply[U, V](
-                   eqs: EQS[U, V],
-                   start: Assignment[U, V],
-                   listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener
-                 ) =
-    solve(eqs, Params(start, listener))
 }

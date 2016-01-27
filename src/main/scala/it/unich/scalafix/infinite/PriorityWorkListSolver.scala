@@ -18,31 +18,15 @@
 
 package it.unich.scalafix.infinite
 
+import it.unich.scalafix.FixpointSolverListener.EmptyListener
+
 import scala.collection.mutable
-import it.unich.scalafix.{Assignment, FixpointSolverListener, EquationSystem}
+import it.unich.scalafix.{PartialAssignment, Assignment, FixpointSolverListener, EquationSystem}
 
 /**
   * A local fixpoint solver based on a worklist with priorities.
   */
-object PriorityWorkListSolver extends LocalFixpointSolver {
-
-  /**
-    * Parameters needed for the local priority worklist solver
-    *
-    * @param start    the initial assignment.
-    * @param wanted   the collection of unknowns for which we want a solution.
-    * @param ordering an optional ordering on all unknowns.
-    * @param listener the listener whose callbacks are called for debugging and tracing.
-    */
-  case class Params[U, V](
-                           start: Assignment[U,V],
-                           wanted: Iterable[U],
-                           ordering: Ordering[U] = new DynamicPriority[U],
-                           listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener
-                         ) extends LocalBaseParams[U, V]
-
-  type EQS[U, V] = EquationSystem[U, V]
-
+object PriorityWorkListSolver {
   /**
     * This is an dynamic ordering on unknowns: every time an unknown appears, it gets assigned a lower
     * priority than previous one (i.e., it comes earlier in the ordering). This is the default ordering
@@ -65,9 +49,22 @@ object PriorityWorkListSolver extends LocalFixpointSolver {
     }
   }
 
-  def solve[U, V](eqs: EQS[U, V], params: Params[U, V]) = {
-    import params._
-
+  /**
+    * Locally solve a finite equation system.
+    *
+    * @tparam U type of the unknowns for the equation system
+    * @tparam V type of values of the equatiom system
+    * @param eqs      equation system to solve
+    * @param wanted   the unknowns we want to solve
+    * @param start    assignment to start the evaluation (defaults to `eqs.initial`)
+    * @param ordering an ordering which specifies priorities between unknowns (defaults to a dynamical ordering
+    *                 induced by evaluation)
+    * @param listener a listener to track the behaviour of the solver (defaults to the empty listener)
+    * @return the solution of the equation system
+    */
+  def apply[U,V](eqs: EquationSystem[U, V])
+                (wanted: Iterable[U], start: Assignment[U, V] = eqs.initial, ordering: Ordering[U] = new DynamicPriority[U])
+                (implicit listener: FixpointSolverListener[U, V] = EmptyListener): PartialAssignment[U,V] = {
     val infl = new mutable.HashMap[U, mutable.Set[U]] with mutable.MultiMap[U, U] {
       override def makeSet = new mutable.LinkedHashSet[U]
     }
@@ -95,16 +92,4 @@ object PriorityWorkListSolver extends LocalFixpointSolver {
     listener.completed(current)
     current
   }
-
-  /**
-    * A convenience method for calling the solver
-    */
-  def apply[U, V](
-                   eqs: EQS[U, V],
-                   start: Assignment[U,V],
-                   wanted: Iterable[U],
-                   ordering: Ordering[U] = new DynamicPriority[U],
-                   listener: FixpointSolverListener[U, V] = FixpointSolverListener.EmptyListener
-                 ) =
-    solve(eqs, Params(start, wanted, ordering, listener))
 }

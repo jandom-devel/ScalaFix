@@ -18,43 +18,79 @@
 
 package it.unich.scalafix
 
-import scala.language.higherKinds
-
 /**
-  * This is the common ancestor for all fixpoint solvers of equation systems. It is just a marker trait.
-  * All fixpoint solvers have different apply methods (with different parameters) which may be used
-  * to solve an equation system.
+  * The `FixpointSolver` object contains many enumerations and auxiliary classes which are used by
+  * other fixpoint solvers.
   */
-abstract class FixpointSolver {
-
-  /**
-    * Each fixpoint solver needs an equation system and some parameters. Parameters are generally different
-    * for each fixpoint solver, hence they are provided as an inner type. Each type of parameter should
-    * inherit from BaseParams.
-    */
-  abstract protected class BaseParams[U, V] {
-    /**
-      * The initial assignment to start the analysis.
-      */
-    val start: Assignment[U, V]
-
-    /**
-      * A listener for debugging or tracing purposes.
-      */
-    val listener: FixpointSolverListener[U, V]
-  }
-
-  /**
-    * The type of parameters supported by a given fixpoint solver.
-    */
-  type Params[U, V] <: BaseParams[U, V]
-
-  /**
-    * This is the subclass of equation systems the solver may work with.
-    */
-  type EQS[U, V] <: EquationSystem[U, V]
-}
-
 object FixpointSolver {
 
+  /**
+    * This exception is thrown when the parameters provided to the `Driver` are not correct.
+    */
+  class DriverBadParameters(msg: String) extends Exception(msg)
+
+  /**
+    * An enumeration with the solvers supported by this driver.
+    */
+  object Solver extends Enumeration {
+    type Solver = Value
+
+    val KleeneSolver = Value
+    val RoundRobinSolver = Value
+    val PriorityWorkListSolver = Value
+    val WorkListSolver = Value
+    val HierarchicalOrderingSolver = Value
+  }
+
+  object BoxStrategy extends Enumeration {
+    type BoxStrategy = Value
+
+    /**
+      * Only apply widenings.
+      */
+    val OnlyWidening = Value
+
+    /**
+      * Standard two pass widenings/narrowings iteration.
+      */
+    val TwoPhases = Value
+
+    /**
+      * Single pass with a warrowing.
+      */
+    val Warrowing = Value
+  }
+
+  object BoxScope extends Enumeration {
+    type BoxScope = Value
+
+    /**
+      * Use standard widenings.
+      */
+    val Standard = Value
+
+    /**
+      * Use localized widenings.
+      */
+    val Localized = Value
+  }
+
+  object BoxLocation extends Enumeration {
+    type BoxLocation = Value
+
+    /**
+      * Put widenings/narrowings points nowhere
+      */
+    val None = Value
+
+    /**
+      * Put widenings/narrowings points at each unknown.
+      */
+    val All = Value
+
+    /**
+      * Put widenings/narrowings points at each loop head.
+      */
+    val Loop = Value
+  }
 }

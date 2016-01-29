@@ -27,6 +27,7 @@ import it.unich.scalafix.lattice.Domain
   * as inputs and plans a sequence of actions in order to obtain the desired solutions as the output.
   */
 object FiniteFixpointSolver {
+
   import FixpointSolver._
 
   /**
@@ -80,16 +81,16 @@ object FiniteFixpointSolver {
                                  eqs: FiniteEquationSystem[U, V],
                                  start: Assignment[U, V],
                                  ordering: Option[Ordering[U]],
-                                 restart: (V, V) => Boolean
-                               )(implicit listener: FixpointSolverListener[U, V]): Assignment[U, V] = {
+                                 restart: (V, V) => Boolean,
+                                 listener: FixpointSolverListener[U, V]): Assignment[U, V] = {
     solver match {
-      case Solver.RoundRobinSolver => RoundRobinSolver(eqs)(start)
-      case Solver.KleeneSolver => KleeneSolver(eqs)(start)
-      case Solver.WorkListSolver => WorkListSolver(eqs)(start)
-      case Solver.PriorityWorkListSolver => PriorityWorkListSolver(eqs)(start,ordering.get, restart)
+      case Solver.RoundRobinSolver => RoundRobinSolver(eqs)(start, listener)
+      case Solver.KleeneSolver => KleeneSolver(eqs)(start, listener)
+      case Solver.WorkListSolver => WorkListSolver(eqs)(start, listener)
+      case Solver.PriorityWorkListSolver => PriorityWorkListSolver(eqs)(start, ordering.get, restart, listener)
       case Solver.HierarchicalOrderingSolver =>
         ordering.get match {
-          case ho: HierarchicalOrdering[U] => HierarchicalOrderingSolver(eqs)(start, ho)
+          case ho: HierarchicalOrdering[U] => HierarchicalOrderingSolver(eqs)(start, ho, listener)
           case _ => throw new DriverBadParameters("Ordering must be hierarchical for the HierarchicalOrderingSolver to work")
         }
     }
@@ -168,17 +169,17 @@ object FiniteFixpointSolver {
       case BoxStrategy.OnlyWidening =>
         val widening = boxFilter[U, V](eqs, wideningBox, boxlocation, ordering)
         val withWidening = boxApply(eqs, widening, boxscope, ordering)
-        applySolver(solver, withWidening, startAssn, ordering, restart)
+        applySolver(solver, withWidening, startAssn, ordering, restart, listener)
       case BoxStrategy.TwoPhases =>
         val widening = boxFilter[U, V](eqs, wideningBox, boxlocation, ordering)
         val withWidening = boxApply(eqs, widening, boxscope, ordering)
         listener.ascendingBegins(startAssn)
-        val ascendingAssignment = applySolver(solver, withWidening, startAssn, ordering, restart)
+        val ascendingAssignment = applySolver(solver, withWidening, startAssn, ordering, restart, listener)
         val narrowing = boxFilter[U, V](eqs, narrowingBox, boxlocation, ordering)
         // localizing narrowings does not seem useful
         val withNarrowing = boxApply(eqs, narrowing, BoxScope.Standard, ordering)
         listener.descendingBegins(startAssn)
-        applySolver(solver, withNarrowing, ascendingAssignment, ordering, restart)
+        applySolver(solver, withNarrowing, ascendingAssignment, ordering, restart, listener)
       case BoxStrategy.Warrowing =>
         if (boxscope == BoxScope.Localized) {
           val widening = boxFilter[U, V](eqs, wideningBox, boxlocation, ordering)
@@ -187,11 +188,11 @@ object FiniteFixpointSolver {
             eqs
           else
             eqs.withLocalizedWarrowing(widening, narrowing, ordering.get)
-          applySolver(solver, withUpdate, startAssn, ordering, restart)
+          applySolver(solver, withUpdate, startAssn, ordering, restart, listener)
         } else {
           val warrowingAssignment = boxFilter[U, V](eqs, Box.warrowing(wideningBox, narrowingBox), boxlocation, ordering)
           val eqsWithWarrowing = boxApply(eqs, warrowingAssignment, boxscope, ordering)
-          applySolver(solver, eqsWithWarrowing, startAssn, ordering, restart)
+          applySolver(solver, eqsWithWarrowing, startAssn, ordering, restart, listener)
         }
     }
   }

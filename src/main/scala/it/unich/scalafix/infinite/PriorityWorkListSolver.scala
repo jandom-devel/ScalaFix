@@ -27,6 +27,7 @@ import it.unich.scalafix.{PartialAssignment, Assignment, FixpointSolverListener,
   * A local fixpoint solver based on a worklist with priorities.
   */
 object PriorityWorkListSolver {
+
   /**
     * This is an dynamic ordering on unknowns: every time an unknown appears, it gets assigned a lower
     * priority than previous one (i.e., it comes earlier in the ordering). This is the default ordering
@@ -62,9 +63,9 @@ object PriorityWorkListSolver {
     * @param listener a listener to track the behaviour of the solver (defaults to the empty listener)
     * @return the solution of the equation system
     */
-  def apply[U,V](eqs: EquationSystem[U, V])
-                (wanted: Iterable[U], start: Assignment[U, V] = eqs.initial, ordering: Ordering[U] = new DynamicPriority[U])
-                (implicit listener: FixpointSolverListener[U, V] = EmptyListener): PartialAssignment[U,V] = {
+  def apply[U, V](eqs: EquationSystem[U, V])
+                 (wanted: Iterable[U], start: Assignment[U, V] = eqs.initial, ordering: Ordering[U] = new DynamicPriority[U],
+                  listener: FixpointSolverListener[U, V] = EmptyListener): PartialAssignment[U, V] = {
     val infl = new mutable.HashMap[U, mutable.Set[U]] with mutable.MultiMap[U, U] {
       override def makeSet = new mutable.LinkedHashSet[U]
     }

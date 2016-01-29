@@ -39,8 +39,8 @@ object RoundRobinSolver {
     * @return the solution of the equation system
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
-                 (start: Assignment[U, V] = eqs.initial)
-                 (implicit listener: FixpointSolverListener[U, V] = EmptyListener): Assignment[U, V] = {
+                 (start: Assignment[U, V] = eqs.initial,
+                  listener: FixpointSolverListener[U, V] = EmptyListener): Assignment[U, V] = {
     val current = mutable.HashMap.empty[U, V].withDefault(start)
     listener.initialized(current)
     var dirty = true

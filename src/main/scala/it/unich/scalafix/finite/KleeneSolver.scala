@@ -38,8 +38,8 @@ object KleeneSolver {
     * @return the solution of the equation system
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
-                 (start: Assignment[U, V] = eqs.initial)
-                 (implicit listener: FixpointSolverListener[U, V] = EmptyListener): Assignment[U, V] = {
+                 (start: Assignment[U, V] = eqs.initial,
+                  listener: FixpointSolverListener[U, V] = EmptyListener): Assignment[U, V] = {
     var current = mutable.HashMap.empty[U, V].withDefault(start)
     val next = mutable.HashMap.empty[U, V]
     listener.initialized(current)

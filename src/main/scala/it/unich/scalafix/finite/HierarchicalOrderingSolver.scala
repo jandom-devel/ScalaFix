@@ -40,8 +40,8 @@ object HierarchicalOrderingSolver {
     * @return the solution of the equation system
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
-                 (start: Assignment[U, V], ordering: HierarchicalOrdering[U] = HierarchicalOrdering(DFOrdering(eqs)))
-                 (implicit listener: FixpointSolverListener[U, V] = EmptyListener): Assignment[U, V] = {
+                 (start: Assignment[U, V], ordering: HierarchicalOrdering[U] = HierarchicalOrdering(DFOrdering(eqs)),
+                  listener: FixpointSolverListener[U, V] = EmptyListener): Assignment[U, V] = {
     import HierarchicalOrdering._
 
     val current = mutable.HashMap.empty[U, V].withDefault(start)

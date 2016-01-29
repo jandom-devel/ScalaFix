@@ -18,7 +18,8 @@
 
 package it.unich.scalafix.finite
 
-import it.unich.scalafix.FixpointSolver
+import it.unich.scalafix.FixpointSolverListener.PerformanceListener
+import it.unich.scalafix.{FixpointSolverListenerAdapter, FixpointSolverListener, FixpointSolver}
 import org.scalatest.FunSpec
 import org.scalatest.prop.PropertyChecks
 
@@ -53,7 +54,41 @@ class FiniteFixpointSolverTest extends FunSpec with PropertyChecks {
   val CC77params = FiniteFixpointSolver.CC77[Int, Double](Solver.WorkListSolver, doublewidening, doublenarrowing)
 
   def assertSolution(m: Map[Int, Double])(b: Int => Double): Unit = {
-    for (u <- simpleEqs.unknowns) assertResult(m(u),s"at unknown $u")(b(u))
+    for (u <- simpleEqs.unknowns) assertResult(m(u), s"at unknown $u")(b(u))
+  }
+
+  class ValidationListener extends PerformanceListener {
+    var initialized = false
+    var phase = 0
+
+    override def evaluated[U1, V1](rho: (U1) => V1, u: U1, newval: V1): Unit = {
+      assert(initialized)
+      assert(phase != 0)
+      super.evaluated(rho, u, newval)
+    }
+
+    override def initialized[U1, V1](rho: (U1) => V1): Unit = {
+      assert(!initialized)
+      assert(phase != 0)
+      initialized = true
+    }
+
+    override def completed[U1, V1](rho: (U1) => V1): Unit = {
+      initialized = false
+      assert(phase != 0)
+    }
+
+    override def ascendingBegins[U1, V1](rho: (U1) => V1): Unit = {
+      assert(!initialized)
+      assert(phase == 0)
+      phase = 1
+    }
+
+    override def descendingBegins[U1, V1](rho: (U1) => V1): Unit = {
+      assert(!initialized)
+      assert(phase == 1)
+      phase = -1
+    }
   }
 
   describe("The finite driver") {
@@ -78,8 +113,15 @@ class FiniteFixpointSolverTest extends FunSpec with PropertyChecks {
     }
 
     it("may avoid the descending chain") {
-      val params = CC77params.copy[Int, Double](boxstrategy = BoxStrategy.OnlyWidening)
+      val params = CC77params.copy(boxstrategy = BoxStrategy.OnlyWidening)
       assertSolution(onlyWideningSol)(FiniteFixpointSolver(simpleEqs, params))
+    }
+
+    it("calls the fixpoit solver listener") {
+      val l = new ValidationListener
+      val params = CC77params.copy(listener = l)
+      assertSolution(solution)(FiniteFixpointSolver(simpleEqs, params))
+      assert(l.evaluations > 0)
     }
   }
 }

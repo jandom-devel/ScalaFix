@@ -44,8 +44,8 @@ object PriorityWorkListSolver {
     * @return the solution of the equation system
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
-                 (start: Assignment[U, V] = eqs.initial, ordering: Ordering[U] = DFOrdering(eqs), restart: (V, V) => Boolean = { (x: V, y: V) => false })
-                 (implicit listener: FixpointSolverListener[U, V] = EmptyListener): Assignment[U, V] = {
+                 (start: Assignment[U, V] = eqs.initial, ordering: Ordering[U] = DFOrdering(eqs), restart: (V, V) => Boolean = { (x: V, y: V) => false },
+                  listener: FixpointSolverListener[U, V] = EmptyListener): Assignment[U, V] = {
     val current = mutable.HashMap.empty[U, V].withDefault(start)
     listener.initialized(current)
     var workList = mutable.PriorityQueue.empty[U](ordering)

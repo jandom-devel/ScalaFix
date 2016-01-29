@@ -38,9 +38,9 @@ object WorkListSolver {
     * @param listener a listener to track the behaviour of the solver (defaults to the empty listener)
     * @return the solution of the equation system
     */
-  def apply[U,V](eqs: EquationSystem[U,V])
-                (wanted: Iterable[U], start: Assignment[U,V] = eqs.initial)
-                (implicit listener: FixpointSolverListener[U,V] = EmptyListener): PartialAssignment[U,V] = {
+  def apply[U, V](eqs: EquationSystem[U, V])
+                 (wanted: Iterable[U], start: Assignment[U, V] = eqs.initial,
+                  listener: FixpointSolverListener[U, V] = EmptyListener): PartialAssignment[U, V] = {
     val infl = new mutable.HashMap[U, mutable.Set[U]] with mutable.MultiMap[U, U] {
       override def makeSet = new mutable.LinkedHashSet[U]
     }

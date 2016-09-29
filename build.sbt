@@ -48,3 +48,7 @@ EclipseKeys.eclipseOutput := Some("target.eclipse")
 ideOutputDirectory in Compile := Some(new File("target/idea/classes"))
 ideOutputDirectory in Test := Some(new File("target/idea/test-classes"))
 
+// Benchmark configuration
+
+enablePlugins(JmhPlugin)
+

@@ -1,12 +1,12 @@
 // Build environment
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
 scalacOptions ++= Seq("-deprecation", "-feature", "-Xlint", "-Xlint:-missing-interpolator")
 
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "2.2.6" % Test,
-  "org.scalacheck" %% "scalacheck" % "1.12.5" % Test
+  "org.scalatest" %% "scalatest" % "3.0.0" % Test,
+  "org.scalacheck" %% "scalacheck" % "1.13.2" % Test
 )
 
 // Metadata

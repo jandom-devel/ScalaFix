@@ -57,7 +57,7 @@ trait LowPriorityImplicitDomains {
     * An implicit domain obtained by a partial ordering, taking the max (when it exists) to be the upper bound
     * operator.
     */
-  implicit def partialOrderingIsMagma[A](implicit po: PartialOrdering[A]) = new Domain[A] {
+  implicit def partialOrderingIsDomain[A](implicit po: PartialOrdering[A]) = new Domain[A] {
     def lteq(x: A, y: A) = po.lteq(x,y)
 
     def tryCompare(x: A, y: A) = po.tryCompare(x, y)
@@ -71,7 +71,7 @@ trait LowPriorityImplicitDomains {
   /**
     * An implicit domain obtained by an ordering, taking the max to be the upper bound operator.
     */
-  implicit def partialOrderingIsMagma[A](implicit o: Ordering[A]) = new Domain[A] {
+  implicit def orderingIsDomain[A](implicit o: Ordering[A]) = new Domain[A] {
     def lteq(x: A, y: A) = o.lteq(x, y)
 
     def tryCompare(x: A, y: A) = o.tryCompare(x, y)

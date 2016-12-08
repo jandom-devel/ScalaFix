@@ -5,8 +5,8 @@ scalaVersion := "2.11.8"
 scalacOptions ++= Seq("-deprecation", "-feature", "-Xlint", "-Xlint:-missing-interpolator")
 
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "3.0.0" % Test,
-  "org.scalacheck" %% "scalacheck" % "1.13.2" % Test
+  "org.scalatest" %% "scalatest" % "3.0.1" % Test,
+  "org.scalacheck" %% "scalacheck" % "1.13.4" % Test
 )
 
 // Metadata

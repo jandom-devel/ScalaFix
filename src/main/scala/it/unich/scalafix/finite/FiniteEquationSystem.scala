@@ -95,7 +95,7 @@ object FiniteEquationSystem {
     * A class defining a finite equation system given its constituents parts (with the excpetion of the body with
     * dependencies which is automatically computed).
     */
-  final class SimpleFiniteEquationSystem[U, V](
+  class SimpleFiniteEquationSystem[U, V](
                                                 val body: Body[U, V],
                                                 val initial: Assignment[U, V],
                                                 val inputUnknowns: Set[U],

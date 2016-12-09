@@ -38,8 +38,8 @@ abstract class Body[U, V] extends Function[Assignment[U, V], Assignment[U, V]] {
    */
 
   /**
-    * This method takes a body and a box assignment and returns a new body where boxes have been
-    * plugged inside, i.e. `newbody(rho)(x) = boxes(x) (  rho(x), body(rho)(x) )`.
+    * This method takes a body and a box assignment (as a template) and returns a new body where boxes have been
+    * plugged inside, i.e. `newbody(rho)(x) = boxes(x) ( rho(x), body(rho)(x) )`.
     */
   def withBoxAssignment(boxes: BoxAssignment[U, V]): Body[U, V] =
     if (boxes.isEmpty)
@@ -66,8 +66,9 @@ object Body {
   }
 
   private final class BodyWithBoxAssignment[U, V](body: Body[U, V], boxes: BoxAssignment[U, V]) extends Body[U, V] {
+    val realBoxes = boxes.copy
     def apply(rho: Assignment[U, V]) = { (x: U) =>
-      if (boxes.isDefinedAt(x)) boxes(x)(rho(x), body(rho)(x)) else body(rho)(x)
+      if (realBoxes.isDefinedAt(x)) realBoxes(x)(rho(x), body(rho)(x)) else body(rho)(x)
     }
   }
 

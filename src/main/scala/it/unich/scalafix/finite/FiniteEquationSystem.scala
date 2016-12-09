@@ -87,7 +87,7 @@ object FiniteEquationSystem {
         initial = initial,
         inputUnknowns = inputUnknowns,
         unknowns = unknowns,
-        infl = if (boxes.areIdempotent) infl else infl.withDiagonal
+        infl = if (boxes.boxesAreIdempotent) infl else infl.withDiagonal
       )
   }
 

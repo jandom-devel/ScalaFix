@@ -26,6 +26,10 @@ import scala.language.implicitConversions
 /**
   * A BoxAssignment maps a subset of the program's points to a Box. When `isDefinedAt(u)`
   * is false for a given unknown `u`, the corresponding `apply(u)` should be a right box.
+  *
+  * Like it was the case for Box, a BoxAssignent is also a blueprint for buildind equivalent
+  * BoxAssignments. Each BoxAssignmant has a copy method which should produce a functionally
+  * equivalent copy of `this`. The copy method should try to minimize object duplication.
   */
 abstract class BoxAssignment[-U, V] extends PartialFunction[U, Box[V]] {
   outer =>
@@ -36,9 +40,16 @@ abstract class BoxAssignment[-U, V] extends PartialFunction[U, Box[V]] {
   def isEmpty: Boolean
 
   /**
-    * Returns true if all returned boxes are idempotent
+    * Returns true if all returned boxes are idempotent.
     */
-  def areIdempotent: Boolean
+  def boxesAreIdempotent: Boolean
+
+  /**
+    * Returns a copy of this box assignment. An immutable box assignment may just returns itself, but a mutable one
+    * should produce a copy of itself.
+    */
+  def copy: BoxAssignment[U, V]
+
 
   /**
     * Restrict the domain of this box assignment. The new domain is the intersection of
@@ -63,7 +74,9 @@ object BoxAssignment {
 
     def isEmpty = true
 
-    def areIdempotent = true
+    def boxesAreIdempotent = true
+
+    def copy = this
   }
 
   /**
@@ -81,7 +94,9 @@ object BoxAssignment {
 
     def isEmpty = false
 
-    def areIdempotent = box.isIdempotent
+    def boxesAreIdempotent = box.isIdempotent
+
+    def copy = if (boxesAreIdempotent) this else new ConstantAssignment(box.copy)
   }
 
   /**
@@ -100,40 +115,44 @@ object BoxAssignment {
 
     def isEmpty = false
 
-    def areIdempotent = boxTemplate.isIdempotent
+    def boxesAreIdempotent = boxTemplate.isIdempotent
+
+    def copy = if (boxesAreIdempotent) this else new TemplateAssignment(boxTemplate)
   }
 
   /**
     * A box assignment which returns a b
- *
-    * @param boxAssn
+    *
+    * @param boxes
     * @param domain
     * @tparam U
     * @tparam V
     * @tparam U1
     */
-  private final class RestrictAssignment[U, V, U1 <: U](boxAssn: BoxAssignment[U, V], domain: U1 => Boolean) extends BoxAssignment[U1,V] {
-    def apply(u: U1) = if (domain(u)) boxAssn(u) else Box.right[V]
+  private final class RestrictAssignment[U, V, U1 <: U](boxes: BoxAssignment[U, V], domain: U1 => Boolean) extends BoxAssignment[U1,V] {
+    def apply(u: U1) = if (domain(u)) boxes(u) else Box.right[V]
 
-    def isDefinedAt(u: U1) = domain(u) && boxAssn.isDefinedAt(u)
+    def isDefinedAt(u: U1) = domain(u) && boxes.isDefinedAt(u)
 
     def isEmpty = false
 
-    def areIdempotent = boxAssn.areIdempotent
+    def boxesAreIdempotent = boxes.boxesAreIdempotent
+
+    def copy = if (boxesAreIdempotent) this else new RestrictAssignment(boxes.copy, domain)
   }
 
   /**
-    * A box assignment which returns a box for each program point. Box is taken to be a template,
-    * and different copies of it for each program point are generated in case it is mutable.
+    * A box assignment which returns the same box for each program point. If box is mutable, different copies
+    * are used for the different program points.
     *
     * @tparam V the type of values
-    * @param boxTemplate the template for box to be returned at each program point
+    * @param box the template for box to be returned at each program point
     */
-  implicit def apply[V](boxTemplate: Box[V]): BoxAssignment[Any, V] = {
-    if (boxTemplate.isImmutable)
-      new ConstantAssignment(boxTemplate)
+  implicit def apply[V](box: Box[V]): BoxAssignment[Any, V] = {
+    if (box.isImmutable)
+      new ConstantAssignment(box)
     else
-      new TemplateAssignment(boxTemplate)
+      new TemplateAssignment(box)
   }
 
   /**

@@ -111,7 +111,7 @@ object GraphEquationSystem {
           } else
             edgeAction(rho)(e)
       }
-      if (boxes.areIdempotent) {
+      if (boxes.boxesAreIdempotent) {
         new SimpleGraphEquationSystem[U, V, E](unknowns, inputUnknowns, newEdgeAction, sources, target, outgoing, ingoing, initial) {
           val bodyWithDependencies = self.bodyWithDependencies
           val infl = self.infl
@@ -164,7 +164,7 @@ object GraphEquationSystem {
         initial = initial,
         inputUnknowns = inputUnknowns,
         unknowns = unknowns,
-        infl = if (widenings.areIdempotent && narrowings.areIdempotent) infl else infl.withDiagonal
+        infl = if (widenings.boxesAreIdempotent && narrowings.boxesAreIdempotent) infl else infl.withDiagonal
       )
     }
 

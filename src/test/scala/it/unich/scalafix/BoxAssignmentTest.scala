@@ -44,13 +44,25 @@ class BoxAssignmentTest extends FunSpec with PropertyChecks {
 
   def isIdempotent(boxes: BoxAssignment[Nothing, _]) = {
     it("is idempotent") {
-      assertResult(true)(boxes.areIdempotent)
+      assertResult(true)(boxes.boxesAreIdempotent)
     }
   }
 
   def isNotIdempotent(boxes: BoxAssignment[Nothing, _]) = {
     it("is not idempotent") {
-      assertResult(false)(boxes.areIdempotent)
+      assertResult(false)(boxes.boxesAreIdempotent)
+    }
+  }
+
+  def copyIdempotent(boxes: BoxAssignment[Nothing, _]) = {
+    it("has a copy method which returns itself") {
+      assertResult(boxes)(boxes.copy)
+    }
+  }
+
+  def copyNotIdempotent(boxes: BoxAssignment[Nothing, _]) = {
+    it("has a copy method which returns a new object") {
+      assert(boxes != boxes.copy)
     }
   }
 
@@ -68,6 +80,7 @@ class BoxAssignmentTest extends FunSpec with PropertyChecks {
     }
     isEmpty(boxes)
     isIdempotent(boxes)
+    copyIdempotent(boxes)
   }
 
   describe("The constant box assignment for the min box") {
@@ -85,6 +98,7 @@ class BoxAssignmentTest extends FunSpec with PropertyChecks {
     isNotEmpty(boxes)
     everywhere(boxes)
     isIdempotent(boxes)
+    copyIdempotent(boxes)
   }
 
   describe("The box assignment built from an immutable idempotent box") {
@@ -102,6 +116,7 @@ class BoxAssignmentTest extends FunSpec with PropertyChecks {
     isNotEmpty(boxes)
     everywhere(boxes)
     isIdempotent(boxes)
+    copyIdempotent(boxes)
   }
 
 
@@ -126,5 +141,6 @@ class BoxAssignmentTest extends FunSpec with PropertyChecks {
     isNotEmpty(boxes)
     everywhere(boxes)
     isNotIdempotent(boxes)
+    copyNotIdempotent(boxes)
   }
 }

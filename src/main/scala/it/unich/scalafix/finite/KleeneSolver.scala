@@ -40,8 +40,10 @@ object KleeneSolver {
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
                  (start: Assignment[U, V] = eqs.initial,
                   listener: FixpointSolverListener[U, V] = EmptyListener): Assignment[U, V] = {
-    var current = mutable.HashMap.empty[U, V].withDefault(start)
-    val next = mutable.HashMap.empty[U, V]
+
+    var current = mutable.HashMap.empty[U, V]
+    var next = mutable.HashMap.empty[U, V]
+    for (x <- eqs.unknowns) current(x) = start(x)
     listener.initialized(current)
     var dirty = true
     while (dirty) {
@@ -52,7 +54,9 @@ object KleeneSolver {
         if (newval != current(x)) dirty = true
         next(x) = newval
       }
+      val temp = current
       current = next
+      next = temp
     }
     listener.completed(current)
     current

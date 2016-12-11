@@ -13,7 +13,7 @@ libraryDependencies ++= Seq(
 
 name := "ScalaFix"
 
-version := "0.5.1"
+version := "0.5.2"
 
 description := "A Scala library for solving fixpoint equations"
 

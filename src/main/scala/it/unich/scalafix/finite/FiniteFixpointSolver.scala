@@ -33,12 +33,13 @@ object FiniteFixpointSolver {
   /**
     * Returns parameters for solving an equation system with the standard CC77 approach
     *
-    * @param solver       the real solver to use
+    * @param solver           the real solver to use
     * @param wideningBoxAssn  a box used for widenings
     * @param narrowingBoxAssn a box used for narrowings
     */
   def CC77[U, V](solver: Solver.Solver, wideningBoxAssn: BoxAssignment[U, V], narrowingBoxAssn: BoxAssignment[U, V]) =
-    Params[U, V](solver, None, BoxLocation.Loop, BoxScope.Standard, BoxStrategy.TwoPhases, false, wideningBoxAssn, narrowingBoxAssn, EmptyListener)
+    Params[U, V](solver, None, BoxLocation.Loop, BoxScope.Standard, BoxStrategy.TwoPhases, RestartStrategy.None,
+      wideningBoxAssn, narrowingBoxAssn, EmptyListener)
 
   /**
     * Solves the equation system using the parameters specified in p.
@@ -71,7 +72,7 @@ object FiniteFixpointSolver {
     }
 
     val restart: (V, V) => Boolean =
-      if (restartstrategy) { (x, y) => Domain[V].lt(x, y) }
+      if (restartstrategy == RestartStrategy.Restart) { (x, y) => Domain[V].lt(x, y) }
       else { (x, y) => false }
 
     boxstrategy match {
@@ -111,11 +112,11 @@ object FiniteFixpointSolver {
     * parameter location and the graph ordering.
     *
     * @param eqs      an equation system
-    * @param boxAssn      a box assignment
+    * @param boxAssn  a box assignment
     * @param location input parameter which drives the filtering by specifying where to put boxes
     * @param ordering a GraphOrdering used when we need to detect heads
     */
-  private def boxFilter[U, V](eqs: FiniteEquationSystem[U, V], boxAssn: BoxAssignment[U,V], location: BoxLocation.Value, ordering: Option[GraphOrdering[U]]): BoxAssignment[U, V] =
+  private def boxFilter[U, V](eqs: FiniteEquationSystem[U, V], boxAssn: BoxAssignment[U, V], location: BoxLocation.Value, ordering: Option[GraphOrdering[U]]): BoxAssignment[U, V] =
     location match {
       case BoxLocation.None => BoxAssignment.empty
       case BoxLocation.All => boxAssn
@@ -180,7 +181,7 @@ object FiniteFixpointSolver {
     * @param boxlocation      where to put boxes
     * @param boxscope         how to apply boxes (standard, localized, etc...)
     * @param boxstrategy      single phase, two phase, warrowing
-    * @param restartstrategy  if true, apply restart strategy in supported solvers
+    * @param restartstrategy  restart strategy to apply in supported solvers
     * @param wideningBoxAssn  a box used for widenings
     * @param narrowingBoxAssn a box used for narrowings
     * @param listener         a fixpoint listener
@@ -191,7 +192,7 @@ object FiniteFixpointSolver {
                            boxlocation: BoxLocation.BoxLocation,
                            boxscope: BoxScope.BoxScope,
                            boxstrategy: BoxStrategy.BoxStrategy,
-                           restartstrategy: Boolean,
+                           restartstrategy: RestartStrategy.RestartStrategy,
                            wideningBoxAssn: BoxAssignment[U, V],
                            narrowingBoxAssn: BoxAssignment[U, V],
                            listener: FixpointSolverListener[U, V]

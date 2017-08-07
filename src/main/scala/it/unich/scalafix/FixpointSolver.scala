@@ -93,4 +93,18 @@ object FixpointSolver {
       */
     val Loop = Value
   }
+
+  object RestartStrategy extends Enumeration {
+    type RestartStrategy = Value
+
+    /**
+      * Do not apply a restart strategy
+      */
+    val None = Value
+
+    /**
+      * Apply a restart strategy
+      */
+    val Restart = Value
+  }
 }

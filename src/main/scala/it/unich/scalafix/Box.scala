@@ -41,7 +41,7 @@ abstract class Box[V] extends Function2[V, V, V] {
   not to write redundant code, we only need a copy method to properly and efficiently handling mutable objects,
   the API is simple. Keep in mind that one of the important point of this design is to reduce duplication of boxes
   in box assignments as much as possible.
-   */
+  */
 
   /**
     * It returns true if the box is guaranteed to be idempotent, i.e., if `x box y = (x box y) box y`.
@@ -62,8 +62,8 @@ abstract class Box[V] extends Function2[V, V, V] {
   def isImmutable: Boolean
 
   /**
-    * Returns a copy of this box. An immutable box may just returns itself, but a mutable ones should produce a
-    * a copy of itself.
+    * Returns a copy of this box. An immutable box may just returns itself, but a mutable one should produce a
+    * distinct a copy of itself.
     */
   def copy: Box[V]
 
@@ -111,16 +111,16 @@ object Box {
     def isRight = false
   }
 
-  private final class Warrowing[V](lteq: (V, V) => Boolean, widening: Box[V], narrowing: Box[V]) extends Box[V] {
-    def apply(x: V, y: V) = if (lteq(y, x)) narrowing(x, y) else widening(x, y)
+  private final class Warrowing[V: PartialOrdering](widening: Box[V], narrowing: Box[V]) extends Box[V] {
+    def apply(x: V, y: V) = if (implicitly[PartialOrdering[V]].lteq(y, x)) narrowing(x, y) else widening(x, y)
 
     def isIdempotent = false
 
-    def isRight = false
+    def isRight = widening.isRight && narrowing.isRight
 
     def isImmutable = widening.isImmutable && narrowing.isImmutable
 
-    def copy = if (isImmutable) this else new Warrowing(lteq, widening.copy, narrowing.copy)
+    def copy = if (isImmutable) this else new Warrowing(widening.copy, narrowing.copy)
   }
 
   private final class Cascade[V](first: Box[V], delay: Int, second: Box[V]) extends MutableBox[V] {
@@ -197,47 +197,19 @@ object Box {
   }
 
   /**
-    * A warrowing, obtained combining the given widenings and narrowings, as defined in the paper:
-    * Amato, Scozzari, Seidl, Apinis, Vodjani
-    * "Efficiently intertwining widenings and narrowings".
-    * Science of Computer Programming
-    *
-    * @tparam V the type of values, should be partially ordered
-    * @param widening  is a widenings over V
-    * @param narrowing is a narrowings over V
-    */
-  def warrowing[V <: PartiallyOrdered[V]](widening: Box[V], narrowing: Box[V]): Box[V] = {
-    if (widening.isRight && narrowing.isRight)
-      right[V]
-    else
-      new Box[V] {
-        def apply(x: V, y: V) = if (y <= x) narrowing(x, y) else widening(x, y)
-
-        def isIdempotent = false
-
-        def isRight = false
-
-        def isImmutable = widening.isImmutable && narrowing.isImmutable
-
-        def copy = if (isImmutable) this else warrowing(widening.copy, narrowing.copy)
-      }
-  }
-
-  /**
-    * A warrowing, obtaiend combining the given widenings and narrowings, as defined in the paper:
+    * A warrowing obtained by combining the given widenings and narrowings, as defined in the paper:
     * Amato, Scozzari, Seidl, Apinis, Vodjani
     * "Efficiently intertwining widenings and narrowings".
     * Science of Computer Programming
     *
     * @tparam V the type of values, should be endowed with a partial ordering
-    * @param widening  is widenings over V
-    * @param narrowing is a narrowings over V
+    * @param widening a widening over V
+    * @param narrowing a narrowing over V
     */
   def warrowing[V: PartialOrdering](widening: Box[V], narrowing: Box[V]): Box[V] = {
     if (widening.isRight && narrowing.isRight)
       right[V]
     else
-      new Warrowing(implicitly[PartialOrdering[V]].lteq, widening, narrowing)
+      new Warrowing(widening, narrowing)
   }
-
 }

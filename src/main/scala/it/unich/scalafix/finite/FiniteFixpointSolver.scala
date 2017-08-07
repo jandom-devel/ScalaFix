@@ -31,19 +31,95 @@ object FiniteFixpointSolver {
   import FixpointSolver._
 
   /**
+    * Returns parameters for solving an equation system with the standard CC77 approach
+    *
+    * @param solver       the real solver to use
+    * @param wideningBoxAssn  a box used for widenings
+    * @param narrowingBoxAssn a box used for narrowings
+    */
+  def CC77[U, V](solver: Solver.Solver, wideningBoxAssn: BoxAssignment[U, V], narrowingBoxAssn: BoxAssignment[U, V]) =
+    Params[U, V](solver, None, BoxLocation.Loop, BoxScope.Standard, BoxStrategy.TwoPhases, false, wideningBoxAssn, narrowingBoxAssn, EmptyListener)
+
+  /**
+    * Solves the equation system using the parameters specified in p.
+    *
+    * @param eqs    the equation system to solve
+    * @param params the parameters for the solver
+    */
+  def apply[U, V: Domain, E](eqs: GraphEquationSystem[U, V, E], params: Params[U, V]): Assignment[U, V] = {
+    import params._
+
+    val startAssn = params.start match {
+      case None => eqs.initial
+      case Some(start) => start
+    }
+
+    val ordering1: Option[GraphOrdering[U]] = (solver, boxscope) match {
+      case (Solver.HierarchicalOrderingSolver, _) =>
+        Some(HierarchicalOrdering(DFOrdering(eqs)))
+      case (Solver.PriorityWorkListSolver, _) | (_, BoxScope.Localized) =>
+        Some(DFOrdering(eqs))
+      case _ =>
+        None
+    }
+
+    val ordering: Option[GraphOrdering[U]] = boxlocation match {
+      case BoxLocation.None | BoxLocation.All =>
+        None
+      case BoxLocation.Loop =>
+        ordering1 orElse Some(DFOrdering(eqs))
+    }
+
+    val restart: (V, V) => Boolean =
+      if (restartstrategy) { (x, y) => Domain[V].lt(x, y) }
+      else { (x, y) => false }
+
+    boxstrategy match {
+      case BoxStrategy.OnlyWidening =>
+        val widening = boxFilter[U, V](eqs, wideningBoxAssn, boxlocation, ordering)
+        val withWidening = boxApply(eqs, widening, boxscope, ordering)
+        applySolver(solver, withWidening, startAssn, ordering, restart, listener)
+      case BoxStrategy.TwoPhases =>
+        val widening = boxFilter[U, V](eqs, wideningBoxAssn, boxlocation, ordering)
+        val withWidening = boxApply(eqs, widening, boxscope, ordering)
+        listener.ascendingBegins(startAssn)
+        val ascendingAssignment = applySolver(solver, withWidening, startAssn, ordering, restart, listener)
+        val narrowing = boxFilter[U, V](eqs, narrowingBoxAssn, boxlocation, ordering)
+        // localizing narrowings does not seem useful
+        val withNarrowing = boxApply(eqs, narrowing, BoxScope.Standard, ordering)
+        listener.descendingBegins(startAssn)
+        applySolver(solver, withNarrowing, ascendingAssignment, ordering, restart, listener)
+      case BoxStrategy.Warrowing =>
+        if (boxscope == BoxScope.Localized) {
+          val widening = boxFilter[U, V](eqs, wideningBoxAssn, boxlocation, ordering)
+          val narrowing = boxFilter[U, V](eqs, narrowingBoxAssn, boxlocation, ordering)
+          val withUpdate = if (widening.isEmpty && narrowing.isEmpty)
+            eqs
+          else
+            eqs.withLocalizedWarrowing(widening, narrowing, ordering.get)
+          applySolver(solver, withUpdate, startAssn, ordering, restart, listener)
+        } else {
+          val warrowingAssignment = boxFilter[U, V](eqs, BoxAssignment.warrowing(wideningBoxAssn, narrowingBoxAssn), boxlocation, ordering)
+          val eqsWithWarrowing = boxApply(eqs, warrowingAssignment, boxscope, ordering)
+          applySolver(solver, eqsWithWarrowing, startAssn, ordering, restart, listener)
+        }
+    }
+  }
+
+  /**
     * Given an equation system and a box assignment, filter the assignment according to what specified in the
     * parameter location and the graph ordering.
     *
     * @param eqs      an equation system
-    * @param box      a box
+    * @param boxAssn      a box assignment
     * @param location input parameter which drives the filtering by specifying where to put boxes
     * @param ordering a GraphOrdering used when we need to detect heads
     */
-  private def boxFilter[U, V](eqs: FiniteEquationSystem[U, V], box: Box[V], location: BoxLocation.Value, ordering: Option[GraphOrdering[U]]): BoxAssignment[U, V] =
+  private def boxFilter[U, V](eqs: FiniteEquationSystem[U, V], boxAssn: BoxAssignment[U,V], location: BoxLocation.Value, ordering: Option[GraphOrdering[U]]): BoxAssignment[U, V] =
     location match {
       case BoxLocation.None => BoxAssignment.empty
-      case BoxLocation.All => BoxAssignment(box)
-      case BoxLocation.Loop => BoxAssignment(box).restrict(ordering.get.isHead)
+      case BoxLocation.All => boxAssn
+      case BoxLocation.Loop => boxAssn.restrict(ordering.get.isHead)
     }
 
   /**
@@ -99,15 +175,15 @@ object FiniteFixpointSolver {
   /**
     * Parameters for this driver
     *
-    * @param solver          the real solver to use
-    * @param start           an optional initial assignment
-    * @param boxlocation     where to put boxes
-    * @param boxscope        how to apply boxes (standard, localized, etc...)
-    * @param boxstrategy     single phase, two phase, warrowing
-    * @param restartstrategy if true, apply restart strategy in supported solvers
-    * @param wideningBox     a box used for widenings
-    * @param narrowingBox    a box used for narrowings
-    * @param listener        a fixpoint listener
+    * @param solver           the real solver to use
+    * @param start            an optional initial assignment
+    * @param boxlocation      where to put boxes
+    * @param boxscope         how to apply boxes (standard, localized, etc...)
+    * @param boxstrategy      single phase, two phase, warrowing
+    * @param restartstrategy  if true, apply restart strategy in supported solvers
+    * @param wideningBoxAssn  a box used for widenings
+    * @param narrowingBoxAssn a box used for narrowings
+    * @param listener         a fixpoint listener
     */
   case class Params[U, V](
                            solver: Solver.Solver,
@@ -116,84 +192,9 @@ object FiniteFixpointSolver {
                            boxscope: BoxScope.BoxScope,
                            boxstrategy: BoxStrategy.BoxStrategy,
                            restartstrategy: Boolean,
-                           wideningBox: Box[V],
-                           narrowingBox: Box[V],
+                           wideningBoxAssn: BoxAssignment[U, V],
+                           narrowingBoxAssn: BoxAssignment[U, V],
                            listener: FixpointSolverListener[U, V]
                          )
 
-  /**
-    * Returns parameters for solving an equation system with the standard CC77 approach
-    *
-    * @param solver       the real solver to use
-    * @param wideningBox  a box used for widenings
-    * @param narrowingBox a box used for narrowings
-    */
-  def CC77[U, V](solver: Solver.Solver, wideningBox: Box[V], narrowingBox: Box[V]) =
-    Params[U, V](solver, None, BoxLocation.Loop, BoxScope.Standard, BoxStrategy.TwoPhases, false, wideningBox, narrowingBox, EmptyListener)
-
-  /**
-    * Solves the equation system using the parameters specified in p.
-    *
-    * @param eqs    the equation system to solve
-    * @param params the parameters for the solver
-    */
-  def apply[U, V: Domain, E](eqs: GraphEquationSystem[U, V, E], params: Params[U, V]): Assignment[U, V] = {
-    import params._
-
-    val startAssn = params.start match {
-      case None => eqs.initial
-      case Some(start) => start
-    }
-
-    val ordering1: Option[GraphOrdering[U]] = (solver, boxscope) match {
-      case (Solver.HierarchicalOrderingSolver, _) =>
-        Some(HierarchicalOrdering(DFOrdering(eqs)))
-      case (Solver.PriorityWorkListSolver, _) | (_, BoxScope.Localized) =>
-        Some(DFOrdering(eqs))
-      case _ =>
-        None
-    }
-
-    val ordering: Option[GraphOrdering[U]] = boxlocation match {
-      case BoxLocation.None | BoxLocation.All =>
-        None
-      case BoxLocation.Loop =>
-        ordering1 orElse Some(DFOrdering(eqs))
-    }
-
-    val restart: (V, V) => Boolean =
-      if (restartstrategy) { (x, y) => Domain[V].lt(x, y) }
-      else { (x, y) => false }
-
-    boxstrategy match {
-      case BoxStrategy.OnlyWidening =>
-        val widening = boxFilter[U, V](eqs, wideningBox, boxlocation, ordering)
-        val withWidening = boxApply(eqs, widening, boxscope, ordering)
-        applySolver(solver, withWidening, startAssn, ordering, restart, listener)
-      case BoxStrategy.TwoPhases =>
-        val widening = boxFilter[U, V](eqs, wideningBox, boxlocation, ordering)
-        val withWidening = boxApply(eqs, widening, boxscope, ordering)
-        listener.ascendingBegins(startAssn)
-        val ascendingAssignment = applySolver(solver, withWidening, startAssn, ordering, restart, listener)
-        val narrowing = boxFilter[U, V](eqs, narrowingBox, boxlocation, ordering)
-        // localizing narrowings does not seem useful
-        val withNarrowing = boxApply(eqs, narrowing, BoxScope.Standard, ordering)
-        listener.descendingBegins(startAssn)
-        applySolver(solver, withNarrowing, ascendingAssignment, ordering, restart, listener)
-      case BoxStrategy.Warrowing =>
-        if (boxscope == BoxScope.Localized) {
-          val widening = boxFilter[U, V](eqs, wideningBox, boxlocation, ordering)
-          val narrowing = boxFilter[U, V](eqs, narrowingBox, boxlocation, ordering)
-          val withUpdate = if (widening.isEmpty && narrowing.isEmpty)
-            eqs
-          else
-            eqs.withLocalizedWarrowing(widening, narrowing, ordering.get)
-          applySolver(solver, withUpdate, startAssn, ordering, restart, listener)
-        } else {
-          val warrowingAssignment = boxFilter[U, V](eqs, Box.warrowing(wideningBox, narrowingBox), boxlocation, ordering)
-          val eqsWithWarrowing = boxApply(eqs, warrowingAssignment, boxscope, ordering)
-          applySolver(solver, eqsWithWarrowing, startAssn, ordering, restart, listener)
-        }
-    }
-  }
 }

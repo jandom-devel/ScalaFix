@@ -1,6 +1,6 @@
 // Build environment
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.11.11"
 
 scalacOptions ++= Seq("-deprecation", "-feature", "-Xlint", "-Xlint:-missing-interpolator")
 

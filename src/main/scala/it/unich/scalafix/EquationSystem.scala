@@ -1,5 +1,5 @@
 /**
-  * Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
+  * Copyright 2015, 2016, 2017 Gianluca Amato <gianluca.amato@unich.it>
   *
   * This file is part of ScalaFix.
   * ScalaFix is free software: you can redistribute it and/or modify
@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -18,8 +18,9 @@
 
 package it.unich.scalafix
 
-import scala.collection.mutable
 import it.unich.scalafix.lattice.Magma
+
+import scala.collection.mutable
 
 /**
   * This is the abstract class for a generic equation system.
@@ -27,11 +28,18 @@ import it.unich.scalafix.lattice.Magma
   * @tparam U the type for the unknowns of this equation system.
   * @tparam V the type for the values assumed by the unknowns of this equation system.
   */
-abstract class EquationSystem[U, V] {
+trait EquationSystem[U, V] {
   /**
     * The body of the equation system, i.e., a map `Assignment[U,V] => Assignment[U,V]`.
     */
   val body: Body[U, V]
+
+  /**
+    * Given an assignment `rho` and unknown `u`, returns the pair `(body(rho)(x), uks)`. `uks` is a set of unknowns
+    * with the property that if `rho'` differs from `rho` only for variables which are not in `uks`, then
+    * `body(rho)(u)==body(rho')(u)`.
+    */
+  val bodyWithDependencies: BodyWithDependencies[U, V]
 
   /**
     * An initial value for starting the analyzer
@@ -42,13 +50,6 @@ abstract class EquationSystem[U, V] {
     * The unknowns which may be considered the input to this equation system.
     */
   val inputUnknowns: U => Boolean
-
-  /**
-    * Given an assignment `rho` and unknown `u`, returns the pair `(body(rho)(x), uks)`. `uks` is a set of unknowns
-    * with the property that if `rho'` differs from `rho` only for variables which are not in `uks`, then
-    * `body(rho)(u)==body(rho')(u)`.
-    */
-  val bodyWithDependencies: Assignment[U, V] => Assignment[U, (V, Iterable[U])]
 
   /**
     * Add boxes to the equation system
@@ -63,70 +64,117 @@ abstract class EquationSystem[U, V] {
     * @param init the assignment to add to the equation system
     */
   def withBaseAssignment(init: PartialFunction[U, V])(implicit magma: Magma[V]): EquationSystem[U, V]
-}
-
-object EquationSystem {
 
   /**
-    * This trait is a mixin for an EquationSystem and implements the method `bodyWithDependecies` by instrumenting
-    * the assignment rho during evaluation of body(rho)(x) and keeping track of all the evaluated unknowns.
+    * Add a tracer to the equation system. The tracer contains call-backs to be invoked during body evaluation.
+    *
+    * @param t the tracer
     */
-  trait BodyWithDependenciesFromBody[U, V] {
-    this: EquationSystem[U, V] =>
+  def withTracer(t: EquationSystemTracer[U, V]): EquationSystem[U, V]
+}
 
-    val bodyWithDependencies = {
+/**
+  * This class implements common utility methods.
+  */
+abstract class EquationSystemBase[U, V] extends EquationSystem[U, V] {
+  /**
+    * An optional tracer which should be called during body evaluation.
+    */
+  protected val tracer: Option[EquationSystemTracer[U, V]]
+
+  /**
+    * Returns a new body which calls the current tracer before and after evaluation.
+    *
+    * @param t the tracer to be called by the new body
+    */
+  protected def bodyWithTracer(t: EquationSystemTracer[U, V]): Body[U, V] = {
+    rho: Assignment[U, V] =>
+      x: U =>
+        t.beforeEvaluation(rho, x)
+        val res = body(rho)(x)
+        t.afterEvaluation(rho, x, res)
+        res
+  }
+
+  /**
+    * Returns a new body with boxes added to the evaluation. If `tracer` is defined, the `boxEvaluation`
+    * callback is invoked during evaluation.
+    */
+  protected def bodyWithBoxAssignment(boxes: BoxAssignment[U, V]): Body[U, V] = {
+    val realBoxes = boxes.copy
+    if (realBoxes.isEmpty)
+      body
+    else {
       rho: Assignment[U, V] =>
-        x: U => {
-          val queried = mutable.Buffer.empty[U]
-          val trackrho = { y: U =>
-            queried.append(y)
-            rho(y)
-          }
-          val newval = body(trackrho)(x)
-          (newval, queried.toSeq)
-        }
+        x: U =>
+          val res = body(rho)(x)
+          if (realBoxes.isDefinedAt(x)) {
+            val boxedRes = realBoxes(x)(rho(x), res)
+            tracer foreach (_.boxEvaluation(rho, x, res, boxedRes))
+            boxedRes
+          } else
+            res
     }
   }
 
   /**
-    * A trait which provides the withBaseAssignment method to equation systems.
+    * Returns a new body, in which the `init` assignment is combined with the result of body evaluation
+    * trough the use of the `comb` combiner.
     */
-  trait WithBaseAssignment[U, V] {
-    this: EquationSystem[U, V] =>
-
-    def withBaseAssignment(init: PartialFunction[U, V])(implicit magma: Magma[V]): EquationSystem[U, V] =
-      new SimpleEquationSystem(body.withBaseAssignment(init), initial, inputUnknowns)
+  protected def bodyWithBaseAssignment(init: PartialFunction[U, V], comb: (V, V) => V): Body[U, V] = {
+    rho: Assignment[U, V] =>
+      x: U =>
+        if (init.isDefinedAt(x)) comb(init(x), body(rho)(x)) else body(rho)(x)
   }
 
   /**
-    * A trait which provides the withBoxes method to equation systems.
+    * Implement the `bodyWithDependencies` method by instrumenting the source assignment in order to
+    * record access to unknowns.
     */
-  trait WithBoxes[U, V] {
-    this: EquationSystem[U, V] =>
+  val bodyWithDependencies: BodyWithDependencies[U, V] = {
+    rho: Assignment[U, V] =>
+      x: U => {
+        val queried = mutable.Buffer.empty[U]
+        val trackrho = { y: U =>
+          queried.append(y)
+          rho(y)
+        }
+        val newval = body(trackrho)(x)
+        (newval, queried)
+      }
+  }
+}
 
-    def withBoxes(boxes: BoxAssignment[U, V]): EquationSystem[U, V] =
-      new SimpleEquationSystem(body.withBoxAssignment(boxes), initial, inputUnknowns)
+/**
+  * A simple standard implementation of EquationSystem. All fields must be provided explicitly by
+  * the user with the exception of `bodyWithDependencies` which is computed by `body`.
+  */
+case class SimpleEquationSystem[U, V]
+(
+  body: Body[U, V],
+  initial: Assignment[U, V],
+  inputUnknowns: U => Boolean,
+  tracer: Option[EquationSystemTracer[U, V]] = None
+) extends EquationSystemBase[U, V] {
+
+  def withBoxes(boxes: BoxAssignment[U, V]): EquationSystem[U, V] = {
+    copy(body = bodyWithBoxAssignment(boxes))
   }
 
-  /**
-    * This is a simple implementation of an equation systems, obtained by a body.
-    */
-  final case class SimpleEquationSystem[U, V](
-                                               val body: Body[U, V],
-                                               val initial: Assignment[U, V],
-                                               val inputUnknowns: U => Boolean
-                                             )
-    extends EquationSystem[U, V] with BodyWithDependenciesFromBody[U, V] with WithBaseAssignment[U, V] with WithBoxes[U, V]
+  def withBaseAssignment(init: PartialFunction[U, V])(implicit magma: Magma[V]): EquationSystem[U, V] = {
+    copy(body = bodyWithBaseAssignment(init, magma.op))
+  }
 
-  /**
-    * An equation system determined by a given body.
-    */
-  def apply[U, V](body: Body[U, V], initial: Assignment[U, V]): EquationSystem[U, V] =
-    new SimpleEquationSystem(body, initial, { _ => false })
+  def withTracer(t: EquationSystemTracer[U, V]): EquationSystem[U, V] = {
+    copy(body = bodyWithTracer(t), tracer = Some(t))
+  }
+}
 
+object EquationSystem {
   /**
-    * An equation system determined by a given body and set of input unknowns.
+    * Returns the standard implementation of EquationSystem. All fields must be provided explicitly by
+    * the user with the exception of `bodyWithDependencies`.
     */
-  def apply[U, V](body: Body[U, V], initial: Assignment[U, V], inputUnknowns: U => Boolean): EquationSystem[U, V] =
-    new SimpleEquationSystem(body, initial, inputUnknowns)
+  def apply[U, V](body: Body[U, V], initial: Assignment[U, V], inputUnknowns: U => Boolean = { _: U => false }): EquationSystem[U, V] =
+    SimpleEquationSystem(body, initial, inputUnknowns, None)
 }

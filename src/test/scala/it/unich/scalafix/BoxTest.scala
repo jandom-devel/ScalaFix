@@ -18,7 +18,6 @@
 
 package it.unich.scalafix
 
-import it.unich.scalafix.lattice.Domain
 import org.scalatest.FunSpec
 import org.scalatest.prop.PropertyChecks
 

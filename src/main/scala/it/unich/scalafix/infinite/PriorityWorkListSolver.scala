@@ -69,7 +69,7 @@ object PriorityWorkListSolver {
     val infl = new mutable.HashMap[U, mutable.Set[U]] with mutable.MultiMap[U, U] {
       override def makeSet = new mutable.LinkedHashSet[U]
     }
-    var workList = mutable.PriorityQueue.empty[U](ordering)
+    val workList = mutable.PriorityQueue.empty[U](ordering)
     workList ++= wanted
 
     val current = mutable.HashMap.empty[U, V].withDefault(start)

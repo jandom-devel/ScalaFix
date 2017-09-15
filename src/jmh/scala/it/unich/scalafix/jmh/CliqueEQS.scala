@@ -1,5 +1,5 @@
 /**
-  * Copyright 2016 Gianluca Amato <gianluca.amato@unich.it>
+  * Copyright 2016, 2017 Gianluca Amato <gianluca.amato@unich.it>
   *
   * This file is part of ScalaFix.
   * ScalaFix is free software: you can redistribute it and/or modify
@@ -18,30 +18,34 @@
 
 package it.unich.scalafix.jmh
 
-import it.unich.scalafix.{Body, _}
-import it.unich.scalafix.finite.{FiniteEquationSystem, GraphEquationSystem}
+import it.unich.scalafix._
+import it.unich.scalafix.finite.SimpleGraphEquationSystem
 import it.unich.scalafix.utils.Relation
 
 /**
-  * This class represents an equation system made of equations `x(i)=x(0) \/ c(1) \/ ... x(n-1)` for i from 0
-  * to n-1.
+  * This class represents an equation system made of equations `x(i)=x(0) upperbound c(1) uperrbound ... x(n-1)`
+  * for i from 0 to n-1.
+  *
   * @tparam V type of the values
   * @param n number of unknowns
-  * @param v the initial value for all unknowns
+  * @param v the initial v
   */
-class CliqueGraphEQS[V](n: Int, v: Double) extends GraphEquationSystem[Int,Double,(Int, Int)]
-  with GraphEquationSystem.WithLocalizedBoxes[Int,Double,(Int,Int)] with FiniteEquationSystem.WithBoxes[Int,Double]
-  with FiniteEquationSystem.WithBaseAssignment[Int,Double] {
-  val unknowns = 0 until n
-  val inputUnknowns = Set(0)
-  val edgeAction = { (rho: Assignment[Int,Double]) => p: (Int,Int) => rho(p._1)  + 1 }
-  val sources = { e: (Int,Int) => Seq(e._1) }
-  val target = { e: (Int,Int) => e._2 }
-  val outgoing = { (i: Int) => (i+1 until n) map { (i,_) } }
-  val ingoing =  { (i: Int) => (0 until i) map { (_,i) } }
-  val initial = { (x: Int) => v }
-  val infl = Relation( { (i: Int) => (i+1 until n).toSet } )
-  val body = Body( { rho: Assignment[Int,Double] => { i: Int => (0 until i) map { rho(_) } reduce dom.upperBound }  } )
-  val bodyWithDependencies = { rho: Assignment[Int,Double] => { (i: Int) => (body(rho)(i), (0 until i).toSet) } }
+class CliqueGraphEQS[V](n: Int, v: Double) extends SimpleGraphEquationSystem[Int, Double, (Int, Int)](
+  unknowns = 0 until n,
+  inputUnknowns = Set(0),
+  edgeAction = { (rho: Assignment[Int, Double]) => p: (Int, Int) => rho(p._1) + 1 },
+  sources = { e: (Int, Int) => Seq(e._1) },
+  target = { e: (Int, Int) => e._2 },
+  outgoing = { (i: Int) => (i + 1 until n) map ((i, _)) },
+  ingoing = { (i: Int) => (0 until i) map ((_, i)) },
+  initial = { (x: Int) => v }
+) {
+  override val infl: Relation[Int] = Relation({ (i: Int) => (i + 1 until n).toSet })
+  override val body: Body[Int, Double] = { rho: Assignment[Int, Double] =>
+    i: Int => (0 until i) map rho reduce dom.upperBound
+  }
+  override val bodyWithDependencies: BodyWithDependencies[Int, Double] = {
+    rho: Assignment[Int, Double] => i: Int => (body(rho)(i), (0 until i).toSet)
+  }
 }
 

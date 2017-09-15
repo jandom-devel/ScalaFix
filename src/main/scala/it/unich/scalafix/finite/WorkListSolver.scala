@@ -43,7 +43,7 @@ object WorkListSolver {
     val current = mutable.HashMap.empty[U, V].withDefault(start)
     listener.initialized(current)
     // is it better to use a Queue for a worklist ?
-    var workList = collection.mutable.LinkedHashSet.empty[U]
+    val workList = collection.mutable.LinkedHashSet.empty[U]
     workList ++= eqs.unknowns
     while (!workList.isEmpty) {
       val x = workList.head

@@ -44,7 +44,7 @@ object WorkListSolver {
     val infl = new mutable.HashMap[U, mutable.Set[U]] with mutable.MultiMap[U, U] {
       override def makeSet = new mutable.LinkedHashSet[U]
     }
-    var workList = mutable.Queue.empty[U]
+    val workList = mutable.Queue.empty[U]
     workList ++= wanted
 
     val current = mutable.HashMap.empty[U, V].withDefault(start)

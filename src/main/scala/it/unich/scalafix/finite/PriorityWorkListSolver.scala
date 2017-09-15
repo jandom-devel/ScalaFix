@@ -48,7 +48,7 @@ object PriorityWorkListSolver {
                   listener: FixpointSolverListener[U, V] = EmptyListener): Assignment[U, V] = {
     val current = mutable.HashMap.empty[U, V].withDefault(start)
     listener.initialized(current)
-    var workList = mutable.PriorityQueue.empty[U](ordering)
+    val workList = mutable.PriorityQueue.empty[U](ordering)
     workList ++= eqs.unknowns
     while (!workList.isEmpty) {
       val x = workList.dequeue()

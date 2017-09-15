@@ -21,7 +21,6 @@ package it.unich.scalafix.jmh
 import it.unich.scalafix.Assignment
 import it.unich.scalafix.finite.{RoundRobinSolver, WorkListSolver => FiniteWorkListSolver}
 import it.unich.scalafix.infinite.{WorkListSolver => InfiniteWorkListSolver}
-import it.unich.scalafix.lattice.Domain
 import org.openjdk.jmh.annotations._
 
 /**
@@ -33,9 +32,9 @@ import org.openjdk.jmh.annotations._
 class EquationSystemBench {
   val initVal = 1
   val numUnknowns = 10000
-  val chainGraphEqs = new ChainGraphEQS(implicitly[Domain[Int]])(numUnknowns, initVal)
-  val chainSimpleGraphEqs = new ChainSimpleGraphEQS(implicitly[Domain[Int]])(numUnknowns, initVal)
-  val chainSimpleFiniteEqs = new ChainSimpleFiniteEQS(implicitly[Domain[Int]])(numUnknowns, initVal)
+  val chainGraphEqs = new ChainGraphEQS(numUnknowns, initVal)
+  val chainSimpleGraphEqs = new ChainSimpleGraphEQS(numUnknowns, initVal)
+  val chainSimpleFiniteEqs = new ChainSimpleFiniteEQS(numUnknowns, initVal)
   val chainInfiniteEqs = new ChainInfiniteEQS[Int](initVal)
   val chainInfinite2Eqs = new ChainInfinite2EQS[Int](initVal)
 

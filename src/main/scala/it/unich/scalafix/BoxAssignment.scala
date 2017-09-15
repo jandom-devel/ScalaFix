@@ -18,9 +18,6 @@
 
 package it.unich.scalafix
 
-import it.unich.scalafix.Box.{Warrowing, right}
-import it.unich.scalafix.BoxAssignment.RestrictAssignment
-
 import scala.language.implicitConversions
 
 /**
@@ -68,7 +65,7 @@ abstract class BoxAssignment[-U, V] extends PartialFunction[U, Box[V]] {
     if (isEmpty)
       this
     else
-      new RestrictAssignment(this, domain)
+      new BoxAssignment.RestrictAssignment(this, domain)
 }
 
 /**
@@ -223,7 +220,7 @@ object BoxAssignment {
     */
   def warrowing[U, V: PartialOrdering](widenings: BoxAssignment[U,V], narrowings: BoxAssignment[U,V]): BoxAssignment[U,V] = {
     if (widenings.boxesAreRight && narrowings.boxesAreRight)
-      right[V]
+      Box.right[V]
     else
       new WarrowingAssignment(widenings, narrowings)
   }

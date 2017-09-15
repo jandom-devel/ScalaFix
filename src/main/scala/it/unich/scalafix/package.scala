@@ -1,5 +1,5 @@
 /**
-  * Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
+  * Copyright 2015, 2016, 2017 Gianluca Amato <gianluca.amato@unich.it>
   *
   * This file is part of ScalaFix.
   * ScalaFix is free software: you can redistribute it and/or modify
@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -19,8 +19,6 @@
 package it.unich
 
 import it.unich.scalafix.utils.IterableFunction
-
-import scala.language.implicitConversions
 
 /**
   * The fixpoint package contains everything which is related to defining and solving systems
@@ -37,4 +35,19 @@ package object scalafix {
     * values.
     */
   type PartialAssignment[U, V] = IterableFunction[U, V]
+
+  /**
+    * The body of an equation system, i.e., a map from assignments to assignments.
+    */
+  type Body[U,V] = Assignment[U,V] => Assignment[U,V]
+
+  /**
+    * A body which also calculates dependencies among unknowns.
+    */
+  type BodyWithDependencies[U,V] = Assignment[U, V] => Assignment[U, (V, Iterable[U])]
+
+  /**
+    * The effect of an edge in a graph equation system.
+    */
+  type EdgeAction[U,V,E] = Assignment[U, V] => E => V
 }

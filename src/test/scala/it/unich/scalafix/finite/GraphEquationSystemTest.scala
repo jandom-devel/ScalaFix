@@ -1,5 +1,5 @@
 /**
-  * Copyright 2015 Gianluca Amato <gamato@unich.it>
+  * Copyright 2015, 2017 Gianluca Amato <gamato@unich.it>
   *
   * This file is part of JANDOM: JVM-based Analyzer for Numerical DOMains
   * JANDOM is free software: you can redistribute it and/or modify
@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * JANDOM is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -18,32 +18,30 @@
 
 package it.unich.scalafix.finite
 
-import it.unich.scalafix.Box
+import java.io.{ByteArrayOutputStream, PrintStream}
+
+import it.unich.scalafix._
 import it.unich.scalafix.lattice.Magma
 import org.scalatest.FunSpec
 
 class GraphEquationSystemTest extends FunSpec {
 
   implicit object MagmaInt extends Magma[Int] {
-    def op(x: Int, y: Int) = x max y
+    def op(x: Int, y: Int): Int = x max y
   }
 
   val edges = Set('a', 'b', 'c', 'd')
   val unknowns = Set(0, 1, 2, 3)
-  val simpleEqs = GraphEquationSystem[Int, Int, Char](
+  val simpleEqs: GraphEquationSystem[Int, Int, Char] = GraphEquationSystem(
     edgeAction = {
-      { (rho: Int => Int) => {
-        (e: Char) =>
-          e match {
-            case 'a' => rho(0)
-            case 'b' => rho(1) min 10
-            case 'c' => rho(2) + 1
-            case 'd' => rho(3)
-          }
-      }
+      (rho: Int => Int) => {
+        case 'a' => rho(0)
+        case 'b' => rho(1) min 10
+        case 'c' => rho(2) + 1
+        case 'd' => rho(3)
       }
     },
-    source = Map(('a', Seq(0)), ('b',Seq(1)), ('c', Seq(2)), ('d', Seq(3))),
+    source = Map(('a', Seq(0)), ('b', Seq(1)), ('c', Seq(2)), ('d', Seq(3))),
     target = Map(('a', 1), ('b', 2), ('c', 3), ('d', 1)),
     outgoing = Map((0, Seq('a')), (1, Seq('b')), (2, Seq('c')), (3, Seq('d'))),
     ingoing = Map((0, Seq()), (1, Seq('a', 'd')), (2, Seq('b')), (3, Seq('c'))),
@@ -51,7 +49,7 @@ class GraphEquationSystemTest extends FunSpec {
     inputUnknowns = Set(0),
     initial = { _ => 0 }
   )
-  val rho = { x: Int => x }
+  val rho: Assignment[Int, Int] = { x: Int => x }
 
   describe("A simple graph equation system") {
     it("correctly computes the body") {
@@ -138,6 +136,21 @@ class GraphEquationSystemTest extends FunSpec {
         else
           assertResult(simpleEqs.infl(x) + x)(eqs2.infl(x))
       }
+    }
+
+    it("correctly traces equations") {
+      val os = new ByteArrayOutputStream()
+      val tracingEqs = simpleEqs.withTracer(EquationSystemTracer.debug(new PrintStream(os)))
+      simpleEqs.body(rho)(0)
+      assertResult("")(os.toString)
+      os.reset()
+      tracingEqs.body(rho)(0)
+      assertResult("evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\n")(os.toString)
+      os.reset()
+      val box: Box[Int] = { (x: Int, y: Int) => x + (2 * y) }
+      val boxTracingEqs = tracingEqs.withBoxes(box)
+      boxTracingEqs.body(rho)(0)
+      assertResult("evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\nevaluated: 0, oldvalue: 0, newvalue: 0, boxed: 0\n")(os.toString)
     }
   }
 }

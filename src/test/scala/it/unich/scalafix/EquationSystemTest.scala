@@ -18,11 +18,13 @@
 
 package it.unich.scalafix
 
+import java.io.{ByteArrayOutputStream, PrintStream}
+
 import org.scalatest.FunSpec
 
 class EquationSystemTest extends FunSpec {
 
-  val simpleEqs = EquationSystem(
+  val simpleEqs = EquationSystem (
     body = { (rho: Int => Int) =>
       x: Int =>
         x match {
@@ -34,30 +36,44 @@ class EquationSystemTest extends FunSpec {
     },
     initial = { x: Int => x }
   )
-  val rho = simpleEqs.initial
-  val box: Box[Int] = { _ * _ }
+  val rho: Assignment[Int, Int] = simpleEqs.initial
+  val box: Box[Int] = (_ * _)
 
   describe("An equation system") {
     it("computes r.h.s. according to its body function") {
-      assertResult(0) { simpleEqs.body(rho)(0) }
-      assertResult(2) { simpleEqs.body(rho)(1) }
-      assertResult(2) { simpleEqs.body(rho)(2) }
-      assertResult(3) { simpleEqs.body(rho)(3) }
+      assertResult(0)(simpleEqs.body(rho)(0))
+      assertResult(2)(simpleEqs.body(rho)(1))
+      assertResult(2)(simpleEqs.body(rho)(2))
+      assertResult(3)(simpleEqs.body(rho)(3))
     }
 
     it("correctly infers dependencies") {
-      assertResult((0, Seq(0))) { simpleEqs.bodyWithDependencies(rho)(0) }
-      assertResult((2, Seq(0, 2, 3))) { simpleEqs.bodyWithDependencies(rho)(1) }
-      assertResult((2, Seq(1))) { simpleEqs.bodyWithDependencies(rho)(2) }
-      assertResult((3, Seq(3))) { simpleEqs.bodyWithDependencies(rho)(3) }
+      assertResult((0, Seq(0)))(simpleEqs.bodyWithDependencies(rho)(0))
+      assertResult((2, Seq(0, 2, 3)))(simpleEqs.bodyWithDependencies(rho)(1))
+      assertResult((2, Seq(1)))(simpleEqs.bodyWithDependencies(rho)(2))
+      assertResult((3, Seq(3)))(simpleEqs.bodyWithDependencies(rho)(3))
     }
 
     it("correctly adds boxes") {
       val eqs = simpleEqs.withBoxes(box)
-      assertResult(0) { eqs.body(rho)(0) }
-      assertResult(2) { eqs.body(rho)(1) }
-      assertResult(4) { eqs.body(rho)(2) }
-      assertResult(9) { eqs.body(rho)(3) }
+      assertResult(0)(eqs.body(rho)(0))
+      assertResult(2)(eqs.body(rho)(1))
+      assertResult(4)(eqs.body(rho)(2))
+      assertResult(9)(eqs.body(rho)(3))
+    }
+
+    it("correctly traces equations") {
+      val os = new ByteArrayOutputStream()
+      val tracingEqs = simpleEqs.withTracer(EquationSystemTracer.debug(new PrintStream(os)))
+      simpleEqs.body(rho)(0)
+      assertResult("")(os.toString)
+      os.reset()
+      tracingEqs.body(rho)(0)
+      assertResult("evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\n")(os.toString)
+      os.reset()
+      val boxTracingEqs = tracingEqs.withBoxes(box)
+      boxTracingEqs.body(rho)(0)
+      assertResult("evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\nevaluated: 0, oldvalue: 0, newvalue: 0, boxed: 0\n")(os.toString)
     }
   }
 }

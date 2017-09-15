@@ -19,7 +19,7 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.FixpointSolverListener.PerformanceListener
-import it.unich.scalafix.{FixpointSolverListenerAdapter, FixpointSolverListener, FixpointSolver}
+import it.unich.scalafix.FixpointSolver
 import org.scalatest.FunSpec
 import org.scalatest.prop.PropertyChecks
 

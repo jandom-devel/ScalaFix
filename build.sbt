@@ -1,6 +1,8 @@
 // Build environment
 
-scalaVersion := "2.11.11"
+scalaVersion := "2.12.3"
+
+crossScalaVersions := Seq("2.11.11", "2.12.3")
 
 scalacOptions ++= Seq("-deprecation", "-feature", "-Xlint", "-Xlint:-missing-interpolator")
 
@@ -13,7 +15,7 @@ libraryDependencies ++= Seq(
 
 name := "ScalaFix"
 
-version := "0.9-SNAPSHOT"
+version := "0.7.0-SNAPSHOT"
 
 description := "A Scala library for solving fixpoint equations"
 
@@ -26,18 +28,20 @@ homepage := Some(url("https://github.com/jandom-devel/ScalaFix"))
 startYear := Some(2015)
 
 developers := List(
-  new Developer(
+  Developer(
     "amato",
     "Gianluca Amato", "gianluca.amato.74@unich.it",
     url("http://www.sci.unich.it/~amato/")
   )
 )
 
-scmInfo := Some(new ScmInfo(
-  url("https://github.com/jandom-devel/ScalaFix"),
-  "scm:git:https://github.com/jandom-devel/ScalaFix.git",
-  Some("scm:git:https://github.com/jandom-devel/ScalaFix.git")
-))
+scmInfo := Some(
+  ScmInfo(
+    url("https://github.com/jandom-devel/ScalaFix"),
+    "scm:git:https://github.com/jandom-devel/ScalaFix.git",
+    Some("scm:git:https://github.com/jandom-devel/ScalaFix.git")
+  )
+)
 
 // Eclipse plugin
 

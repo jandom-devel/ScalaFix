@@ -43,6 +43,13 @@ scmInfo := Some(
   )
 )
 
+publishTo := {
+  if (isSnapshot.value)
+    Some(Opts.resolver.sonatypeSnapshots)
+  else
+    Some(Opts.resolver.sonatypeStaging)
+}
+
 // Eclipse plugin
 
 EclipseKeys.eclipseOutput := Some("target.eclipse")

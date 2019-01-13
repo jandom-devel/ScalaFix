@@ -55,24 +55,9 @@ trait Domain[A] extends PartialOrdering[A] {
   */
 trait LowPriorityImplicitDomains {
   /**
-    * An implicit domain obtained by a partial ordering, taking the max (when it exists) to be the upper bound
-    * operator.
-    */
-  implicit def partialOrderingIsDomain[A](implicit po: PartialOrdering[A]): Domain[A] = new Domain[A] {
-    def lteq(x: A, y: A): Boolean = po.lteq(x, y)
-
-    def tryCompare(x: A, y: A): Option[Int] = po.tryCompare(x, y)
-
-    def upperBound(x: A, y: A): A = {
-      val v = po.tryCompare(x, y).getOrElse(throw new IllegalArgumentException("Elements are not comparable"))
-      if (v <= 0) y else x
-    }
-  }
-
-  /**
     * An implicit domain obtained by an ordering, taking the max to be the upper bound operator.
     */
-  implicit def orderingIsDomain[A](implicit o: Ordering[A]) = new Domain[A] {
+  implicit def orderingIsDomain[A](implicit o: Ordering[A]): Domain[A] = new Domain[A] {
     def lteq(x: A, y: A): Boolean = o.lteq(x, y)
 
     def tryCompare(x: A, y: A): Some[Int] = o.tryCompare(x, y)

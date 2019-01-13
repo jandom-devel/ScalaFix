@@ -22,7 +22,8 @@ import org.scalatest.FunSpec
 import org.scalatest.prop.PropertyChecks
 
 class BoxTest extends FunSpec with PropertyChecks {
-  private implicit val IntIsOrdering: PartialOrdering[Int] = implicitly[Ordering[Int]]
+  // Why we need to import
+  import scala.math.Ordering.{Int => IntOrdering}
 
   private val intWidening: Box[Int] = { (x: Int, y: Int) => if (x >= y) x else Int.MaxValue }
   private val intNarrowing: Box[Int] = { (x: Int, y: Int) => if (x == Int.MaxValue) y else x }

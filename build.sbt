@@ -31,9 +31,15 @@ val compilerSettings = Seq(
   scalacOptions ++= Seq(
     "-deprecation",
     "-feature",
-    "-Xlint",
-    "-Xlint:-missing-interpolator"
-  )
+    "-unchecked",
+    "-Xlint:_",
+    "-Ywarn-dead-code",
+    "-Ywarn-value-discard",
+    "-Ywarn-numeric-widen",
+  ) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((12, _))  => Seq("-Ywarn-unused:linted", "-Ywarn-extra-implicit")
+    case _ => Nil
+  })
 )
 
 val noPublishSettings = Seq(

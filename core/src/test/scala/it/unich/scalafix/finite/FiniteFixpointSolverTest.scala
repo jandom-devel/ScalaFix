@@ -76,6 +76,7 @@ class FiniteFixpointSolverTest extends FunSpec with PropertyChecks {
     override def completed[U1, V1](rho: (U1) => V1): Unit = {
       initialized = false
       assert(phase != 0)
+      ()
     }
 
     override def ascendingBegins[U1, V1](rho: (U1) => V1): Unit = {

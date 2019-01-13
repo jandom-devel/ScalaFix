@@ -54,6 +54,7 @@ class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
 
     override def evaluated[U1, V1](rho: U1 => V1, x: U1, newval: V1) {
       buffer += x
+      ()
     }
   }
 

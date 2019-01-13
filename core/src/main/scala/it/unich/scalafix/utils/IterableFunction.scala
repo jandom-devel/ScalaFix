@@ -44,22 +44,22 @@ object IterableFunction {
 
     def isDefinedAt(x: Any) = false
 
-    def iterator = Iterator.empty
+    def iterator: Iterator[Nothing] = Iterator.empty
 
-    def keys = Iterable.empty
+    def keys: Iterable[Nothing] = Iterable.empty
   }
 
   /**
     * An iterable function returned by an (eventually mutable) map.
     */
   implicit class MapIterableFunction[U, T](m: collection.Map[U, T]) extends IterableFunction[U, T] {
-    def apply(x: U) = m(x)
+    def apply(x: U): T = m(x)
 
-    def isDefinedAt(x: U) = m.isDefinedAt(x)
+    def isDefinedAt(x: U): Boolean = m.isDefinedAt(x)
 
-    def iterator = m.iterator
+    def iterator: Iterator[(U, T)] = m.iterator
 
-    def keys = m.keys
+    def keys: Iterable[U] = m.keys
   }
 
   /**

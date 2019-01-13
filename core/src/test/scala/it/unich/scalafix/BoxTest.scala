@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -22,12 +22,12 @@ import org.scalatest.FunSpec
 import org.scalatest.prop.PropertyChecks
 
 class BoxTest extends FunSpec with PropertyChecks {
-  implicit val IntIsPartialOrdering: PartialOrdering[Int] = implicitly[Ordering[Int]]
+  private implicit val IntIsOrdering: PartialOrdering[Int] = implicitly[Ordering[Int]]
 
-  val intWidening: Box[Int] = { (x: Int, y: Int) => if (x >= y) x else Int.MaxValue }
-  val intNarrowing: Box[Int] = { (x: Int, y: Int) => if (x == Int.MaxValue) y else x }
-  val intMax: Box[Int] = { (x: Int, y: Int) => x max y }
-  val intUpperBound: Box[Int] = Box.upperBound[Int]
+  private val intWidening: Box[Int] = { (x: Int, y: Int) => if (x >= y) x else Int.MaxValue }
+  private val intNarrowing: Box[Int] = { (x: Int, y: Int) => if (x == Int.MaxValue) y else x }
+  private val intMax: Box[Int] = { (x: Int, y: Int) => x max y }
+  private val intUpperBound: Box[Int] = Box.upperBound[Int]
 
   def testIsNotRight[V](box: Box[V]): Unit = {
     it("is not a right box") {
@@ -62,9 +62,7 @@ class BoxTest extends FunSpec with PropertyChecks {
   describe("A left box") {
     val box = Box.left[Int]
     it("returns the first element") {
-      forAll { (x: Int, y: Int) =>
-        assertResult(x)(box(x, y))
-      }
+      forAll { (x: Int, y: Int) => assertResult(x)(box(x, y)) }
     }
     testIsNotRight(box)
     testImmutable(box)
@@ -73,9 +71,7 @@ class BoxTest extends FunSpec with PropertyChecks {
   describe("A right box") {
     val box = Box.right[Int]
     it("returns the second element") {
-      forAll { (x: Int, y: Int) =>
-        assertResult(y)(box(x, y))
-      }
+      forAll { (x: Int, y: Int) => assertResult(y)(box(x, y)) }
     }
     testIsRight(box)
     testImmutable(box)
@@ -84,9 +80,7 @@ class BoxTest extends FunSpec with PropertyChecks {
   describe("The box obtained from the max function using fromFunction") {
     val box = intMax
     it("returns the maximum element") {
-      forAll { (x: Int, y: Int) =>
-        assertResult(x max y)(box(x, y))
-      }
+      forAll { (x: Int, y: Int) => assertResult(x max y)(box(x, y)) }
     }
     testIsNotRight(box)
     testImmutable(box)
@@ -95,9 +89,7 @@ class BoxTest extends FunSpec with PropertyChecks {
   describe("The box obtained from the upper bound of integer ordering") {
     val box = intUpperBound
     it("returns the maximum element") {
-      forAll { (x: Int, y: Int) =>
-        assertResult(x max y)(box(x, y))
-      }
+      forAll { (x: Int, y: Int) => assertResult(x max y)(box(x, y)) }
     }
     testIsNotRight(box)
     testImmutable(box)

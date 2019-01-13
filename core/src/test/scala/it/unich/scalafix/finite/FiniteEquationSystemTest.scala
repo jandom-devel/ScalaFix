@@ -31,7 +31,7 @@ class FiniteEquationSystemTest extends FunSpec with PropertyChecks {
 
   import HierarchicalOrdering._
 
-  val simpleEqs: FiniteEquationSystem[Int, Double] = FiniteEquationSystem(
+  private val simpleEqs: FiniteEquationSystem[Int, Double] = FiniteEquationSystem(
     body = {
       (rho: Int => Double) => {
         case 0 => rho(0)
@@ -41,19 +41,18 @@ class FiniteEquationSystemTest extends FunSpec with PropertyChecks {
       }
     },
     inputUnknowns = Set(0, 1, 2, 3),
-    initial = { (x: Int) => if (x == 3) 10.0 else 0.0 },
+    initial = { x: Int => if (x == 3) 10.0 else 0.0 },
     unknowns = Set(0, 1, 2, 3),
     infl = Relation(Map(0 -> Set(0, 1, 2), 1 -> Set(2), 2 -> Set(1), 3 -> Set(1, 3))))
 
-  val simpleEqsStrategy = HierarchicalOrdering(Left, Val(0), Left, Val(1), Val(2), Val(3), Right, Right)
-  val wideningBox: Box[Double] = { (x1, x2) => if (x2 > x1) Double.PositiveInfinity else x1 }
-  val maxBox: Box[Double] = { (x, y) => x max y }
-  val lastBox: Box[Double] = { (x1, x2) => x2 }
-  val timesBox: Box[Double] = { (x, y) => x * y }
+  private val simpleEqsStrategy = HierarchicalOrdering(Left, Val(0), Left, Val(1), Val(2), Val(3), Right, Right)
+  private val wideningBox: Box[Double] = { (x1: Double, x2: Double) => if (x2 > x1) Double.PositiveInfinity else x1 }
+  private val maxBox: Box[Double] = { (x: Double, y: Double) => x max y }
+  private val lastBox: Box[Double] = { (_: Double, x2: Double) => x2 }
 
-  val startRho: Assignment[Int, Double] = simpleEqs.initial
+  private val startRho: Assignment[Int, Double] = simpleEqs.initial
 
-  type SimpleSolver[U, V] = (FiniteEquationSystem[U, V], U => V) => (U => V)
+  private type SimpleSolver[U, V] = (FiniteEquationSystem[U, V], U => V) => U => V
 
   /**
     * Tests whether solving `eqs` equation system always returns a correct result. Should be used only for
@@ -61,7 +60,7 @@ class FiniteEquationSystemTest extends FunSpec with PropertyChecks {
     */
   def testCorrectness[U, V](eqs: FiniteEquationSystem[U, V], solver: SimpleSolver[U, V])(implicit values: Arbitrary[V]) {
     val startRhosList = Gen.listOfN(eqs.unknowns.size, values.arbitrary)
-    val startRhos = startRhosList map { (l) => Map(eqs.unknowns.toSeq zip l: _*) }
+    val startRhos = startRhosList map { l => Map(eqs.unknowns.toSeq zip l: _*) }
     forAll(startRhos) { start =>
       val finalEnv = solver(eqs, start)
       for (x <- eqs.unknowns)

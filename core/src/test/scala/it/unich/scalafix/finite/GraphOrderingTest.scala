@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -18,23 +18,23 @@
 
 package it.unich.scalafix.finite
 
+import org.scalacheck.Gen
 import org.scalatest.FunSpec
 import org.scalatest.prop.PropertyChecks
-import org.scalacheck.Gen
 
 class GraphOrderingTest extends FunSpec with PropertyChecks {
 
   describe("A trivial graph ordering") {
     it("returns the original sequence") {
-      forAll { (s: Set[Int]) =>
+      forAll { s: Set[Int] =>
         val seq = s.toSeq
         val o = GraphOrdering(seq: _*)
         assertResult(seq)(o.toSeq)
       }
     }
     it("respects the order of the input sequence") {
-      forAll { (s: Set[Int]) =>
-        whenever(s.size > 0) {
+      forAll { s: Set[Int] =>
+        whenever(s.nonEmpty) {
           val seq = s.toSeq
           val o = GraphOrdering(seq: _*)
           val g = Gen.choose(0, s.size - 1)
@@ -45,7 +45,7 @@ class GraphOrderingTest extends FunSpec with PropertyChecks {
       }
     }
     it("has only head elements") {
-      forAll { (s: Set[Int]) =>
+      forAll { s: Set[Int] =>
         val seq = s.toSeq
         val o = GraphOrdering(seq: _*)
         for (x <- s) assertResult(true)(o.isHead(x))

@@ -63,7 +63,7 @@ case class SimpleFiniteEquationSystem[U, V]
   unknowns: Iterable[U],
   infl: Relation[U],
   tracer: Option[EquationSystemTracer[U, V]] = None
-) extends EquationSystemBase[U, V] with FiniteEquationSystem[U,V] {
+) extends EquationSystemBase[U, V] with FiniteEquationSystem[U, V] {
 
   def withBoxes(boxes: BoxAssignment[U, V]): FiniteEquationSystem[U, V] = {
     val newInfl = if (boxes.boxesAreIdempotent) infl else infl.withDiagonal
@@ -84,6 +84,12 @@ object FiniteEquationSystem {
     * Returns the standard implementation of FiniteEquationSystem. All fields must be provided explicitly by
     * the user with the exception of `bodyWithDependencies`.
     */
-  def apply[U, V](body: Body[U, V], initial: Assignment[U, V], inputUnknowns: Set[U], unknowns: Iterable[U], infl: Relation[U]): FiniteEquationSystem[U, V] =
+  def apply[U, V](
+                   body: Body[U, V],
+                   initial: Assignment[U, V],
+                   inputUnknowns: Set[U],
+                   unknowns: Iterable[U],
+                   infl: Relation[U]
+                 ): FiniteEquationSystem[U, V] =
     SimpleFiniteEquationSystem(body, initial, inputUnknowns, unknowns, infl, None)
 }

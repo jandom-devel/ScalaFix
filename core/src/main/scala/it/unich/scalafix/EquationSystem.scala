@@ -122,9 +122,7 @@ abstract class EquationSystemBase[U, V] extends EquationSystem[U, V] {
     * trough the use of the `comb` combiner.
     */
   protected def bodyWithBaseAssignment(init: PartialFunction[U, V], comb: (V, V) => V): Body[U, V] = {
-    rho: Assignment[U, V] =>
-      x: U =>
-        if (init.isDefinedAt(x)) comb(init(x), body(rho)(x)) else body(rho)(x)
+    rho: Assignment[U, V] => x: U => if (init.isDefinedAt(x)) comb(init(x), body(rho)(x)) else body(rho)(x)
   }
 
   /**
@@ -156,7 +154,6 @@ case class SimpleEquationSystem[U, V]
   inputUnknowns: U => Boolean,
   tracer: Option[EquationSystemTracer[U, V]] = None
 ) extends EquationSystemBase[U, V] {
-
   def withBoxes(boxes: BoxAssignment[U, V]): EquationSystem[U, V] = {
     copy(body = bodyWithBoxAssignment(boxes))
   }

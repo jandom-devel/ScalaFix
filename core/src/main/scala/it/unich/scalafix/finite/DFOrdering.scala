@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -20,8 +20,8 @@ package it.unich.scalafix.finite
 
 import it.unich.scalafix.utils.Relation
 
-import scala.collection.mutable
 import scala.annotation.tailrec
+import scala.collection.mutable
 
 /**
   * This class represents a depth-first ordering of a graph, as it appears in the Aho, Sehti, Ullman book
@@ -75,11 +75,12 @@ object DFOrdering {
   /**
     * This class is a depth-first ordering for the influence relation `relation`.
     *
-    * @param r        the adjacency relation from which we compute the DFOrdering.
-    * @param nodes    the set of all initial nodes
-    * @param entries  nodes from which to start the visit.
+    * @param r       the adjacency relation from which we compute the DFOrdering.
+    * @param nodes   the set of all initial nodes
+    * @param entries nodes from which to start the visit.
     */
   private final class DFOrderingFromR[N](r: Relation[N], nodes: Iterable[N], entries: Iterable[N]) extends DFOrdering[N] {
+
     import DFOrdering.EdgeType._
 
     val stringPrefix = "GraphOrdering"
@@ -109,9 +110,9 @@ object DFOrdering {
       }
     }
 
-    lazy val toSeq = nodes.toSeq.sorted(this)
+    lazy val toSeq: Seq[N] = nodes.toSeq.sorted(this)
 
-    def compare(x: N, y: N) = scala.math.signum(dfn(x) - dfn(y))
+    def compare(x: N, y: N): Int = scala.math.signum(dfn(x) - dfn(y))
 
     /**
       * Returns whether y is a child of x in the depth-first spanning tree.
@@ -126,14 +127,14 @@ object DFOrdering {
         connected(x, z.get._1)
     }
 
-    def edgeType(x: N, y: N) = if (y <= x)
+    def edgeType(x: N, y: N): EdgeType = if (y <= x)
       Retreating
     else if (connected(x, y))
       Advancing
     else
       Cross
 
-    def isHead(u: N) = heads contains u
+    def isHead(u: N): Boolean = heads contains u
   }
 
 }

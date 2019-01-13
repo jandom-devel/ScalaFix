@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -38,14 +38,16 @@ object WorkListSolver {
     * @return the solution of the equation system
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
-                 (start: Assignment[U, V] = eqs.initial,
-                  listener: FixpointSolverListener[U, V] = EmptyListener): Assignment[U, V] = {
+                 (
+                   start: Assignment[U, V] = eqs.initial,
+                   listener: FixpointSolverListener[U, V] = EmptyListener
+                 ): Assignment[U, V] = {
     val current = mutable.HashMap.empty[U, V].withDefault(start)
     listener.initialized(current)
     // is it better to use a Queue for a worklist ?
     val workList = collection.mutable.LinkedHashSet.empty[U]
     workList ++= eqs.unknowns
-    while (!workList.isEmpty) {
+    while (workList.nonEmpty) {
       val x = workList.head
       workList.remove(x)
       val newval = eqs.body(current)(x)

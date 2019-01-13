@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -28,6 +28,7 @@ import scala.collection.mutable
   * @tparam A the domain of the relation.
   */
 trait Relation[A] extends (A => collection.Set[A]) {
+
   import Relation._
 
   /**
@@ -41,19 +42,18 @@ trait Relation[A] extends (A => collection.Set[A]) {
   */
 object Relation {
 
-
   private class InfluenceWithDiagonal[A](r: Relation[A]) extends Relation[A] {
-    def apply(x: A) = r(x) + x
+    def apply(x: A): collection.Set[A] = r(x) + x
 
-    override def withDiagonal = this
+    override def withDiagonal: Relation[A] = this
   }
 
   private class InfluenceRelationFromFunction[A](f: A => collection.Set[A]) extends Relation[A] {
-    def apply(x: A) = f(x)
+    def apply(x: A): collection.Set[A] = f(x)
   }
 
   private class InfluenceRelationFromHash[A](hash: collection.Map[A, collection.Set[A]]) extends Relation[A] {
-    def apply(x: A) = hash.getOrElse(x, Set.empty[A])
+    def apply(x: A): collection.Set[A] = hash.getOrElse(x, Set.empty[A])
   }
 
   /**
@@ -74,7 +74,7 @@ object Relation {
     * order in which they appear in graph.
     */
   def apply[A](graph: Seq[(A, A)]): Relation[A] = {
-    val hash = new mutable.HashMap[A, mutable.Set[A]] with mutable.MultiMap[A, A] {
+    val hash: mutable.MultiMap[A, A] = new mutable.HashMap[A, mutable.Set[A]] with mutable.MultiMap[A, A] {
       override def makeSet = new mutable.LinkedHashSet[A]
     }
     for ((u, v) <- graph) hash.addBinding(u, v)

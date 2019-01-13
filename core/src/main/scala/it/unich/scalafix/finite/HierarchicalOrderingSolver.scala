@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -40,14 +40,17 @@ object HierarchicalOrderingSolver {
     * @return the solution of the equation system
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
-                 (start: Assignment[U, V], ordering: HierarchicalOrdering[U] = HierarchicalOrdering(DFOrdering(eqs)),
-                  listener: FixpointSolverListener[U, V] = EmptyListener): Assignment[U, V] = {
+                 (
+                   start: Assignment[U, V],
+                   ordering: HierarchicalOrdering[U] = HierarchicalOrdering(DFOrdering(eqs)),
+                   listener: FixpointSolverListener[U, V] = EmptyListener
+                 ): Assignment[U, V] = {
     import HierarchicalOrdering._
 
     val current = mutable.HashMap.empty[U, V].withDefault(start)
     listener.initialized(current)
-    val stack = mutable.Stack.empty[Int]
-    val stackdirty = mutable.Stack.empty[Boolean]
+    var stack= List.empty[Int]
+    var  stackdirty = List.empty[Boolean]
 
     var dirty = false
     var i = 0
@@ -56,8 +59,8 @@ object HierarchicalOrderingSolver {
     while (i < sequence.length) {
       sequence(i) match {
         case Left =>
-          stack.push(i + 1)
-          stackdirty.push(dirty)
+          stack = (i + 1) +: stack
+          stackdirty = dirty +: stackdirty
           dirty = false
           i += 1
         case Val(x) =>
@@ -70,11 +73,12 @@ object HierarchicalOrderingSolver {
           i += 1
         case Right =>
           if (dirty) {
-            i = stack.top
+            i = stack.head
             dirty = false
           } else {
-            stack.pop
-            dirty = stackdirty.pop()
+            stack = stack.tail
+            dirty = stackdirty.head
+            stackdirty = stackdirty.tail
             i += 1
           }
       }

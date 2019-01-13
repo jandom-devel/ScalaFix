@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -35,19 +35,20 @@ trait Magma[A] {
   class Ops(lhs: A) {
     def |+|(rhs: A): A = op(lhs, rhs)
   }
+
 }
 
 object Magma {
   /**
     * Add syntactic sugar to easily get the current implicit Magma.
     */
-  def apply[A](implicit magma: Magma[A]) = magma
+  def apply[A](implicit magma: Magma[A]): Magma[A] = magma
 
   /**
     * An implicit magma whose op operator corresponds to the upper bound of a directed partial ordering.
     */
-  implicit def domainIsMagma[A](implicit dom: Domain[A]) = new Magma[A] {
-    def op(x: A, y:A) = dom.upperBound(x,y)
+  implicit def domainIsMagma[A](implicit dom: Domain[A]): Magma[A] = new Magma[A] {
+    def op(x: A, y:A): A  = dom.upperBound(x,y)
   }
 
   /**

@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -24,20 +24,18 @@ import org.scalatest.FunSpec
 
 class EquationSystemTest extends FunSpec {
 
-  val simpleEqs = EquationSystem (
-    body = { (rho: Int => Int) =>
-      x: Int =>
-        x match {
-          case 0 => rho(0)
-          case 1 => (rho(0) max rho(2)) min rho(3)
-          case 2 => rho(1) + 1
-          case 3 => rho(3)
-        }
+  private val simpleEqs = EquationSystem[Int, Int](
+    body = { rho: (Int => Int) => {
+      case 0 => rho(0)
+      case 1 => (rho(0) max rho(2)) min rho(3)
+      case 2 => rho(1) + 1
+      case 3 => rho(3)
+    }
     },
     initial = { x: Int => x }
   )
-  val rho: Assignment[Int, Int] = simpleEqs.initial
-  val box: Box[Int] = (_ * _)
+  private val rho: Assignment[Int, Int] = simpleEqs.initial
+  private val box: Box[Int] = { (x: Int, y: Int) => x * y }
 
   describe("An equation system") {
     it("computes r.h.s. according to its body function") {
@@ -73,7 +71,8 @@ class EquationSystemTest extends FunSpec {
       os.reset()
       val boxTracingEqs = tracingEqs.withBoxes(box)
       boxTracingEqs.body(rho)(0)
-      assertResult("evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\nevaluated: 0, oldvalue: 0, newvalue: 0, boxed: 0\n")(os.toString)
+      assertResult("evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\nevaluated: 0, " +
+        "oldvalue: 0, newvalue: 0, boxed: 0\n")(os.toString)
     }
   }
 }

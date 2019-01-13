@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * JANDOM is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -18,8 +18,8 @@
 
 package it.unich.scalafix.utils
 
-import org.scalatest.prop.PropertyChecks
 import org.scalatest.FunSpec
+import org.scalatest.prop.PropertyChecks
 
 class IterableFunctionTest extends FunSpec with PropertyChecks {
   describe("An empty iterable function") {
@@ -31,16 +31,14 @@ class IterableFunctionTest extends FunSpec with PropertyChecks {
       assert(f.keys.isEmpty)
     }
     it("returns an exception for every input") {
-      forAll { (x: Int) =>
-        intercept[NoSuchElementException](f(x))
-        ()  // why we need this unit literale ??
+      forAll { x: Int => intercept[NoSuchElementException](f(x))
       }
     }
   }
 
   describe("An interable function derived from a map") {
     it("has the same functional behaviour of the map") {
-      forAll { (m: Map[Int, Int]) =>
+      forAll { m: Map[Int, Int] =>
         val f: IterableFunction[Int, Int] = m
         for ((x, y) <- m.toSeq)
           assertResult(y)(f(x))

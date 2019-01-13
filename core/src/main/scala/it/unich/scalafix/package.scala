@@ -39,15 +39,15 @@ package object scalafix {
   /**
     * The body of an equation system, i.e., a map from assignments to assignments.
     */
-  type Body[U,V] = Assignment[U,V] => Assignment[U,V]
+  type Body[U, V] = Assignment[U, V] => Assignment[U, V]
 
   /**
     * A body which also calculates dependencies among unknowns.
     */
-  type BodyWithDependencies[U,V] = Assignment[U, V] => Assignment[U, (V, Iterable[U])]
+  type BodyWithDependencies[U, V] = Assignment[U, V] => Assignment[U, (V, Iterable[U])]
 
   /**
     * The effect of an edge in a graph equation system.
     */
-  type EdgeAction[U,V,E] = Assignment[U, V] => E => V
+  type EdgeAction[U, V, E] = Assignment[U, V] => E => V
 }

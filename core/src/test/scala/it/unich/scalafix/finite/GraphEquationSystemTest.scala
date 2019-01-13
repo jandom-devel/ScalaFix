@@ -26,15 +26,14 @@ import org.scalatest.FunSpec
 
 class GraphEquationSystemTest extends FunSpec {
 
-  implicit object MagmaInt extends Magma[Int] {
+  private implicit object MagmaInt extends Magma[Int] {
     def op(x: Int, y: Int): Int = x max y
   }
 
-  val edges = Set('a', 'b', 'c', 'd')
-  val unknowns = Set(0, 1, 2, 3)
-  val simpleEqs: GraphEquationSystem[Int, Int, Char] = GraphEquationSystem(
+  private val unknowns = Set(0, 1, 2, 3)
+  private val simpleEqs = GraphEquationSystem[Int, Int, Char] (
     edgeAction = {
-      (rho: Int => Int) => {
+      rho: (Int => Int) => {
         case 'a' => rho(0)
         case 'b' => rho(1) min 10
         case 'c' => rho(2) + 1
@@ -49,7 +48,7 @@ class GraphEquationSystemTest extends FunSpec {
     inputUnknowns = Set(0),
     initial = { _ => 0 }
   )
-  val rho: Assignment[Int, Int] = { x: Int => x }
+  private val rho: Assignment[Int, Int] = { x: Int => x }
 
   describe("A simple graph equation system") {
     it("correctly computes the body") {
@@ -150,7 +149,8 @@ class GraphEquationSystemTest extends FunSpec {
       val box: Box[Int] = { (x: Int, y: Int) => x + (2 * y) }
       val boxTracingEqs = tracingEqs.withBoxes(box)
       boxTracingEqs.body(rho)(0)
-      assertResult("evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\nevaluated: 0, oldvalue: 0, newvalue: 0, boxed: 0\n")(os.toString)
+      assertResult("evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\n" +
+        "evaluated: 0, oldvalue: 0, newvalue: 0, boxed: 0\n")(os.toString)
     }
   }
 }

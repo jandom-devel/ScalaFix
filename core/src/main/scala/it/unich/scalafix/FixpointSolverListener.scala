@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -100,23 +100,23 @@ object FixpointSolverListener {
     */
   object DebugListener extends FixpointSolverListener[Any, Any] {
     def evaluated[U1, V1](rho: U1 => V1, u: U1, newval: V1) {
-      println(s"evaluated: ${u} oldvalue: ${rho(u)} newvalue ${newval}")
+      println(s"evaluated: $u oldvalue: ${rho(u)} newvalue $newval")
     }
 
     def completed[U1, V1](rho: U1 => V1) {
-      println(s"completed with assignment ${rho}")
+      println(s"completed with assignment $rho")
     }
 
     def initialized[U1, V1](rho: U1 => V1) {
-      println(s"initialized with assignment ${rho}")
+      println(s"initialized with assignment $rho")
     }
 
     def ascendingBegins[U1, V1](rho: U1 => V1) {
-      println(s"ascending chain begins with assignment ${rho}")
+      println(s"ascending chain begins with assignment $rho")
     }
 
     def descendingBegins[U1, V1](rho: U1 => V1) {
-      println(s"descending chain begins with assignment ${rho}")
+      println(s"descending chain begins with assignment $rho")
     }
   }
 
@@ -130,7 +130,7 @@ object FixpointSolverListener {
     /**
       * Number of evaluations of r.h.s. performed so far.
       */
-    def evaluations = numeval
+    def evaluations: Int = numeval
 
     override def evaluated[U1, V1](rho: U1 => V1, u: U1, newval: V1) {
       numeval += 1

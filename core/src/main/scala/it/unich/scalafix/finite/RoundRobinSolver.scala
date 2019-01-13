@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -39,8 +39,10 @@ object RoundRobinSolver {
     * @return the solution of the equation system
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
-                 (start: Assignment[U, V] = eqs.initial,
-                  listener: FixpointSolverListener[U, V] = EmptyListener): Assignment[U, V] = {
+                 (
+                   start: Assignment[U, V] = eqs.initial,
+                   listener: FixpointSolverListener[U, V] = EmptyListener
+                 ): Assignment[U, V] = {
     val current = mutable.HashMap.empty[U, V].withDefault(start)
     listener.initialized(current)
     var dirty = true

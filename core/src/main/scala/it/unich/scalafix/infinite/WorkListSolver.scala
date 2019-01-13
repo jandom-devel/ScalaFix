@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -39,9 +39,12 @@ object WorkListSolver {
     * @return the solution of the equation system
     */
   def apply[U, V](eqs: EquationSystem[U, V])
-                 (wanted: Iterable[U], start: Assignment[U, V] = eqs.initial,
-                  listener: FixpointSolverListener[U, V] = EmptyListener): PartialAssignment[U, V] = {
-    val infl = new mutable.HashMap[U, mutable.Set[U]] with mutable.MultiMap[U, U] {
+                 (
+                   wanted: Iterable[U],
+                   start: Assignment[U, V] = eqs.initial,
+                   listener: FixpointSolverListener[U, V] = EmptyListener
+                 ): PartialAssignment[U, V] = {
+    val infl: mutable.MultiMap[U, U] = new mutable.HashMap[U, mutable.Set[U]] with mutable.MultiMap[U, U] {
       override def makeSet = new mutable.LinkedHashSet[U]
     }
     val workList = mutable.Queue.empty[U]
@@ -49,7 +52,7 @@ object WorkListSolver {
 
     val current = mutable.HashMap.empty[U, V].withDefault(start)
     listener.initialized(current)
-    while (!workList.isEmpty) {
+    while (workList.nonEmpty) {
       val x = workList.dequeue()
       val (newval, dependencies) = eqs.bodyWithDependencies(current)(x)
       listener.evaluated(current, x, newval)

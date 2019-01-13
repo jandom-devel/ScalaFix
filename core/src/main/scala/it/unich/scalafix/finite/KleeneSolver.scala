@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -38,9 +38,10 @@ object KleeneSolver {
     * @return the solution of the equation system
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
-                 (start: Assignment[U, V] = eqs.initial,
-                  listener: FixpointSolverListener[U, V] = EmptyListener): Assignment[U, V] = {
-
+                 (
+                   start: Assignment[U, V] = eqs.initial,
+                   listener: FixpointSolverListener[U, V] = EmptyListener
+                 ): Assignment[U, V] = {
     var current = mutable.HashMap.empty[U, V]
     var next = mutable.HashMap.empty[U, V]
     for (x <- eqs.unknowns) current(x) = start(x)

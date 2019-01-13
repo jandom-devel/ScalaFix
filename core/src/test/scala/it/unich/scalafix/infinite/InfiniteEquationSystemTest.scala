@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -23,7 +23,7 @@ import it.unich.scalafix.{Box, EquationSystem, FixpointSolverListenerAdapter}
 import org.scalatest.FunSpec
 import org.scalatest.prop.PropertyChecks
 
-import scala.collection.mutable.Buffer
+import scala.collection.mutable
 
 
 /**
@@ -31,8 +31,8 @@ import scala.collection.mutable.Buffer
   */
 class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
 
-  val simpleEqs = EquationSystem[Int, Int](
-    body = { (rho: Int => Int) =>
+  private val simpleEqs = EquationSystem[Int, Int](
+    body = { rho: (Int => Int) =>
       x: Int =>
         if (x % 2 == 0)
           rho(rho(x)) max x / 2
@@ -41,16 +41,16 @@ class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
           rho(6 * n + 4)
         }
     },
-    initial =  { x: Int => 0 }
+    initial = { _: Int => 0 }
   )
 
-  val maxBox: Box[Int] = { (x, y) => x max y }
-  val startRho = simpleEqs.initial
+  private val maxBox: Box[Int] = { (x: Int, y: Int) => x max y }
+  private val startRho = simpleEqs.initial
 
-  type SimpleSolver[U, V] = (EquationSystem[U, V],  Seq[U], U => V) => IterableFunction[U, V]
+  private type SimpleSolver[U, V] = (EquationSystem[U, V], Seq[U], U => V) => IterableFunction[U, V]
 
   class EvaluationOrderListener extends FixpointSolverListenerAdapter {
-    val buffer = Buffer.empty[Any]
+    private val buffer = mutable.Buffer.empty[Any]
 
     override def evaluated[U1, V1](rho: U1 => V1, x: U1, newval: V1) {
       buffer += x
@@ -74,7 +74,6 @@ class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
 
   describe("The standard bodyWithDependencies method") {
     it("returns the correct dependencies") {
-      val (res, deps) = simpleEqs.bodyWithDependencies(startRho)(4)
       assertResult((2, Seq(4, 0))) {
         simpleEqs.bodyWithDependencies(startRho)(4)
       }
@@ -83,7 +82,7 @@ class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
       }
     }
     it("returns the same value as body") {
-      forAll { (x: Int) =>
+      forAll { x: Int =>
         assertResult(simpleEqs.body(startRho)(x)) {
           simpleEqs.bodyWithDependencies(startRho)(x)._1
         }

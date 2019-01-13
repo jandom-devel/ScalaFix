@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -21,7 +21,7 @@ package it.unich.scalafix
 import scala.language.implicitConversions
 
 /**
-  * A BoxAssignment maps a subset of the program's points to a Box. When `isDefinedAt(u)`
+  * A BoxAssignment maps a subset of unknowns to a Box. When `isDefinedAt(u)`
   * is false for a given unknown `u`, the corresponding `apply(u)` should be a right box.
   *
   * Like it was the case for Box, a BoxAssignent is also a blueprint for buildind equivalent
@@ -61,7 +61,7 @@ abstract class BoxAssignment[-U, V] extends PartialFunction[U, Box[V]] {
     * Restrict the domain of this box assignment. The new domain is the intersection of
     * the old domain and the set whose characteristic function is `domain`
     */
-  def restrict[U1 <: U](domain: U1 => Boolean): BoxAssignment[U1,V] =
+  def restrict[U1 <: U](domain: U1 => Boolean): BoxAssignment[U1, V] =
     if (isEmpty)
       this
     else
@@ -74,7 +74,7 @@ abstract class BoxAssignment[-U, V] extends PartialFunction[U, Box[V]] {
 object BoxAssignment {
 
   private object EmptyAssigment extends BoxAssignment[Any, Any] {
-    def apply(u: Any) = Box.right[Any]
+    def apply(u: Any): Box.ImmutableBox[Any] = Box.right[Any]
 
     def isDefinedAt(u: Any) = false
 
@@ -86,7 +86,7 @@ object BoxAssignment {
 
     def boxesAreImmutable = true
 
-    def copy = this
+    def copy: this.type = this
   }
 
   /**
@@ -100,17 +100,17 @@ object BoxAssignment {
   private final class ConstantAssignment[V](box: Box[V]) extends BoxAssignment[Any, V] {
     def isDefinedAt(u: Any) = true
 
-    def apply(u: Any) = box
+    def apply(u: Any): Box[V] = box
 
     def isEmpty = false
 
-    def boxesAreIdempotent = box.isIdempotent
+    def boxesAreIdempotent: Boolean = box.isIdempotent
 
-    def boxesAreRight = box.isRight
+    def boxesAreRight: Boolean = box.isRight
 
-    def boxesAreImmutable = box.isImmutable
+    def boxesAreImmutable: Boolean = box.isImmutable
 
-    def copy = if (boxesAreImmutable) this else new ConstantAssignment(box.copy)
+    def copy: ConstantAssignment[V] = if (boxesAreImmutable) this else new ConstantAssignment(box.copy)
   }
 
   /**
@@ -125,59 +125,59 @@ object BoxAssignment {
 
     def isDefinedAt(u: Any) = true
 
-    def apply(u: Any) = hash.getOrElseUpdate(u, box.copy)
+    def apply(u: Any): Box[V] = hash.getOrElseUpdate(u, box.copy)
 
     def isEmpty = false
 
-    def boxesAreIdempotent = box.isIdempotent
+    def boxesAreIdempotent: Boolean = box.isIdempotent
 
-    def boxesAreImmutable = box.isImmutable
+    def boxesAreImmutable: Boolean = box.isImmutable
 
-    def boxesAreRight = box.isRight
+    def boxesAreRight: Boolean = box.isRight
 
-    def copy = if (boxesAreImmutable) this else new TemplateAssignment(box)
+    def copy: TemplateAssignment[V] = if (boxesAreImmutable) this else new TemplateAssignment(box)
   }
 
   /**
     * A box assignment which restrict the assignment boxes to the set of program points which satisfy domain.
     *
-    * @tparam U the type for program points of the box assignment
-    * @tparam V the type of values
+    * @tparam U  the type for program points of the box assignment
+    * @tparam V  the type of values
     * @tparam U1 the type of program points (subtype of U) to which we want to restrict the assignment
-    * @param boxes the original box assignment
+    * @param boxes  the original box assignment
     * @param domain the set of points on which we want to use a box
-
+    *
     */
-  private final class RestrictAssignment[U, V, U1 <: U](boxes: BoxAssignment[U, V], domain: U1 => Boolean) extends BoxAssignment[U1,V] {
-    def apply(u: U1) = if (domain(u)) boxes(u) else Box.right[V]
+  private final class RestrictAssignment[U, V, U1 <: U](boxes: BoxAssignment[U, V], domain: U1 => Boolean) extends BoxAssignment[U1, V] {
+    def apply(u: U1): Box[V] = if (domain(u)) boxes(u) else Box.right[V]
 
-    def isDefinedAt(u: U1) = domain(u) && boxes.isDefinedAt(u)
+    def isDefinedAt(u: U1): Boolean = domain(u) && boxes.isDefinedAt(u)
 
-    def isEmpty = boxes.isEmpty
+    def isEmpty: Boolean = boxes.isEmpty
 
-    def boxesAreIdempotent = boxes.boxesAreIdempotent
+    def boxesAreIdempotent: Boolean = boxes.boxesAreIdempotent
 
-    def boxesAreImmutable = boxes.boxesAreImmutable
+    def boxesAreImmutable: Boolean = boxes.boxesAreImmutable
 
-    def boxesAreRight = boxes.boxesAreRight
+    def boxesAreRight: Boolean = boxes.boxesAreRight
 
-    def copy = if (boxesAreImmutable) this else new RestrictAssignment(boxes.copy, domain)
+    def copy: RestrictAssignment[U, V, U1] = if (boxesAreImmutable) this else new RestrictAssignment(boxes.copy, domain)
   }
 
-  private final class WarrowingAssignment[U,V: PartialOrdering](widenings: BoxAssignment[U,V], narrowings: BoxAssignment[U,V]) extends BoxAssignment[U,V] {
-    def apply(u: U) = Box.warrowing(widenings(u), narrowings(u))
+  private final class WarrowingAssignment[U, V: PartialOrdering](widenings: BoxAssignment[U, V], narrowings: BoxAssignment[U, V]) extends BoxAssignment[U, V] {
+    def apply(u: U): Box[V] = Box.warrowing(widenings(u), narrowings(u))
 
-    def isDefinedAt(x: U) = widenings.isDefinedAt(x) || narrowings.isDefinedAt(x)
+    def isDefinedAt(x: U): Boolean = widenings.isDefinedAt(x) || narrowings.isDefinedAt(x)
 
-    def isEmpty = widenings.isEmpty && narrowings.isEmpty
+    def isEmpty: Boolean = widenings.isEmpty && narrowings.isEmpty
 
     def boxesAreIdempotent = false
 
-    def boxesAreImmutable = widenings.boxesAreImmutable && narrowings.boxesAreImmutable
+    def boxesAreImmutable: Boolean = widenings.boxesAreImmutable && narrowings.boxesAreImmutable
 
-    def boxesAreRight = widenings.boxesAreRight && narrowings.boxesAreRight
+    def boxesAreRight: Boolean = widenings.boxesAreRight && narrowings.boxesAreRight
 
-    def copy = if (boxesAreImmutable) this else new WarrowingAssignment(widenings.copy, narrowings.copy)
+    def copy: WarrowingAssignment[U, V] = if (boxesAreImmutable) this else new WarrowingAssignment(widenings.copy, narrowings.copy)
   }
 
   /**
@@ -198,7 +198,7 @@ object BoxAssignment {
     * A box assignment which returns the immutable and idempotent box corresponding to the map  `f: (V,V) => V`,
     * for each program point.
     */
-  implicit def apply[V](f: Function2[V, V, V]): BoxAssignment[Any, V] =
+  implicit def apply[V](f: (V, V) => V): BoxAssignment[Any, V] =
     new ConstantAssignment[V](Box(f))
 
   /**
@@ -218,7 +218,7 @@ object BoxAssignment {
     * @param widenings  widening assignment over U and V
     * @param narrowings narrowing assignment over U and V
     */
-  def warrowing[U, V: PartialOrdering](widenings: BoxAssignment[U,V], narrowings: BoxAssignment[U,V]): BoxAssignment[U,V] = {
+  def warrowing[U, V: PartialOrdering](widenings: BoxAssignment[U, V], narrowings: BoxAssignment[U, V]): BoxAssignment[U, V] = {
     if (widenings.boxesAreRight && narrowings.boxesAreRight)
       Box.right[V]
     else

@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -35,7 +35,7 @@ abstract class HierarchicalOrdering[N] extends GraphOrdering[N] {
   /**
     * Converts a hierarchical ordering into a string on the basis of its parenthesized sequence
     */
-  override def toString = toSeqWithParenthesis.mkString(stringPrefix, " ", "")
+  override def toString: String = toSeqWithParenthesis.mkString(stringPrefix, " ", "")
 }
 
 /**
@@ -45,8 +45,8 @@ abstract class HierarchicalOrdering[N] extends GraphOrdering[N] {
 object HierarchicalOrdering {
 
   /**
-    * An HOElement[N] is either `Left` (left parenthesis), `Right` (right parenthesis) or `Val(x)` where `x` is a value of type `N`.
-    * A sequence of HOElements is the standard representation of a hierarchical ordering.
+    * An HOElement[N] is either `Left` (left parenthesis), `Right` (right parenthesis) or `Val(x)` where
+    * `x` is a value of type `N`. A sequence of HOElements is the standard representation of a hierarchical ordering.
     */
   sealed abstract class HOElement[+N]
 
@@ -58,8 +58,8 @@ object HierarchicalOrdering {
     override def toString = ")"
   }
 
-  final case class Val[N](val u: N) extends HOElement[N] {
-    override def toString = u.toString
+  final case class Val[N](u: N) extends HOElement[N] {
+    override def toString: String = u.toString
   }
 
   /**
@@ -110,13 +110,13 @@ object HierarchicalOrdering {
       (x, i) <- seq.zipWithIndex; if x.isInstanceOf[Val[N]]; Val(u) = x
     } yield u -> i) (collection.breakOut)
 
-    def toSeq = for (x <- seq; if x.isInstanceOf[Val[N]]; Val(u) = x) yield u
+    def toSeq: Seq[N] = for (x <- seq; if x.isInstanceOf[Val[N]]; Val(u) = x) yield u
 
-    def toSeqWithParenthesis = seq
+    def toSeqWithParenthesis: Seq[HOElement[N]] = seq
 
-    def isHead(x: N) = (0 until seq.length).exists { (i) => seq(i) == Left && seq(i + 1) == Val(x) }
+    def isHead(x: N): Boolean = seq.indices exists { i => seq(i) == Left && seq(i + 1) == Val(x) }
 
-    def compare(x: N, y: N) = orderingIndex(x) - orderingIndex(y)
+    def compare(x: N, y: N): Int = orderingIndex(x) - orderingIndex(y)
   }
 
   /**
@@ -127,13 +127,13 @@ object HierarchicalOrdering {
   private final class GraphOrderingBasedHO[N](o: GraphOrdering[N]) extends HierarchicalOrdering[N] {
     val stringPrefix = "HierarchicalOrdering"
 
-    def toSeq = o.toSeq
+    def toSeq: Seq[N] = o.toSeq
 
-    def isHead(x: N) = o.isHead(x)
+    def isHead(x: N): Boolean = o.isHead(x)
 
-    def compare(x: N, y: N) = o.compare(x, y)
+    def compare(x: N, y: N): Int = o.compare(x, y)
 
-    lazy val toSeqWithParenthesis = {
+    lazy val toSeqWithParenthesis: Seq[HOElement[N]] = {
       val buffer = mutable.Buffer.empty[HOElement[N]]
       var open = 0
       for (x <- o.toSeq) {
@@ -146,7 +146,7 @@ object HierarchicalOrdering {
       for (_ <- 0 until open) {
         buffer.append(Right)
       }
-      buffer.toSeq
+      buffer
     }
   }
 

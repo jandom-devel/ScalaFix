@@ -122,8 +122,7 @@ case class SimpleGraphEquationSystem[U, V, E]
   }
 
   val infl: Relation[U] = Relation({
-    (u: U) =>
-      (for (e <- outgoing(u)) yield target(e)) (collection.breakOut)
+    u: U => (for (e <- outgoing(u)) yield target(e)) (collection.breakOut)
   })
 
   def withTracer(t: EquationSystemTracer[U, V]): GraphEquationSystem[U, V, E] = {

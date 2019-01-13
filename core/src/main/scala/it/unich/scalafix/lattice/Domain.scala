@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -23,7 +23,7 @@ import scala.language.implicitConversions
 /**
   * A `Domain` is a `PartialOrdering` where elements are endowed with an upper bound operator. However, not all
   * pairs of elements have an upper bound. Generally, elements in a domain are partitioned in fibers, and an
-  * upper bound only exists for elements on the same fiber. This is not modeled bu the current definition of `Domain`.
+  * upper bound only exists for elements on the same fiber. This is not modeled by the current definition of `Domain`.
   *
   * If an implicit object of type `Domain[A]` is in scope, then binary operators
   * `<`, `<=`, `>`, `>=`, `equiv` and `upperBound` are available.
@@ -35,18 +35,19 @@ trait Domain[A] extends PartialOrdering[A] {
   def upperBound(x: A, y: A): A
 
   class Ops(lhs: A) {
-    def <(rhs: A) = lt(lhs, rhs)
+    def <(rhs: A): Boolean = lt(lhs, rhs)
 
-    def <=(rhs: A) = lteq(lhs, rhs)
+    def <=(rhs: A): Boolean = lteq(lhs, rhs)
 
-    def >=(rhs: A) = gteq(lhs, rhs)
+    def >=(rhs: A): Boolean = gteq(lhs, rhs)
 
-    def >(rhs: A) = gt(lhs, rhs)
+    def >(rhs: A): Boolean = gt(lhs, rhs)
 
-    def equiv(rhs: A) = Domain.this.equiv(lhs, rhs)
+    def equiv(rhs: A): Boolean = Domain.this.equiv(lhs, rhs)
 
-    def upperBound(rhs: A) = Domain.this.upperBound(lhs, rhs)
+    def upperBound(rhs: A): A = Domain.this.upperBound(lhs, rhs)
   }
+
 }
 
 /**
@@ -57,14 +58,14 @@ trait LowPriorityImplicitDomains {
     * An implicit domain obtained by a partial ordering, taking the max (when it exists) to be the upper bound
     * operator.
     */
-  implicit def partialOrderingIsDomain[A](implicit po: PartialOrdering[A]) = new Domain[A] {
-    def lteq(x: A, y: A) = po.lteq(x,y)
+  implicit def partialOrderingIsDomain[A](implicit po: PartialOrdering[A]): Domain[A] = new Domain[A] {
+    def lteq(x: A, y: A): Boolean = po.lteq(x, y)
 
-    def tryCompare(x: A, y: A) = po.tryCompare(x, y)
+    def tryCompare(x: A, y: A): Option[Int] = po.tryCompare(x, y)
 
-    def upperBound(x: A, y: A) = po.tryCompare(x,y) match {
-      case None => throw new IllegalArgumentException("Elements are not comparable")
-      case Some(v) => if (v <= 0) y else x
+    def upperBound(x: A, y: A): A = {
+      val v = po.tryCompare(x, y).getOrElse(throw new IllegalArgumentException("Elements are not comparable"))
+      if (v <= 0) y else x
     }
   }
 
@@ -72,11 +73,11 @@ trait LowPriorityImplicitDomains {
     * An implicit domain obtained by an ordering, taking the max to be the upper bound operator.
     */
   implicit def orderingIsDomain[A](implicit o: Ordering[A]) = new Domain[A] {
-    def lteq(x: A, y: A) = o.lteq(x, y)
+    def lteq(x: A, y: A): Boolean = o.lteq(x, y)
 
-    def tryCompare(x: A, y: A) = o.tryCompare(x, y)
+    def tryCompare(x: A, y: A): Some[Int] = o.tryCompare(x, y)
 
-    def upperBound(x: A, y: A) = if (o.compare(x, y) <= 0) y else x
+    def upperBound(x: A, y: A): A = if (o.compare(x, y) <= 0) y else x
   }
 }
 
@@ -84,7 +85,7 @@ object Domain extends LowPriorityImplicitDomains {
   /**
     * Add a syntactic sugar to easily get the current implicit Domain.
     */
-  def apply[V](implicit dom: Domain[V]) = dom
+  def apply[A](implicit dom: Domain[A]): Domain[A] = dom
 
   /**
     * An implicit conversion from `A` to `Domain[A].Ops`, which allows the seamsless

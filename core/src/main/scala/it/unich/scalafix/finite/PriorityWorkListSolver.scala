@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -25,8 +25,6 @@ import scala.collection.mutable
 
 /**
   * A fixpoint solver based on priority worklists.
-  *
-
   */
 object PriorityWorkListSolver {
   /**
@@ -44,13 +42,17 @@ object PriorityWorkListSolver {
     * @return the solution of the equation system
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
-                 (start: Assignment[U, V] = eqs.initial, ordering: Ordering[U] = DFOrdering(eqs), restart: (V, V) => Boolean = { (x: V, y: V) => false },
-                  listener: FixpointSolverListener[U, V] = EmptyListener): Assignment[U, V] = {
+                 (
+                   start: Assignment[U, V] = eqs.initial,
+                   ordering: Ordering[U] = DFOrdering(eqs),
+                   restart: (V, V) => Boolean = { (_: V, _: V) => false },
+                   listener: FixpointSolverListener[U, V] = EmptyListener
+                 ): Assignment[U, V] = {
     val current = mutable.HashMap.empty[U, V].withDefault(start)
     listener.initialized(current)
     val workList = mutable.PriorityQueue.empty[U](ordering)
     workList ++= eqs.unknowns
-    while (!workList.isEmpty) {
+    while (workList.nonEmpty) {
       val x = workList.dequeue()
       val newval = eqs.body(current)(x)
       listener.evaluated(current, x, newval)

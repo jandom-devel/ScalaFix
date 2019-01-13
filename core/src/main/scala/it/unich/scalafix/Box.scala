@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -34,7 +34,7 @@ import scala.language.implicitConversions
   *
   * @tparam V the type of the values to combine.
   */
-abstract class Box[V] extends Function2[V, V, V] {
+abstract class Box[V] extends ((V, V) => V) {
   /*
   I do not like very much the fact Box is both a box and its blueprint. Having two separate classes would
   be better from the point of view of the separation of concerns, but this solution is quite convenient. We do
@@ -82,7 +82,7 @@ object Box {
   abstract class ImmutableBox[V] extends Box[V] {
     def isImmutable = true
 
-    def copy = this
+    def copy: this.type = this
   }
 
   private abstract class MutableBox[V] extends Box[V] {
@@ -106,21 +106,21 @@ object Box {
   }
 
   private final class FromFunction[V](f: (V, V) => V, val isIdempotent: Boolean) extends ImmutableBox[V] {
-    def apply(x: V, y: V) = f(x, y)
+    def apply(x: V, y: V): V = f(x, y)
 
     def isRight = false
   }
 
   private final class Warrowing[V: PartialOrdering](widening: Box[V], narrowing: Box[V]) extends Box[V] {
-    def apply(x: V, y: V) = if (implicitly[PartialOrdering[V]].lteq(y, x)) narrowing(x, y) else widening(x, y)
+    def apply(x: V, y: V): V = if (implicitly[PartialOrdering[V]].lteq(y, x)) narrowing(x, y) else widening(x, y)
 
     def isIdempotent = false
 
-    def isRight = widening.isRight && narrowing.isRight
+    def isRight: Boolean = widening.isRight && narrowing.isRight
 
-    def isImmutable = widening.isImmutable && narrowing.isImmutable
+    def isImmutable: Boolean = widening.isImmutable && narrowing.isImmutable
 
-    def copy = if (isImmutable) this else new Warrowing(widening.copy, narrowing.copy)
+    def copy: Warrowing[V] = if (isImmutable) this else new Warrowing(widening.copy, narrowing.copy)
   }
 
   private final class Cascade[V](first: Box[V], delay: Int, second: Box[V]) extends MutableBox[V] {
@@ -150,7 +150,6 @@ object Box {
     * A box which always returns its left component (original value).
     */
   def left[V]: ImmutableBox[V] = LeftBox.asInstanceOf[ImmutableBox[V]]
-
 
   /**
     * A box built from a function `f: (V,V) => V`. The box is declared to be idempotent and immutable.
@@ -203,7 +202,7 @@ object Box {
     * Science of Computer Programming
     *
     * @tparam V the type of values, should be endowed with a partial ordering
-    * @param widening a widening over V
+    * @param widening  a widening over V
     * @param narrowing a narrowing over V
     */
   def warrowing[V: PartialOrdering](widening: Box[V], narrowing: Box[V]): Box[V] = {
@@ -212,4 +211,5 @@ object Box {
     else
       new Warrowing(widening, narrowing)
   }
+
 }

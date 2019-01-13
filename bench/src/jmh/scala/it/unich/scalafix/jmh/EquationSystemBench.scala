@@ -38,52 +38,55 @@ class EquationSystemBench {
   val chainInfiniteEqs = new ChainInfiniteEQS[Int](initVal)
   val chainInfinite2Eqs = new ChainInfinite2EQS[Int](initVal)
 
-  def validate(rho: Assignment[Int, Int]) = {
-    for (i <- 0 until numUnknowns) assert( rho(i) == initVal )
+  def validate(rho: Assignment[Int, Int]) {
+    for (i <- 0 until numUnknowns) assert(rho(i) == initVal)
   }
 
   @Benchmark
-  def RRGraph(): Unit = {
+  def RRGraph() {
     val result = RoundRobinSolver(chainGraphEqs)()
-    validate(result)  }
+    validate(result)
+  }
 
   @Benchmark
-  def RRSimpleGraph()  = {
+  def RRSimpleGraph() {
     val result = RoundRobinSolver(chainSimpleGraphEqs)()
-    validate(result)  }
+    validate(result)
+  }
 
   @Benchmark
-  def RRSimpleFinite()  = {
+  def RRSimpleFinite() {
     val result = RoundRobinSolver(chainSimpleFiniteEqs)()
     validate(result)
   }
 
   @Benchmark
-  def FWLGraph(): Unit = {
+  def FWLGraph() {
     val result = FiniteWorkListSolver(chainGraphEqs)()
     validate(result)
   }
 
   @Benchmark
-  def FWLSimpleGraph()  = {
+  def FWLSimpleGraph() {
     val result = FiniteWorkListSolver(chainSimpleGraphEqs)()
     validate(result)
   }
 
   @Benchmark
-  def FWLSimpleFinite()  = {
+  def FWLSimpleFinite() {
     val result = FiniteWorkListSolver(chainSimpleFiniteEqs)()
-    validate(result)  }
+    validate(result)
+  }
 
 
   @Benchmark
-  def IWLInfinite() = {
+  def IWLInfinite() {
     val result = InfiniteWorkListSolver(chainInfiniteEqs)(Seq(numUnknowns))
     validate(result)
   }
 
   @Benchmark
-  def IWLInfinite2() = {
+  def IWLInfinite2() {
     val result = InfiniteWorkListSolver(chainInfinite2Eqs)(Seq(numUnknowns))
     validate(result)
   }

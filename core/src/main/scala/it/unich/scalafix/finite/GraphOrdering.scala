@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -47,7 +47,8 @@ abstract class GraphOrdering[N] extends Ordering[N] {
     * Converts a GraphOrdering into a string composed by the sequence of its elements in the correct order. Head
     * elements are marked with parenthesis.
     */
-  override def toString = stringPrefix + (toSeq map { x => if (isHead(x)) x.toString else "(" + x.toString + ")" }).mkString("( ", " ", " )")
+  override def toString: String =
+    stringPrefix + (toSeq map { x => if (isHead(x)) x.toString else "(" + x.toString + ")" }).mkString("( ", " ", " )")
 }
 
 object GraphOrdering {
@@ -58,15 +59,16 @@ object GraphOrdering {
   private final class TrivialGraphOrdering[N](seq: Seq[N]) extends GraphOrdering[N] {
     val stringPrefix = "GraphOrdering"
 
-    def toSeq = seq
+    def toSeq: Seq[N] = seq
 
-    def isHead(x: N) = true
+    def isHead(x: N): Boolean = true
 
-    def compare(x: N, y: N) = seq.indexOf(x) - seq.indexOf(y)
+    def compare(x: N, y: N): Int = seq.indexOf(x) - seq.indexOf(y)
   }
 
   /**
     * Build a graph ordering where each element is an head, and the order is given by the sequence of `elements`.
+    *
     * @todo Implementation is inefficient and can be improved using memoization
     */
   def apply[N](elements: N*): GraphOrdering[N] = new TrivialGraphOrdering(elements)

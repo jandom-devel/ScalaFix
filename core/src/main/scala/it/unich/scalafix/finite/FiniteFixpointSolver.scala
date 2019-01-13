@@ -8,7 +8,7 @@
   * (at your option) any later version.
   *
   * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   * GNU General Public License for more details.
   *
@@ -37,7 +37,11 @@ object FiniteFixpointSolver {
     * @param wideningBoxAssn  a box used for widenings
     * @param narrowingBoxAssn a box used for narrowings
     */
-  def CC77[U, V](solver: Solver.Solver, wideningBoxAssn: BoxAssignment[U, V], narrowingBoxAssn: BoxAssignment[U, V]) =
+  def CC77[U, V](
+                  solver: Solver.Solver,
+                  wideningBoxAssn: BoxAssignment[U, V],
+                  narrowingBoxAssn: BoxAssignment[U, V]
+                ): Params[U, V] =
     Params[U, V](solver, None, BoxLocation.Loop, BoxScope.Standard, BoxStrategy.TwoPhases, RestartStrategy.None,
       wideningBoxAssn, narrowingBoxAssn, EmptyListener)
 
@@ -50,10 +54,7 @@ object FiniteFixpointSolver {
   def apply[U, V: Domain, E](eqs: GraphEquationSystem[U, V, E], params: Params[U, V]): Assignment[U, V] = {
     import params._
 
-    val startAssn = params.start match {
-      case None => eqs.initial
-      case Some(start) => start
-    }
+    val startAssn = params.start.getOrElse(eqs.initial)
 
     val ordering1: Option[GraphOrdering[U]] = (solver, boxscope) match {
       case (Solver.HierarchicalOrderingSolver, _) =>
@@ -73,7 +74,7 @@ object FiniteFixpointSolver {
 
     val restart: (V, V) => Boolean =
       if (restartstrategy == RestartStrategy.Restart) { (x, y) => Domain[V].lt(x, y) }
-      else { (x, y) => false }
+      else { (_, _) => false }
 
     boxstrategy match {
       case BoxStrategy.OnlyWidening =>
@@ -116,7 +117,12 @@ object FiniteFixpointSolver {
     * @param location input parameter which drives the filtering by specifying where to put boxes
     * @param ordering a GraphOrdering used when we need to detect heads
     */
-  private def boxFilter[U, V](eqs: FiniteEquationSystem[U, V], boxAssn: BoxAssignment[U, V], location: BoxLocation.Value, ordering: Option[GraphOrdering[U]]): BoxAssignment[U, V] =
+  private def boxFilter[U, V](
+                               eqs: FiniteEquationSystem[U, V],
+                               boxAssn: BoxAssignment[U, V],
+                               location: BoxLocation.Value,
+                               ordering: Option[GraphOrdering[U]]
+                             ): BoxAssignment[U, V] =
     location match {
       case BoxLocation.None => BoxAssignment.empty
       case BoxLocation.All => boxAssn
@@ -131,8 +137,12 @@ object FiniteFixpointSolver {
     * @param scope    an input parameters which determines how we want to apply boxes (such as localized or standard)
     * @param ordering an optional ordering on unknowns to be used for localized boxes.
     */
-  private def boxApply[U, V, E](eqs: FiniteEquationSystem[U, V], boxes: BoxAssignment[U, V], scope: BoxScope.Value,
-                                ordering: Option[Ordering[U]]): FiniteEquationSystem[U, V] = {
+  private def boxApply[U, V, E](
+                                 eqs: FiniteEquationSystem[U, V],
+                                 boxes: BoxAssignment[U, V],
+                                 scope: BoxScope.Value,
+                                 ordering: Option[Ordering[U]]
+                               ): FiniteEquationSystem[U, V] = {
     scope match {
       case BoxScope.Standard => eqs.withBoxes(boxes)
       case BoxScope.Localized => eqs match {
@@ -159,7 +169,8 @@ object FiniteFixpointSolver {
                                  start: Assignment[U, V],
                                  ordering: Option[Ordering[U]],
                                  restart: (V, V) => Boolean,
-                                 listener: FixpointSolverListener[U, V]): Assignment[U, V] = {
+                                 listener: FixpointSolverListener[U, V]
+                               ): Assignment[U, V] = {
     solver match {
       case Solver.RoundRobinSolver => RoundRobinSolver(eqs)(start, listener)
       case Solver.KleeneSolver => KleeneSolver(eqs)(start, listener)

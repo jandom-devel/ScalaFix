@@ -18,8 +18,8 @@
 
 package it.unich.scalafix.finite
 
-import it.unich.scalafix.FixpointSolverListener.PerformanceListener
 import it.unich.scalafix.FixpointSolver
+import it.unich.scalafix.FixpointSolverListener.PerformanceListener
 import org.scalatest.FunSpec
 import org.scalatest.prop.PropertyChecks
 
@@ -27,15 +27,12 @@ class FiniteFixpointSolverTest extends FunSpec with PropertyChecks {
 
   import FixpointSolver._
 
-  val simpleEqs = GraphEquationSystem[Int, Double, Char](
-    edgeAction = { (rho: Int => Double) => {
-      (e: Char) =>
-        e match {
-          case 'a' => rho(0)
-          case 'b' => rho(1) min 10
-          case 'c' => rho(2) + 1
-          case 'd' => rho(3)
-        }
+  private val simpleEqs = GraphEquationSystem[Int, Double, Char](
+    edgeAction = { rho: (Int => Double) => {
+      case 'a' => rho(0)
+      case 'b' => rho(1) min 10
+      case 'c' => rho(2) + 1
+      case 'd' => rho(3)
     }
     },
     source = Map(('a', Seq(0)), ('b', Seq(1)), ('c', Seq(2)), ('d', Seq(3))),
@@ -44,14 +41,14 @@ class FiniteFixpointSolverTest extends FunSpec with PropertyChecks {
     ingoing = Map((0, Seq()), (1, Seq('a', 'd')), (2, Seq('b')), (3, Seq('c'))),
     unknowns = Set(0, 1, 2, 3),
     inputUnknowns = Set(0),
-    initial = { (u: Int) => if (u == 0) 0 else Double.NegativeInfinity }
+    initial = { u: Int => if (u == 0) 0 else Double.NegativeInfinity }
   )
-  val solution = Map[Int, Double](0 -> 0, 1 -> 11, 2 -> 10, 3 -> 11)
-  val emptysol = ((0 to 3).map { (u: Int) => u -> Double.NegativeInfinity }).toMap
-  val onlyWideningSol = Map[Int, Double](0 -> 0, 1 -> Double.PositiveInfinity, 2 -> 10, 3 -> 11)
-  val doublewidening = { (x: Double, y: Double) => if (x.isNegInfinity) y else if (x >= y) x else Double.PositiveInfinity }
-  val doublenarrowing = { (x: Double, y: Double) => if (x.isPosInfinity) y else x }
-  val CC77params = FiniteFixpointSolver.CC77[Int, Double](Solver.WorkListSolver, doublewidening, doublenarrowing)
+  private val solution = Map[Int, Double](0 -> 0, 1 -> 11, 2 -> 10, 3 -> 11)
+  private val emptysol = (0 to 3).map { u: Int => u -> Double.NegativeInfinity }.toMap
+  private val onlyWideningSol = Map[Int, Double](0 -> 0, 1 -> Double.PositiveInfinity, 2 -> 10, 3 -> 11)
+  private val doublewidening = { (x: Double, y: Double) => if (x.isNegInfinity) y else if (x >= y) x else Double.PositiveInfinity }
+  private val doublenarrowing = { (x: Double, y: Double) => if (x.isPosInfinity) y else x }
+  private val CC77params = FiniteFixpointSolver.CC77[Int, Double](Solver.WorkListSolver, doublewidening, doublenarrowing)
 
   def assertSolution(m: Map[Int, Double])(b: Int => Double): Unit = {
     for (u <- simpleEqs.unknowns) assertResult(m(u), s"at unknown $u")(b(u))
@@ -61,31 +58,31 @@ class FiniteFixpointSolverTest extends FunSpec with PropertyChecks {
     var initialized = false
     var phase = 0
 
-    override def evaluated[U1, V1](rho: (U1) => V1, u: U1, newval: V1): Unit = {
+    override def evaluated[U1, V1](rho: U1 => V1, u: U1, newval: V1): Unit = {
       assert(initialized)
       assert(phase != 0)
       super.evaluated(rho, u, newval)
     }
 
-    override def initialized[U1, V1](rho: (U1) => V1): Unit = {
+    override def initialized[U1, V1](rho: U1 => V1): Unit = {
       assert(!initialized)
       assert(phase != 0)
       initialized = true
     }
 
-    override def completed[U1, V1](rho: (U1) => V1): Unit = {
+    override def completed[U1, V1](rho: U1 => V1): Unit = {
       initialized = false
       assert(phase != 0)
       ()
     }
 
-    override def ascendingBegins[U1, V1](rho: (U1) => V1): Unit = {
+    override def ascendingBegins[U1, V1](rho: U1 => V1): Unit = {
       assert(!initialized)
       assert(phase == 0)
       phase = 1
     }
 
-    override def descendingBegins[U1, V1](rho: (U1) => V1): Unit = {
+    override def descendingBegins[U1, V1](rho: U1 => V1): Unit = {
       assert(!initialized)
       assert(phase == 1)
       phase = -1

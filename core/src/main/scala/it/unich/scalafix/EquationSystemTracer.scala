@@ -21,14 +21,13 @@ package it.unich.scalafix
 import java.io.PrintStream
 
 import scala.annotation.elidable
-import scala.annotation.elidable._
 
 /**
   * An EquationSystemTracer implements some methods which are called by equation systems when certain
   * events occurs. They may be used for debugging, tracing, etc...
   *
-  * @tparam U the type of unknowns supported by this listener
-  * @tparam V the type of values for unknowns supported by this listener
+  * @tparam U the type of unknowns supported by this tracer
+  * @tparam V the type of values for unknowns supported by this tracer
   */
 trait EquationSystemTracer[U, V] {
   /**
@@ -37,7 +36,7 @@ trait EquationSystemTracer[U, V] {
     * @param rho the current assignment
     * @param u   the unknown which is evaluated
     */
-  @elidable(ASSERTION)
+  @elidable(TRACING)
   def beforeEvaluation(rho: Assignment[U, V], u: U)
 
   /**
@@ -47,7 +46,7 @@ trait EquationSystemTracer[U, V] {
     * @param u   the unknown which is evaluated
     * @param res the result of the evaluation
     */
-  @elidable(ASSERTION)
+  @elidable(TRACING)
   def afterEvaluation(rho: Assignment[U, V], u: U, res: V)
 
   /**
@@ -58,7 +57,7 @@ trait EquationSystemTracer[U, V] {
     * @param res   result of the evaluation of the original body
     * @param boxed result of the evaluation of the original body, boxed with the original value
     */
-  @elidable(ASSERTION)
+  @elidable(TRACING)
   def boxEvaluation(rho: Assignment[U, V], u: U, res: V, boxed: V)
 }
 

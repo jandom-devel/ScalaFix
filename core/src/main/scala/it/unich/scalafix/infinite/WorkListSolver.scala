@@ -18,8 +18,7 @@
 
 package it.unich.scalafix.infinite
 
-import it.unich.scalafix.FixpointSolverListener.EmptyListener
-import it.unich.scalafix.{Assignment, EquationSystem, FixpointSolverListener, PartialAssignment}
+import it.unich.scalafix._
 
 import scala.collection.mutable
 
@@ -32,17 +31,17 @@ object WorkListSolver {
     *
     * @tparam U type of the unknowns for the equation system
     * @tparam V type of values of the equatiom system
-    * @param eqs      equation system to solve
-    * @param wanted   the unknowns we want to solve
-    * @param start    assignment to start the evaluation (defaults to `eqs.initial`)
-    * @param listener a listener to track the behaviour of the solver (defaults to the empty listener)
+    * @param eqs    equation system to solve
+    * @param wanted the unknowns we want to solve
+    * @param start  assignment to start the evaluation (defaults to `eqs.initial`)
+    * @param tracer a tracer to track the behaviour of the solver (defaults to the empty tracer)
     * @return the solution of the equation system
     */
   def apply[U, V](eqs: EquationSystem[U, V])
                  (
                    wanted: Iterable[U],
                    start: Assignment[U, V] = eqs.initial,
-                   listener: FixpointSolverListener[U, V] = EmptyListener
+                   tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U,V]
                  ): PartialAssignment[U, V] = {
     val infl: mutable.MultiMap[U, U] = new mutable.HashMap[U, mutable.Set[U]] with mutable.MultiMap[U, U] {
       override def makeSet = new mutable.LinkedHashSet[U]
@@ -51,11 +50,11 @@ object WorkListSolver {
     workList ++= wanted
 
     val current = mutable.HashMap.empty[U, V].withDefault(start)
-    listener.initialized(current)
+    tracer.initialized(current)
     while (workList.nonEmpty) {
       val x = workList.dequeue()
       val (newval, dependencies) = eqs.bodyWithDependencies(current)(x)
-      listener.evaluated(current, x, newval)
+      tracer.evaluated(current, x, newval)
       for (y <- dependencies) {
         if (!current.isDefinedAt(y)) {
           current(y) = start(y)
@@ -68,7 +67,7 @@ object WorkListSolver {
         workList ++= infl(x)
       }
     }
-    listener.completed(current)
+    tracer.completed(current)
     current
   }
 }

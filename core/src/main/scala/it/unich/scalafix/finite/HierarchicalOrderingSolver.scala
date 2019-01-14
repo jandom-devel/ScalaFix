@@ -18,8 +18,7 @@
 
 package it.unich.scalafix.finite
 
-import it.unich.scalafix.FixpointSolverListener.EmptyListener
-import it.unich.scalafix.{Assignment, FixpointSolverListener}
+import it.unich.scalafix.{Assignment, FixpointSolverTracer}
 
 import scala.collection.mutable
 
@@ -36,21 +35,21 @@ object HierarchicalOrderingSolver {
     * @param start    assignment to start the evaluation (defaults to `eqs.initial`)
     * @param ordering a hierarchical ordering which specifies priorities between unknowns (defaults to the
     *                 hierarchical ordering induce by the depth-first ordering over `eqs`)
-    * @param listener a listener to track the behaviour of the solver (defaults to `EmptyListener`)
+    * @param tracer   a tracer to track the behaviour of the solver (defaults to the empty tracer)
     * @return the solution of the equation system
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
                  (
                    start: Assignment[U, V],
                    ordering: HierarchicalOrdering[U] = HierarchicalOrdering(DFOrdering(eqs)),
-                   listener: FixpointSolverListener[U, V] = EmptyListener
+                   tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U,V]
                  ): Assignment[U, V] = {
     import HierarchicalOrdering._
 
     val current = mutable.HashMap.empty[U, V].withDefault(start)
-    listener.initialized(current)
-    var stack= List.empty[Int]
-    var  stackdirty = List.empty[Boolean]
+    tracer.initialized(current)
+    var stack = List.empty[Int]
+    var stackdirty = List.empty[Boolean]
 
     var dirty = false
     var i = 0
@@ -65,7 +64,7 @@ object HierarchicalOrderingSolver {
           i += 1
         case Val(x) =>
           val newval = eqs.body(current)(x)
-          listener.evaluated(current, x, newval)
+          tracer.evaluated(current, x, newval)
           if (newval != current(x)) {
             current(x) = newval
             dirty = true
@@ -83,7 +82,7 @@ object HierarchicalOrderingSolver {
           }
       }
     }
-    listener.completed(current)
+    tracer.completed(current)
     current
   }
 }

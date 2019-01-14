@@ -50,4 +50,12 @@ package object scalafix {
     * The effect of an edge in a graph equation system.
     */
   type EdgeAction[U, V, E] = Assignment[U, V] => E => V
+
+  /**
+    * The constant to use in -Xelide-below in order to remove tracing code. Note that
+    * tracing might be required to make a program work, so only elide it if you
+    * known what you are doing.
+    */
+  final val TRACING: Int = 5000
+
 }

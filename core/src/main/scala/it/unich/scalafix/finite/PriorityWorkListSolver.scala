@@ -18,8 +18,7 @@
 
 package it.unich.scalafix.finite
 
-import it.unich.scalafix.FixpointSolverListener.EmptyListener
-import it.unich.scalafix.{Assignment, FixpointSolverListener}
+import it.unich.scalafix.{Assignment, FixpointSolverTracer}
 
 import scala.collection.mutable
 
@@ -38,7 +37,7 @@ object PriorityWorkListSolver {
     *                 over `eqs`)
     * @param restart  at each iteration this function is applied to the new and old values. If it returns true, the
     *                 analysis of bigger unknown is restarted from the initial value. (defaults to constant `false`)
-    * @param listener a listener to track the behaviour of the solver (defaults to `EmptyListener`)
+    * @param tracer   a tracer to track the behaviour of the solver (defaults to the empty tracer)
     * @return the solution of the equation system
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
@@ -46,16 +45,17 @@ object PriorityWorkListSolver {
                    start: Assignment[U, V] = eqs.initial,
                    ordering: Ordering[U] = DFOrdering(eqs),
                    restart: (V, V) => Boolean = { (_: V, _: V) => false },
-                   listener: FixpointSolverListener[U, V] = EmptyListener
+                   tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
+
                  ): Assignment[U, V] = {
     val current = mutable.HashMap.empty[U, V].withDefault(start)
-    listener.initialized(current)
+    tracer.initialized(current)
     val workList = mutable.PriorityQueue.empty[U](ordering)
     workList ++= eqs.unknowns
     while (workList.nonEmpty) {
       val x = workList.dequeue()
       val newval = eqs.body(current)(x)
-      listener.evaluated(current, x, newval)
+      tracer.evaluated(current, x, newval)
       val oldval = current(x)
       if (restart(newval, oldval))
         for (y <- eqs.unknowns; if ordering.gt(y, x))
@@ -65,7 +65,7 @@ object PriorityWorkListSolver {
         workList ++= eqs.infl(x)
       }
     }
-    listener.completed(current)
+    tracer.completed(current)
     current
   }
 }

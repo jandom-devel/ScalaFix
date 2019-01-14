@@ -19,12 +19,11 @@
 package it.unich.scalafix.infinite
 
 import it.unich.scalafix.utils.IterableFunction
-import it.unich.scalafix.{Box, EquationSystem, FixpointSolverListenerAdapter}
+import it.unich.scalafix.{Box, EquationSystem, FixpointSolverTracerAdapter}
 import org.scalatest.FunSpec
 import org.scalatest.prop.PropertyChecks
 
 import scala.collection.mutable
-
 
 /**
   * Test solvers for finite equation systems.
@@ -49,10 +48,10 @@ class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
 
   private type SimpleSolver[U, V] = (EquationSystem[U, V], Seq[U], U => V) => IterableFunction[U, V]
 
-  class EvaluationOrderListener extends FixpointSolverListenerAdapter {
+  class EvaluationOrderListener[U, V] extends FixpointSolverTracerAdapter[U, V] {
     private val buffer = mutable.Buffer.empty[Any]
 
-    override def evaluated[U1, V1](rho: U1 => V1, x: U1, newval: V1) {
+    override def evaluated(rho: U => V, x: U, newval: V) {
       buffer += x
       ()
     }

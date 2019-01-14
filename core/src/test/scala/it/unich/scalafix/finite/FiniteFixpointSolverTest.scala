@@ -19,7 +19,7 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.FixpointSolver
-import it.unich.scalafix.FixpointSolverListener.PerformanceListener
+import it.unich.scalafix.FixpointSolverTracer.PerformanceFixpointSolverTracer
 import org.scalatest.FunSpec
 import org.scalatest.prop.PropertyChecks
 
@@ -54,35 +54,35 @@ class FiniteFixpointSolverTest extends FunSpec with PropertyChecks {
     for (u <- simpleEqs.unknowns) assertResult(m(u), s"at unknown $u")(b(u))
   }
 
-  class ValidationListener extends PerformanceListener {
+  class ValidationListener[U, V] extends PerformanceFixpointSolverTracer[U, V] {
     var initialized = false
     var phase = 0
 
-    override def evaluated[U1, V1](rho: U1 => V1, u: U1, newval: V1): Unit = {
+    override def evaluated(rho: U => V, u: U, newval: V): Unit = {
       assert(initialized)
       assert(phase != 0)
       super.evaluated(rho, u, newval)
     }
 
-    override def initialized[U1, V1](rho: U1 => V1): Unit = {
+    override def initialized(rho: U => V): Unit = {
       assert(!initialized)
       assert(phase != 0)
       initialized = true
     }
 
-    override def completed[U1, V1](rho: U1 => V1): Unit = {
+    override def completed(rho: U => V): Unit = {
       initialized = false
       assert(phase != 0)
       ()
     }
 
-    override def ascendingBegins[U1, V1](rho: U1 => V1): Unit = {
+    override def ascendingBegins(rho: U => V): Unit = {
       assert(!initialized)
       assert(phase == 0)
       phase = 1
     }
 
-    override def descendingBegins[U1, V1](rho: U1 => V1): Unit = {
+    override def descendingBegins(rho: U => V): Unit = {
       assert(!initialized)
       assert(phase == 1)
       phase = -1
@@ -116,10 +116,10 @@ class FiniteFixpointSolverTest extends FunSpec with PropertyChecks {
     }
 
     it("calls the fixpoit solver listener") {
-      val l = new ValidationListener
-      val params = CC77params.copy(listener = l)
+      val t = new ValidationListener[Int, Double]
+      val params = CC77params.copy(tracer = t)
       assertSolution(solution)(FiniteFixpointSolver(simpleEqs, params))
-      assert(l.evaluations > 0)
+      assert(t.evaluations > 0)
     }
   }
 }

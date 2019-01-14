@@ -18,8 +18,7 @@
 
 package it.unich.scalafix.finite
 
-import it.unich.scalafix.FixpointSolverListener.EmptyListener
-import it.unich.scalafix.{Assignment, FixpointSolverListener}
+import it.unich.scalafix.{Assignment, FixpointSolverTracer}
 
 import scala.collection.mutable
 
@@ -32,26 +31,26 @@ object KleeneSolver {
     *
     * @tparam U type of the unknowns for the equation system
     * @tparam V type of values of the equatiom system
-    * @param eqs      equation system to solve
-    * @param start    a assignment to start the evaluation (defaults to `eqs.initial`)
-    * @param listener a listener to track the behaviour of the solver (defaults to `EmptyListener`)
+    * @param eqs    equation system to solve
+    * @param start  a assignment to start the evaluation (defaults to `eqs.initial`)
+    * @param tracer a listener to track the behaviour of the solver (defaults to the empty tracer)
     * @return the solution of the equation system
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
                  (
                    start: Assignment[U, V] = eqs.initial,
-                   listener: FixpointSolverListener[U, V] = EmptyListener
+                   tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U,V]
                  ): Assignment[U, V] = {
     var current = mutable.HashMap.empty[U, V]
     var next = mutable.HashMap.empty[U, V]
     for (x <- eqs.unknowns) current(x) = start(x)
-    listener.initialized(current)
+    tracer.initialized(current)
     var dirty = true
     while (dirty) {
       dirty = false
       for (x <- eqs.unknowns) {
         val newval = eqs.body(current)(x)
-        listener.evaluated(current, x, newval)
+        tracer.evaluated(current, x, newval)
         if (newval != current(x)) dirty = true
         next(x) = newval
       }
@@ -59,7 +58,7 @@ object KleeneSolver {
       current = next
       next = temp
     }
-    listener.completed(current)
+    tracer.completed(current)
     current
   }
 }

@@ -18,9 +18,8 @@
 
 package it.unich.scalafix.finite
 
-import it.unich.scalafix.{Assignment, FixpointSolverTracer}
-
-import scala.collection.mutable
+import it.unich.scalafix.FixpointSolverTracer
+import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
 
 /**
   * A solver based on Kleene iteration.
@@ -38,12 +37,11 @@ object KleeneSolver {
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
                  (
-                   start: Assignment[U, V] = eqs.initial,
-                   tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U,V]
-                 ): Assignment[U, V] = {
-    var current = mutable.HashMap.empty[U, V]
-    var next = mutable.HashMap.empty[U, V]
-    for (x <- eqs.unknowns) current(x) = start(x)
+                   start: InputAssignment[U, V] = eqs.initial,
+                   tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
+                 ): IOAssignment[U, V] = {
+    var current = start.toIOAssignment
+    var next = start.toIOAssignment
     tracer.initialized(current)
     var dirty = true
     while (dirty) {

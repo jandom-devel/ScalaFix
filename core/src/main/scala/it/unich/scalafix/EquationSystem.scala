@@ -18,6 +18,7 @@
 
 package it.unich.scalafix
 
+import it.unich.scalafix.assignments.InputAssignment
 import it.unich.scalafix.lattice.Magma
 
 import scala.collection.mutable
@@ -44,7 +45,7 @@ trait EquationSystem[U, V] {
   /**
     * An initial value for starting the analyzer
     */
-  val initial: Assignment[U, V]
+  val initial: InputAssignment[U, V]
 
   /**
     * The unknowns which may be considered the input to this equation system.
@@ -150,7 +151,7 @@ abstract class EquationSystemBase[U, V] extends EquationSystem[U, V] {
 case class SimpleEquationSystem[U, V]
 (
   body: Body[U, V],
-  initial: Assignment[U, V],
+  initial: InputAssignment[U, V],
   inputUnknowns: U => Boolean,
   tracer: Option[EquationSystemTracer[U, V]] = None
 ) extends EquationSystemBase[U, V] {
@@ -172,6 +173,6 @@ object EquationSystem {
     * Returns the standard implementation of EquationSystem. All fields must be provided explicitly by
     * the user with the exception of `bodyWithDependencies`.
     */
-  def apply[U, V](body: Body[U, V], initial: Assignment[U, V], inputUnknowns: U => Boolean = { _: U => false }): EquationSystem[U, V] =
+  def apply[U, V](body: Body[U, V], initial: InputAssignment[U, V], inputUnknowns: U => Boolean = { _: U => false }): EquationSystem[U, V] =
     SimpleEquationSystem(body, initial, inputUnknowns, None)
 }

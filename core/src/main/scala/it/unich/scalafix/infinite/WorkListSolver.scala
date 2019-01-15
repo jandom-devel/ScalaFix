@@ -19,6 +19,7 @@
 package it.unich.scalafix.infinite
 
 import it.unich.scalafix._
+import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
 
 import scala.collection.mutable
 
@@ -40,16 +41,16 @@ object WorkListSolver {
   def apply[U, V](eqs: EquationSystem[U, V])
                  (
                    wanted: Iterable[U],
-                   start: Assignment[U, V] = eqs.initial,
-                   tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U,V]
-                 ): PartialAssignment[U, V] = {
+                   start: InputAssignment[U, V] = eqs.initial,
+                   tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
+                 ): IOAssignment[U, V] = {
     val infl: mutable.MultiMap[U, U] = new mutable.HashMap[U, mutable.Set[U]] with mutable.MultiMap[U, U] {
       override def makeSet = new mutable.LinkedHashSet[U]
     }
     val workList = mutable.Queue.empty[U]
     workList ++= wanted
 
-    val current = mutable.HashMap.empty[U, V].withDefault(start)
+    val current = start.toIOAssignment
     tracer.initialized(current)
     while (workList.nonEmpty) {
       val x = workList.dequeue()

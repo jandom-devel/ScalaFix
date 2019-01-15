@@ -20,6 +20,7 @@ package it.unich.scalafix.finite
 
 import it.unich.scalafix.FixpointSolver
 import it.unich.scalafix.FixpointSolverTracer.PerformanceFixpointSolverTracer
+import it.unich.scalafix.assignments.InputAssignment
 import org.scalatest.FunSpec
 import org.scalatest.prop.PropertyChecks
 
@@ -41,7 +42,7 @@ class FiniteFixpointSolverTest extends FunSpec with PropertyChecks {
     ingoing = Map((0, Seq()), (1, Seq('a', 'd')), (2, Seq('b')), (3, Seq('c'))),
     unknowns = Set(0, 1, 2, 3),
     inputUnknowns = Set(0),
-    initial = { u: Int => if (u == 0) 0 else Double.NegativeInfinity }
+    initial = InputAssignment.conditional(0, 0.0, Double.NegativeInfinity)
   )
   private val solution = Map[Int, Double](0 -> 0, 1 -> 11, 2 -> 10, 3 -> 11)
   private val emptysol = (0 to 3).map { u: Int => u -> Double.NegativeInfinity }.toMap
@@ -96,7 +97,7 @@ class FiniteFixpointSolverTest extends FunSpec with PropertyChecks {
     }
 
     it("may use explicit initial assignment") {
-      val params = CC77params.copy[Int, Double](start = Some({ _ => Double.NegativeInfinity }))
+      val params = CC77params.copy[Int, Double](start = Some(Double.NegativeInfinity))
       assertSolution(emptysol)(FiniteFixpointSolver(simpleEqs, params))
     }
 

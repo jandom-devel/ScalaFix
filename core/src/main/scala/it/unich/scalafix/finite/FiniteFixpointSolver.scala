@@ -19,6 +19,7 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix._
+import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
 import it.unich.scalafix.lattice.Domain
 
 /**
@@ -42,7 +43,7 @@ object FiniteFixpointSolver {
                   narrowingBoxAssn: BoxAssignment[U, V]
                 ): Params[U, V] =
     Params[U, V](solver, None, BoxLocation.Loop, BoxScope.Standard, BoxStrategy.TwoPhases, RestartStrategy.None,
-      wideningBoxAssn, narrowingBoxAssn, FixpointSolverTracer.empty[U,V])
+      wideningBoxAssn, narrowingBoxAssn, FixpointSolverTracer.empty[U, V])
 
   /**
     * Solves the equation system using the parameters specified in p.
@@ -50,7 +51,7 @@ object FiniteFixpointSolver {
     * @param eqs    the equation system to solve
     * @param params the parameters for the solver
     */
-  def apply[U, V: Domain, E](eqs: GraphEquationSystem[U, V, E], params: Params[U, V]): Assignment[U, V] = {
+  def apply[U, V: Domain, E](eqs: GraphEquationSystem[U, V, E], params: Params[U, V]): IOAssignment[U, V] = {
     import params._
 
     val startAssn = params.start.getOrElse(eqs.initial)
@@ -159,17 +160,17 @@ object FiniteFixpointSolver {
     * @param start    the initial assignment
     * @param ordering an optional ordering on unknowns
     * @param restart  a restart strategy
-    * @param tracer a fixpoint solver tracer
+    * @param tracer   a fixpoint solver tracer
     * @return an assignment with the solution of the equation system
     */
   private def applySolver[U, V](
                                  solver: Solver.Solver,
                                  eqs: FiniteEquationSystem[U, V],
-                                 start: Assignment[U, V],
+                                 start: InputAssignment[U, V],
                                  ordering: Option[Ordering[U]],
                                  restart: (V, V) => Boolean,
                                  tracer: FixpointSolverTracer[U, V]
-                               ): Assignment[U, V] = {
+                               ): IOAssignment[U, V] = {
     solver match {
       case Solver.RoundRobinSolver => RoundRobinSolver(eqs)(start, tracer)
       case Solver.KleeneSolver => KleeneSolver(eqs)(start, tracer)
@@ -194,11 +195,11 @@ object FiniteFixpointSolver {
     * @param restartstrategy  restart strategy to apply in supported solvers
     * @param wideningBoxAssn  a box used for widenings
     * @param narrowingBoxAssn a box used for narrowings
-    * @param tracer         a fixpoint solver tracer
+    * @param tracer           a fixpoint solver tracer
     */
   case class Params[U, V](
                            solver: Solver.Solver,
-                           start: Option[Assignment[U, V]],
+                           start: Option[InputAssignment[U, V]],
                            boxlocation: BoxLocation.BoxLocation,
                            boxscope: BoxScope.BoxScope,
                            boxstrategy: BoxStrategy.BoxStrategy,

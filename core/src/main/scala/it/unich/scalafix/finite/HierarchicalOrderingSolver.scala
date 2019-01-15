@@ -18,9 +18,8 @@
 
 package it.unich.scalafix.finite
 
-import it.unich.scalafix.{Assignment, FixpointSolverTracer}
-
-import scala.collection.mutable
+import it.unich.scalafix.FixpointSolverTracer
+import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
 
 /**
   * A solver whose strategy in based on a hierarchical ordering.
@@ -40,13 +39,13 @@ object HierarchicalOrderingSolver {
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
                  (
-                   start: Assignment[U, V],
+                   start: InputAssignment[U, V],
                    ordering: HierarchicalOrdering[U] = HierarchicalOrdering(DFOrdering(eqs)),
-                   tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U,V]
-                 ): Assignment[U, V] = {
+                   tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
+                 ): IOAssignment[U, V] = {
     import HierarchicalOrdering._
 
-    val current = mutable.HashMap.empty[U, V].withDefault(start)
+    val current = start.toIOAssignment
     tracer.initialized(current)
     var stack = List.empty[Int]
     var stackdirty = List.empty[Boolean]

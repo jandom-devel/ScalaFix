@@ -18,7 +18,8 @@
 
 package it.unich.scalafix.finite
 
-import it.unich.scalafix.{Assignment, FixpointSolverTracer}
+import it.unich.scalafix.FixpointSolverTracer
+import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
 
 import scala.collection.mutable
 
@@ -42,13 +43,12 @@ object PriorityWorkListSolver {
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
                  (
-                   start: Assignment[U, V] = eqs.initial,
+                   start: InputAssignment[U, V] = eqs.initial,
                    ordering: Ordering[U] = DFOrdering(eqs),
                    restart: (V, V) => Boolean = { (_: V, _: V) => false },
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
-
-                 ): Assignment[U, V] = {
-    val current = mutable.HashMap.empty[U, V].withDefault(start)
+                 ): IOAssignment[U, V] = {
+    val current = start.toIOAssignment
     tracer.initialized(current)
     val workList = mutable.PriorityQueue.empty[U](ordering)
     workList ++= eqs.unknowns

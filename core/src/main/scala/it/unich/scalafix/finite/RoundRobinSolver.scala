@@ -18,9 +18,8 @@
 
 package it.unich.scalafix.finite
 
-import it.unich.scalafix.{Assignment, FixpointSolverTracer}
-
-import scala.collection.mutable
+import it.unich.scalafix.FixpointSolverTracer
+import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
 
 
 /**
@@ -39,10 +38,10 @@ object RoundRobinSolver {
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
                  (
-                   start: Assignment[U, V] = eqs.initial,
-                   tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U,V]
-                 ): Assignment[U, V] = {
-    val current = mutable.HashMap.empty[U, V].withDefault(start)
+                   start: InputAssignment[U, V] = eqs.initial,
+                   tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
+                 ): IOAssignment[U, V] = {
+    val current = start.toIOAssignment
     tracer.initialized(current)
     var dirty = true
     while (dirty) {

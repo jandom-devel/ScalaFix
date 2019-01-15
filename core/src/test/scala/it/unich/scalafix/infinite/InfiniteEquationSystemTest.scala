@@ -18,7 +18,7 @@
 
 package it.unich.scalafix.infinite
 
-import it.unich.scalafix.utils.IterableFunction
+import it.unich.scalafix.assignments.{InputAssignment, IOAssignment}
 import it.unich.scalafix.{Box, EquationSystem, FixpointSolverTracerAdapter}
 import org.scalatest.FunSpec
 import org.scalatest.prop.PropertyChecks
@@ -40,13 +40,13 @@ class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
           rho(6 * n + 4)
         }
     },
-    initial = { _: Int => 0 }
+    initial = 0
   )
 
   private val maxBox: Box[Int] = { (x: Int, y: Int) => x max y }
   private val startRho = simpleEqs.initial
 
-  private type SimpleSolver[U, V] = (EquationSystem[U, V], Seq[U], U => V) => IterableFunction[U, V]
+  private type SimpleSolver[U, V] = (EquationSystem[U, V], Seq[U], InputAssignment[U, V]) => IOAssignment[U, V]
 
   class EvaluationOrderListener[U, V] extends FixpointSolverTracerAdapter[U, V] {
     private val buffer = mutable.Buffer.empty[Any]
@@ -64,7 +64,7 @@ class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
   def testExpectedResult(solver: SimpleSolver[Int, Int]) {
     it("gives the expected result starting from startRho with max") {
       val finalRho = solver(simpleEqs.withBoxes(maxBox), Seq(4), startRho)
-      assertResult(Set(0, 1, 2, 4))(finalRho.keys)
+      assertResult(Set(0, 1, 2, 4))(finalRho.unknowns)
       assertResult(2)(finalRho(1))
       assertResult(2)(finalRho(2))
       assertResult(2)(finalRho(4))

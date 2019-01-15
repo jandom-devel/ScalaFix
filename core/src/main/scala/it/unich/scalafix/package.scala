@@ -18,8 +18,6 @@
 
 package it.unich
 
-import it.unich.scalafix.utils.IterableFunction
-
 /**
   * The fixpoint package contains everything which is related to defining and solving systems
   * of equations. This package object defines some type aliases which are used in the API.
@@ -29,12 +27,6 @@ package object scalafix {
     * An assignment for an equation system is a map from unknowns to values.
     */
   type Assignment[U, V] = U => V
-
-  /**
-    * A partial assignment for an equation system is an iterable function from unknowns to
-    * values.
-    */
-  type PartialAssignment[U, V] = IterableFunction[U, V]
 
   /**
     * The body of an equation system, i.e., a map from assignments to assignments.

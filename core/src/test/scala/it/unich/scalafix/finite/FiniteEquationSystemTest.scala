@@ -19,6 +19,7 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix._
+import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
 import it.unich.scalafix.utils.Relation
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.FunSpec
@@ -41,7 +42,7 @@ class FiniteEquationSystemTest extends FunSpec with PropertyChecks {
       }
     },
     inputUnknowns = Set(0, 1, 2, 3),
-    initial = { x: Int => if (x == 3) 10.0 else 0.0 },
+    initial = InputAssignment.conditional(3, 10.0, 0.0),
     unknowns = Set(0, 1, 2, 3),
     infl = Relation(Map(0 -> Set(0, 1, 2), 1 -> Set(2), 2 -> Set(1), 3 -> Set(1, 3))))
 
@@ -50,9 +51,9 @@ class FiniteEquationSystemTest extends FunSpec with PropertyChecks {
   private val maxBox: Box[Double] = { (x: Double, y: Double) => x max y }
   private val lastBox: Box[Double] = { (_: Double, x2: Double) => x2 }
 
-  private val startRho: Assignment[Int, Double] = simpleEqs.initial
+  private val startRho: InputAssignment[Int, Double] = simpleEqs.initial
 
-  private type SimpleSolver[U, V] = (FiniteEquationSystem[U, V], U => V) => U => V
+  private type SimpleSolver[U, V] = (FiniteEquationSystem[U, V], InputAssignment[U, V]) => IOAssignment[U, V]
 
   /**
     * Tests whether solving `eqs` equation system always returns a correct result. Should be used only for

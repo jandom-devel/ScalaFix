@@ -88,7 +88,7 @@ object FiniteFixpointSolver {
         val narrowing = boxFilter[U, V](eqs, narrowingBoxAssn, boxlocation, ordering)
         // localizing narrowings does not seem useful
         val withNarrowing = boxApply(eqs, narrowing, BoxScope.Standard, ordering)
-        tracer.descendingBegins(startAssn)
+        tracer.descendingBegins(ascendingAssignment)
         applySolver(solver, withNarrowing, ascendingAssignment, ordering, restart, tracer)
       case BoxStrategy.Warrowing =>
         if (boxscope == BoxScope.Localized) {

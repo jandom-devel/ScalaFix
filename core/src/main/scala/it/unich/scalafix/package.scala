@@ -48,6 +48,6 @@ package object scalafix {
     * tracing might be required to make a program work, so only elide it if you
     * known what you are doing.
     */
-  final val TRACING: Int = 5000
+  final val TRACING = 5000
 
 }

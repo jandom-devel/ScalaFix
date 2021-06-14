@@ -21,15 +21,15 @@ package it.unich.scalafix.finite
 import it.unich.scalafix.FixpointSolver
 import it.unich.scalafix.FixpointSolverTracer.PerformanceFixpointSolverTracer
 import it.unich.scalafix.assignments.InputAssignment
-import org.scalatest.FunSpec
-import org.scalatest.prop.PropertyChecks
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class FiniteFixpointSolverTest extends FunSpec with PropertyChecks {
+class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks {
 
-  import FixpointSolver._
+  import FixpointSolver.*
 
   private val simpleEqs = GraphEquationSystem[Int, Double, Char](
-    edgeAction = { rho: (Int => Double) => {
+    edgeAction = { (rho: Int => Double) => {
       case 'a' => rho(0)
       case 'b' => rho(1) min 10
       case 'c' => rho(2) + 1
@@ -45,7 +45,7 @@ class FiniteFixpointSolverTest extends FunSpec with PropertyChecks {
     initial = InputAssignment.conditional(0, 0.0, Double.NegativeInfinity)
   )
   private val solution = Map[Int, Double](0 -> 0, 1 -> 11, 2 -> 10, 3 -> 11)
-  private val emptysol = (0 to 3).map { u: Int => u -> Double.NegativeInfinity }.toMap
+  private val emptysol = (0 to 3).map { _ -> Double.NegativeInfinity }.toMap
   private val onlyWideningSol = Map[Int, Double](0 -> 0, 1 -> Double.PositiveInfinity, 2 -> 10, 3 -> 11)
   private val doublewidening = { (x: Double, y: Double) => if (x.isNegInfinity) y else if (x >= y) x else Double.PositiveInfinity }
   private val doublenarrowing = { (x: Double, y: Double) => if (x.isPosInfinity) y else x }

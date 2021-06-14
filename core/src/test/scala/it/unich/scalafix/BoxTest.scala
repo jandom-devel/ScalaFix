@@ -18,12 +18,12 @@
 
 package it.unich.scalafix
 
-import org.scalatest.FunSpec
-import org.scalatest.prop.PropertyChecks
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class BoxTest extends FunSpec with PropertyChecks {
+class BoxTest extends AnyFunSpec with ScalaCheckPropertyChecks {
   // Why we need to import
-  import scala.math.Ordering.{Int => IntOrdering}
+  import scala.math.Ordering.{Int as IntOrdering}
 
   private val intWidening: Box[Int] = { (x: Int, y: Int) => if (x >= y) x else Int.MaxValue }
   private val intNarrowing: Box[Int] = { (x: Int, y: Int) => if (x == Int.MaxValue) y else x }

@@ -18,19 +18,19 @@
 
 package it.unich.scalafix.finite
 
-import it.unich.scalafix._
+import it.unich.scalafix.*
 import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
 import it.unich.scalafix.utils.Relation
 import org.scalacheck.{Arbitrary, Gen}
-import org.scalatest.FunSpec
-import org.scalatest.prop.PropertyChecks
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 /**
   * Test solvers for finite equation systems.
   */
-class FiniteEquationSystemTest extends FunSpec with PropertyChecks {
+class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks {
 
-  import HierarchicalOrdering._
+  import HierarchicalOrdering.*
 
   private val simpleEqs: FiniteEquationSystem[Int, Double] = FiniteEquationSystem(
     body = {
@@ -59,9 +59,9 @@ class FiniteEquationSystemTest extends FunSpec with PropertyChecks {
     * Tests whether solving `eqs` equation system always returns a correct result. Should be used only for
     * solvers which are guaranteed to terminate with the given equation system.
     */
-  def testCorrectness[U, V](eqs: FiniteEquationSystem[U, V], solver: SimpleSolver[U, V])(implicit values: Arbitrary[V]) {
+  def testCorrectness[U, V](eqs: FiniteEquationSystem[U, V], solver: SimpleSolver[U, V])(implicit values: Arbitrary[V]) = {
     val startRhosList = Gen.listOfN(eqs.unknowns.size, values.arbitrary)
-    val startRhos = startRhosList map { l => Map(eqs.unknowns.toSeq zip l: _*) }
+    val startRhos = startRhosList map { l => Map.from(eqs.unknowns.toList zip l) }
     forAll(startRhos) { start =>
       val finalEnv = solver(eqs, start)
       for (x <- eqs.unknowns)
@@ -73,7 +73,7 @@ class FiniteEquationSystemTest extends FunSpec with PropertyChecks {
     * Test solvers for the `simpleEqs` equation system when starting from the initial
     * assignment `startRho`.
     */
-  def testExpectedResult(solver: SimpleSolver[Int, Double]) {
+  def testExpectedResult(solver: SimpleSolver[Int, Double]) = {
     it("gives the expected result starting from startRho with last") {
       val finalRho = solver(simpleEqs.withBoxes(lastBox), startRho)
       assert(finalRho(0) === 0.0)

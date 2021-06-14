@@ -1,5 +1,4 @@
-/**
-  * Copyright 2015, 2017 Gianluca Amato <gamato@unich.it>
+/** Copyright 2015, 2017 Gianluca Amato <gamato@unich.it>
   *
   * This file is part of JANDOM: JVM-based Analyzer for Numerical DOMains
   * JANDOM is free software: you can redistribute it and/or modify
@@ -20,20 +19,20 @@ package it.unich.scalafix.finite
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 
-import it.unich.scalafix._
+import it.unich.scalafix.*
 import it.unich.scalafix.lattice.Magma
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 
-class GraphEquationSystemTest extends FunSpec {
+class GraphEquationSystemTest extends AnyFunSpec {
 
   private implicit object MagmaInt extends Magma[Int] {
     def op(x: Int, y: Int): Int = x max y
   }
 
   private val unknowns = Set(0, 1, 2, 3)
-  private val simpleEqs = GraphEquationSystem[Int, Int, Char] (
-    edgeAction = {
-      rho: (Int => Int) => {
+  private val simpleEqs = GraphEquationSystem[Int, Int, Char](
+    edgeAction = { (rho: Int => Int) =>
+      {
         case 'a' => rho(0)
         case 'b' => rho(1) min 10
         case 'c' => rho(2) + 1
@@ -48,7 +47,7 @@ class GraphEquationSystemTest extends FunSpec {
     inputUnknowns = Set(0),
     initial = 0
   )
-  private val rho: Assignment[Int, Int] = { x: Int => x }
+  private val rho: Assignment[Int, Int] = identity
 
   describe("A simple graph equation system") {
     it("correctly computes the body") {
@@ -76,8 +75,8 @@ class GraphEquationSystemTest extends FunSpec {
     }
 
     it("correctly adds input assignments") {
-      val input: PartialFunction[Int, Int] = {
-        case _ => 2
+      val input: PartialFunction[Int, Int] = { case _ =>
+        2
       }
       val eqs = simpleEqs.withBaseAssignment(input)
       val body = eqs.body
@@ -105,14 +104,15 @@ class GraphEquationSystemTest extends FunSpec {
       test(eqs2)
       for (x <- unknowns) {
         assert(simpleEqs.infl(x) === eqs1.infl(x))
-        assert((simpleEqs.infl(x) + x) === eqs2.infl(x))
+        // TOOD: check if toSet may be avoided
+        assert((simpleEqs.infl(x).toSet + x) === eqs2.infl(x))
       }
     }
 
     it("correctly adds localized idempotent boxes") {
       def test(eqs: FiniteEquationSystem[Int, Int]) = {
         val body = eqs.body
-        val rho2 = { x: Int => if (x == 0) 9 else x }
+        val rho2 = { (x: Int) => if (x == 0) 9 else x }
         assertResult(0)(body(rho)(0))
         assertResult(7)(body(rho)(1))
         assertResult(1)(body(rho)(2))
@@ -133,24 +133,30 @@ class GraphEquationSystemTest extends FunSpec {
         if (x != 1)
           assertResult(simpleEqs.infl(x))(eqs2.infl(x))
         else
-          assertResult(simpleEqs.infl(x) + x)(eqs2.infl(x))
+          // TOOD: check if toSet may be avoided
+          assertResult(simpleEqs.infl(x).toSet + x)(eqs2.infl(x))
       }
     }
 
     it("correctly traces equations") {
       val os = new ByteArrayOutputStream()
-      val tracingEqs = simpleEqs.withTracer(EquationSystemTracer.debug(new PrintStream(os)))
+      val tracingEqs =
+        simpleEqs.withTracer(EquationSystemTracer.debug(new PrintStream(os)))
       simpleEqs.body(rho)(0)
       assertResult("")(os.toString)
       os.reset()
       tracingEqs.body(rho)(0)
-      assertResult("evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\n")(os.toString)
+      assertResult(
+        "evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\n"
+      )(os.toString)
       os.reset()
       val box: Box[Int] = { (x: Int, y: Int) => x + (2 * y) }
       val boxTracingEqs = tracingEqs.withBoxes(box)
       boxTracingEqs.body(rho)(0)
-      assertResult("evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\n" +
-        "evaluated: 0, oldvalue: 0, newvalue: 0, boxed: 0\n")(os.toString)
+      assertResult(
+        "evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\n" +
+          "evaluated: 0, oldvalue: 0, newvalue: 0, boxed: 0\n"
+      )(os.toString)
     }
   }
 }

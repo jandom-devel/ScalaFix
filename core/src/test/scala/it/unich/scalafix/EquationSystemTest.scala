@@ -1,5 +1,4 @@
-/**
-  * Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
+/** Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
   *
   * This file is part of ScalaFix.
   * ScalaFix is free software: you can redistribute it and/or modify
@@ -20,19 +19,20 @@ package it.unich.scalafix
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 
-class EquationSystemTest extends FunSpec {
+class EquationSystemTest extends AnyFunSpec {
 
   private val simpleEqs = EquationSystem[Int, Int](
-    body = { rho: (Int => Int) => {
-      case 0 => rho(0)
-      case 1 => (rho(0) max rho(2)) min rho(3)
-      case 2 => rho(1) + 1
-      case 3 => rho(3)
-    }
+    body = { (rho: Int => Int) =>
+      {
+        case 0 => rho(0)
+        case 1 => (rho(0) max rho(2)) min rho(3)
+        case 2 => rho(1) + 1
+        case 3 => rho(3)
+      }
     },
-    initial = { x: Int => x }
+    initial = identity[Int]
   )
   private val rho: Assignment[Int, Int] = simpleEqs.initial
   private val box: Box[Int] = { (x: Int, y: Int) => x * y }
@@ -62,17 +62,22 @@ class EquationSystemTest extends FunSpec {
 
     it("correctly traces equations") {
       val os = new ByteArrayOutputStream()
-      val tracingEqs = simpleEqs.withTracer(EquationSystemTracer.debug(new PrintStream(os)))
+      val tracingEqs =
+        simpleEqs.withTracer(EquationSystemTracer.debug(new PrintStream(os)))
       simpleEqs.body(rho)(0)
       assertResult("")(os.toString)
       os.reset()
       tracingEqs.body(rho)(0)
-      assertResult("evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\n")(os.toString)
+      assertResult(
+        "evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\n"
+      )(os.toString)
       os.reset()
       val boxTracingEqs = tracingEqs.withBoxes(box)
       boxTracingEqs.body(rho)(0)
-      assertResult("evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\nevaluated: 0, " +
-        "oldvalue: 0, newvalue: 0, boxed: 0\n")(os.toString)
+      assertResult(
+        "evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\nevaluated: 0, " +
+          "oldvalue: 0, newvalue: 0, boxed: 0\n"
+      )(os.toString)
     }
   }
 }

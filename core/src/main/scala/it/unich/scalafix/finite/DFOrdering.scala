@@ -32,7 +32,7 @@ import scala.collection.mutable
   */
 abstract class DFOrdering[N] extends GraphOrdering[N] {
 
-  import DFOrdering.EdgeType._
+  import DFOrdering.EdgeType.*
 
   /**
     * It returns the type of an edge u -> v.
@@ -62,7 +62,7 @@ object DFOrdering {
   /**
     * Returns the DFOrdering for a finite equation system.
     */
-  def apply[N](eqs: FiniteEquationSystem[N, _]): DFOrdering[N] =
+  def apply[N](eqs: FiniteEquationSystem[N, ?]): DFOrdering[N] =
     new DFOrderingFromR[N](eqs.infl, eqs.unknowns, eqs.inputUnknowns)
 
   /**
@@ -81,7 +81,7 @@ object DFOrdering {
     */
   private final class DFOrderingFromR[N](r: Relation[N], nodes: Iterable[N], entries: Iterable[N]) extends DFOrdering[N] {
 
-    import DFOrdering.EdgeType._
+    import DFOrdering.EdgeType.*
 
     val stringPrefix = "GraphOrdering"
 
@@ -92,13 +92,13 @@ object DFOrdering {
     private val heads = mutable.Set.empty[N] // Set of heads
     initDFO()
 
-    def initDFO() {
+    def initDFO() = {
       val visited = mutable.LinkedHashSet.empty[N]
       var c = 0
       for (x <- entries) if (!(visited contains x)) dfsVisit(x)
       for (x <- nodes) if (!(visited contains x)) dfsVisit(x)
 
-      def dfsVisit(u: N) {
+      def dfsVisit(u: N): Unit = {
         visited += u
         for (v <- r(u))
           if (!(visited contains v)) {

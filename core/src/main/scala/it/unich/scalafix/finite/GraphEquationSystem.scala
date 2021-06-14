@@ -18,7 +18,7 @@
 
 package it.unich.scalafix.finite
 
-import it.unich.scalafix._
+import it.unich.scalafix.*
 import it.unich.scalafix.assignments.InputAssignment
 import it.unich.scalafix.lattice.{Domain, Magma}
 import it.unich.scalafix.utils.Relation
@@ -99,8 +99,8 @@ case class SimpleGraphEquationSystem[U, V, E]
 )(implicit val dom: Domain[V]) extends EquationSystemBase[U, V] with GraphEquationSystem[U, V, E] {
 
   val body: Body[U, V] = {
-    rho: Assignment[U, V] =>
-      x: U =>
+    (rho: Assignment[U, V]) =>
+      (x: U) =>
         tracer foreach (_.beforeEvaluation(rho, x))
         val contributions = for (e <- ingoing(x)) yield edgeAction(rho)(e)
         // if contribution is empty the unknown x has no right hand side... it seems
@@ -114,16 +114,16 @@ case class SimpleGraphEquationSystem[U, V, E]
   }
 
   override val bodyWithDependencies: BodyWithDependencies[U, V] = {
-    rho: Assignment[U, V] =>
-      x: U => {
+    (rho: Assignment[U, V]) =>
+      (x: U) => {
         val deps = ingoing(x).foldLeft(Iterable.empty[U])((acc: Iterable[U], e: E) => acc ++ sources(e))
         val res = body(rho)(x)
         (res, deps)
       }
   }
 
-  val infl: Relation[U] = Relation({
-    u: U => (for (e <- outgoing(u)) yield target(e)) (collection.breakOut)
+  val infl: Relation[U] = Relation( {
+    (u: U) => outgoing(u).view.map(target).to(Set)
   })
 
   def withTracer(t: EquationSystemTracer[U, V]): GraphEquationSystem[U, V, E] = {
@@ -143,8 +143,8 @@ case class SimpleGraphEquationSystem[U, V, E]
 
   def withLocalizedBoxes(boxes: BoxAssignment[U, V], ordering: Ordering[U]): GraphEquationSystem[U, V, E] = {
     val newEdgeAction = {
-      rho: Assignment[U, V] =>
-        e: E =>
+      (rho: Assignment[U, V]) =>
+        (e: E) =>
           val x = target(e)
           if (boxes.isDefinedAt(x) && sources(e).exists(ordering.lteq(x, _))) {
             boxes(x)(rho(x), edgeAction(rho)(e))
@@ -155,7 +155,7 @@ case class SimpleGraphEquationSystem[U, V, E]
       copy(edgeAction = newEdgeAction)
     } else {
       val newSources = {
-        e: E =>
+        (e: E) =>
           val x = target(e)
           if (boxes.isDefinedAt(x) && sources(e).exists(ordering.lteq(x, _)))
             sources(e) ++ Iterable(x)
@@ -163,10 +163,10 @@ case class SimpleGraphEquationSystem[U, V, E]
             sources(e)
       }
       val newOutgoing = {
-        u: U =>
+        (u: U) =>
           if (boxes.isDefinedAt(u)) {
             val edges = ingoing(u).filter {
-              e: E => sources(e).exists(ordering.lteq(u, _))
+              (e: E) => sources(e).exists(ordering.lteq(u, _))
             }
             outgoing(u) ++ edges
           } else
@@ -178,8 +178,8 @@ case class SimpleGraphEquationSystem[U, V, E]
 
   def withLocalizedWarrowing(widenings: BoxAssignment[U, V], narrowings: BoxAssignment[U, V], ordering: Ordering[U]): FiniteEquationSystem[U, V] = {
     val newBody: Body[U, V] = {
-      rho: Assignment[U, V] =>
-        x: U =>
+      (rho: Assignment[U, V]) =>
+        (x: U) =>
           val contributions = for (e <- ingoing(x)) yield {
             val contrib = edgeAction(rho)(e)
             val boxapply = sources(e).exists(ordering.lteq(x, _)) && !dom.lteq(contrib, rho(x))

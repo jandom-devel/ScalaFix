@@ -25,7 +25,7 @@ import scala.collection.mutable
   */
 abstract class HierarchicalOrdering[N] extends GraphOrdering[N] {
 
-  import HierarchicalOrdering._
+  import HierarchicalOrdering.*
 
   /**
     * A sequence of elements and parenthesis representing the hierarchical ordering.
@@ -50,15 +50,15 @@ object HierarchicalOrdering {
     */
   sealed abstract class HOElement[+N]
 
-  final case object Left extends HOElement[Nothing] {
+  case object Left extends HOElement[Nothing] {
     override def toString = "("
   }
 
-  final case object Right extends HOElement[Nothing] {
+  case object Right extends HOElement[Nothing] {
     override def toString = ")"
   }
 
-  final case class Val[N](u: N) extends HOElement[N] {
+  case class Val[N](u: N) extends HOElement[N] {
     override def toString: String = u.toString
   }
 
@@ -67,11 +67,13 @@ object HierarchicalOrdering {
     *
     * @param seq a sequence of HOElements.
     */
-  private def validateSeqWithParenthesis[N](seq: TraversableOnce[HOElement[N]]): Boolean = {
+  private def validateSeqWithParenthesis[N](seq: IterableOnce[HOElement[N]]): Boolean = {
     var opened = 0
     var lastopened = false
-    for (s <- seq) {
-      if (lastopened && !s.isInstanceOf[Val[N]]) return false
+    val it = seq.iterator
+    while (it.hasNext) {
+      val s = it.next()
+      if (lastopened && !s.isInstanceOf[Val[?]]) return false
       if (s == Left) {
         opened += 1
         lastopened = true
@@ -106,11 +108,18 @@ object HierarchicalOrdering {
 
     val stringPrefix = "HierarchicalOrdering"
 
+    // TODO: check if this may be done faster
     private lazy val orderingIndex: Map[N, Int] = (for {
-      (x, i) <- seq.zipWithIndex; if x.isInstanceOf[Val[N]]; Val(u) = x
-    } yield u -> i) (collection.breakOut)
+      (x, i) <- seq.zipWithIndex
+      if x.isInstanceOf[Val[?]]
+      Val(u) = x: @unchecked
+    } yield u -> i).to(Map)
 
-    def toSeq: Seq[N] = for (x <- seq; if x.isInstanceOf[Val[N]]; Val(u) = x) yield u
+    def toSeq: Seq[N] = for {
+      x <- seq
+      if x.isInstanceOf[Val[?]]
+      Val(u) = x: @unchecked
+    } yield u
 
     def toSeqWithParenthesis: Seq[HOElement[N]] = seq
 
@@ -146,7 +155,7 @@ object HierarchicalOrdering {
       for (_ <- 0 until open) {
         buffer.append(Right)
       }
-      buffer
+      buffer.toSeq
     }
   }
 

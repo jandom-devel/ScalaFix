@@ -19,9 +19,9 @@
 package it.unich.scalafix.jmh
 
 import it.unich.scalafix.Assignment
-import it.unich.scalafix.finite.{RoundRobinSolver, WorkListSolver => FiniteWorkListSolver}
-import it.unich.scalafix.infinite.{WorkListSolver => InfiniteWorkListSolver}
-import org.openjdk.jmh.annotations._
+import it.unich.scalafix.finite.{RoundRobinSolver, WorkListSolver as FiniteWorkListSolver}
+import it.unich.scalafix.infinite.WorkListSolver as InfiniteWorkListSolver
+import org.openjdk.jmh.annotations.*
 
 /**
   * This class tests the efficiency of the different fixpoint solvers on
@@ -38,55 +38,55 @@ class EquationSystemBench {
   val chainInfiniteEqs = new ChainInfiniteEQS[Int](initVal)
   val chainInfinite2Eqs = new ChainInfinite2EQS[Int](initVal)
 
-  def validate(rho: Assignment[Int, Int]) {
+  def validate(rho: Assignment[Int, Int]) = {
     for (i <- 0 until numUnknowns) assert(rho(i) == initVal)
   }
 
   @Benchmark
-  def RRGraph() {
+  def RRGraph() = {
     val result = RoundRobinSolver(chainGraphEqs)()
     validate(result)
   }
 
   @Benchmark
-  def RRSimpleGraph() {
+  def RRSimpleGraph() = {
     val result = RoundRobinSolver(chainSimpleGraphEqs)()
     validate(result)
   }
 
   @Benchmark
-  def RRSimpleFinite() {
+  def RRSimpleFinite() = {
     val result = RoundRobinSolver(chainSimpleFiniteEqs)()
     validate(result)
   }
 
   @Benchmark
-  def FWLGraph() {
+  def FWLGraph() = {
     val result = FiniteWorkListSolver(chainGraphEqs)()
     validate(result)
   }
 
   @Benchmark
-  def FWLSimpleGraph() {
+  def FWLSimpleGraph() = {
     val result = FiniteWorkListSolver(chainSimpleGraphEqs)()
     validate(result)
   }
 
   @Benchmark
-  def FWLSimpleFinite() {
+  def FWLSimpleFinite() = {
     val result = FiniteWorkListSolver(chainSimpleFiniteEqs)()
     validate(result)
   }
 
 
   @Benchmark
-  def IWLInfinite() {
+  def IWLInfinite() = {
     val result = InfiniteWorkListSolver(chainInfiniteEqs)(Seq(numUnknowns))
     validate(result)
   }
 
   @Benchmark
-  def IWLInfinite2() {
+  def IWLInfinite2() = {
     val result = InfiniteWorkListSolver(chainInfinite2Eqs)(Seq(numUnknowns))
     validate(result)
   }

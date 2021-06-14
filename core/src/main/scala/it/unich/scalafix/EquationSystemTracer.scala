@@ -36,8 +36,7 @@ trait EquationSystemTracer[U, V] {
     * @param rho the current assignment
     * @param u   the unknown which is evaluated
     */
-  @elidable(TRACING)
-  def beforeEvaluation(rho: Assignment[U, V], u: U)
+  def beforeEvaluation(rho: Assignment[U, V], u: U): Unit
 
   /**
     * This method is called immediately after an unknown `u` is evaluated.
@@ -46,8 +45,7 @@ trait EquationSystemTracer[U, V] {
     * @param u   the unknown which is evaluated
     * @param res the result of the evaluation
     */
-  @elidable(TRACING)
-  def afterEvaluation(rho: Assignment[U, V], u: U, res: V)
+  def afterEvaluation(rho: Assignment[U, V], u: U, res: V): Unit
 
   /**
     * This method is called when a box is evaluated.
@@ -57,8 +55,7 @@ trait EquationSystemTracer[U, V] {
     * @param res   result of the evaluation of the original body
     * @param boxed result of the evaluation of the original body, boxed with the original value
     */
-  @elidable(TRACING)
-  def boxEvaluation(rho: Assignment[U, V], u: U, res: V, boxed: V)
+  def boxEvaluation(rho: Assignment[U, V], u: U, res: V, boxed: V): Unit
 }
 
 /**
@@ -66,10 +63,13 @@ trait EquationSystemTracer[U, V] {
   * May be sub-classed in order to override only the methods we are interested in.
   */
 abstract class EquationSystemTracerAdapter[U, V] extends EquationSystemTracer[U, V] {
+  @elidable(TRACING)
   def beforeEvaluation(rho: Assignment[U, V], u: U): Unit = {}
 
+  @elidable(TRACING)
   def afterEvaluation(rho: Assignment[U, V], u: U, res: V): Unit = {}
 
+  @elidable(TRACING)
   def boxEvaluation(rho: Assignment[U, V], u: U, res: V, boxed: V): Unit = {}
 }
 
@@ -84,15 +84,18 @@ object EquationSystemTracer {
     * A tracer which prints many debug informations on a PrintStream.
     */
   class DebugEquationSystemTracer[U, V](ps: PrintStream) extends EquationSystemTracer[U, V] {
-    def beforeEvaluation(rho: Assignment[U, V], u: U) {
+    @elidable(TRACING)
+    def beforeEvaluation(rho: Assignment[U, V], u: U) = {
       ps.println(s"evaluated: $u oldvalue: ${rho(u)}")
     }
 
-    def afterEvaluation(rho: Assignment[U, V], u: U, res: V) {
+    @elidable(TRACING)
+    def afterEvaluation(rho: Assignment[U, V], u: U, res: V) = {
       ps.println(s"evaluated: $u oldvalue: ${rho(u)} newvalue: $res")
     }
 
-    def boxEvaluation(rho: Assignment[U, V], u: U, res: V, boxed: V) {
+    @elidable(TRACING)
+    def boxEvaluation(rho: Assignment[U, V], u: U, res: V, boxed: V) = {
       ps.println(s"evaluated: $u, oldvalue: ${rho(u)}, newvalue: $res, boxed: $boxed")
     }
   }

@@ -19,24 +19,24 @@
 package it.unich.scalafix.finite
 
 import org.scalacheck.Gen
-import org.scalatest.FunSpec
-import org.scalatest.prop.PropertyChecks
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class GraphOrderingTest extends FunSpec with PropertyChecks {
+class GraphOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks {
 
   describe("A trivial graph ordering") {
     it("returns the original sequence") {
-      forAll { s: Set[Int] =>
+      forAll { (s: Set[Int]) =>
         val seq = s.toSeq
-        val o = GraphOrdering(seq: _*)
+        val o = GraphOrdering(seq*)
         assertResult(seq)(o.toSeq)
       }
     }
     it("respects the order of the input sequence") {
-      forAll { s: Set[Int] =>
+      forAll { (s: Set[Int]) =>
         whenever(s.nonEmpty) {
           val seq = s.toSeq
-          val o = GraphOrdering(seq: _*)
+          val o = GraphOrdering(seq*)
           val g = Gen.choose(0, s.size - 1)
           forAll(g, g) { (x: Int, y: Int) =>
             assertResult(scala.math.signum(x compare y))(scala.math.signum(o.compare(seq(x), seq(y))))
@@ -45,9 +45,9 @@ class GraphOrderingTest extends FunSpec with PropertyChecks {
       }
     }
     it("has only head elements") {
-      forAll { s: Set[Int] =>
+      forAll { (s: Set[Int]) =>
         val seq = s.toSeq
-        val o = GraphOrdering(seq: _*)
+        val o = GraphOrdering(seq*)
         for (x <- s) assertResult(true)(o.isHead(x))
       }
     }

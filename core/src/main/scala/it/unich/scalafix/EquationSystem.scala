@@ -89,8 +89,8 @@ abstract class EquationSystemBase[U, V] extends EquationSystem[U, V] {
     * @param t the tracer to be called by the new body
     */
   protected def bodyWithTracer(t: EquationSystemTracer[U, V]): Body[U, V] = {
-    rho: Assignment[U, V] =>
-      x: U =>
+    (rho: Assignment[U, V]) => 
+      (x: U) =>
         t.beforeEvaluation(rho, x)
         val res = body(rho)(x)
         t.afterEvaluation(rho, x, res)
@@ -106,8 +106,8 @@ abstract class EquationSystemBase[U, V] extends EquationSystem[U, V] {
     if (realBoxes.isEmpty)
       body
     else {
-      rho: Assignment[U, V] =>
-        x: U =>
+      (rho: Assignment[U, V]) =>
+        (x: U) =>
           val res = body(rho)(x)
           if (realBoxes.isDefinedAt(x)) {
             val boxedRes = realBoxes(x)(rho(x), res)
@@ -123,7 +123,7 @@ abstract class EquationSystemBase[U, V] extends EquationSystem[U, V] {
     * trough the use of the `comb` combiner.
     */
   protected def bodyWithBaseAssignment(init: PartialFunction[U, V], comb: (V, V) => V): Body[U, V] = {
-    rho: Assignment[U, V] => x: U => if (init.isDefinedAt(x)) comb(init(x), body(rho)(x)) else body(rho)(x)
+    (rho: Assignment[U, V]) => (x: U) => if (init.isDefinedAt(x)) comb(init(x), body(rho)(x)) else body(rho)(x)
   }
 
   /**
@@ -131,10 +131,10 @@ abstract class EquationSystemBase[U, V] extends EquationSystem[U, V] {
     * record access to unknowns.
     */
   val bodyWithDependencies: BodyWithDependencies[U, V] = {
-    rho: Assignment[U, V] =>
-      x: U => {
+    (rho: Assignment[U, V]) =>
+      (x: U) => {
         val queried = mutable.Buffer.empty[U]
-        val trackrho = { y: U =>
+        val trackrho = { (y: U) =>
           queried.append(y)
           rho(y)
         }
@@ -173,6 +173,6 @@ object EquationSystem {
     * Returns the standard implementation of EquationSystem. All fields must be provided explicitly by
     * the user with the exception of `bodyWithDependencies`.
     */
-  def apply[U, V](body: Body[U, V], initial: InputAssignment[U, V], inputUnknowns: U => Boolean = { _: U => false }): EquationSystem[U, V] =
+  def apply[U, V](body: Body[U, V], initial: InputAssignment[U, V], inputUnknowns: U => Boolean = { (_: U) => false }): EquationSystem[U, V] =
     SimpleEquationSystem(body, initial, inputUnknowns, None)
 }

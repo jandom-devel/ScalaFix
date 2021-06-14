@@ -38,11 +38,11 @@ object PriorityWorkListSolver {
     var current = 0
 
     def compare(x: U, y: U): Int = {
-      val xp = map getOrElseUpdate(x, {
+      val xp = map.getOrElseUpdate(x, {
         current -= 1
         current
       })
-      val yp = map getOrElseUpdate(y, {
+      val yp = map.getOrElseUpdate(y, {
         current -= 1
         current
       })
@@ -70,9 +70,7 @@ object PriorityWorkListSolver {
                    ordering: Ordering[U] = new DynamicPriority[U],
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
                  ): IOAssignment[U, V] = {
-    val infl: mutable.MultiMap[U, U] = new mutable.HashMap[U, mutable.Set[U]] with mutable.MultiMap[U, U] {
-      override def makeSet = new mutable.LinkedHashSet[U]
-    }
+    val infl = mutable.Map.empty[U, mutable.Set[U]]
     val workList = mutable.PriorityQueue.empty[U](ordering)
     workList ++= wanted
 
@@ -87,7 +85,7 @@ object PriorityWorkListSolver {
           current(y) = start(y)
           workList += y
         }
-        infl.addBinding(y, x)
+        infl.getOrElseUpdate(y, mutable.Set.empty[U]) += x
       }
       if (newval != current(x)) {
         current(x) = newval

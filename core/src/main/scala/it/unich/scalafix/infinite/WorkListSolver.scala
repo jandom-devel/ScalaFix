@@ -18,7 +18,7 @@
 
 package it.unich.scalafix.infinite
 
-import it.unich.scalafix._
+import it.unich.scalafix.*
 import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
 
 import scala.collection.mutable
@@ -44,9 +44,7 @@ object WorkListSolver {
                    start: InputAssignment[U, V] = eqs.initial,
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
                  ): IOAssignment[U, V] = {
-    val infl: mutable.MultiMap[U, U] = new mutable.HashMap[U, mutable.Set[U]] with mutable.MultiMap[U, U] {
-      override def makeSet = new mutable.LinkedHashSet[U]
-    }
+    val infl = mutable.Map.empty[U,mutable.Set[U]]
     val workList = mutable.Queue.empty[U]
     workList ++= wanted
 
@@ -61,7 +59,7 @@ object WorkListSolver {
           current(y) = start(y)
           workList += y
         }
-        infl.addBinding(y, x)
+        infl.getOrElseUpdate(y, mutable.Set.empty[U]) += x
       }
       if (newval != current(x)) {
         current(x) = newval

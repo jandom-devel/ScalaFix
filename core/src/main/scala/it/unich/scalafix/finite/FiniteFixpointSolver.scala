@@ -18,7 +18,7 @@
 
 package it.unich.scalafix.finite
 
-import it.unich.scalafix._
+import it.unich.scalafix.*
 import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
 import it.unich.scalafix.lattice.Domain
 
@@ -28,7 +28,7 @@ import it.unich.scalafix.lattice.Domain
   */
 object FiniteFixpointSolver {
 
-  import FixpointSolver._
+  import FixpointSolver.*
 
   /**
     * Returns parameters for solving an equation system with the standard CC77 approach
@@ -52,7 +52,7 @@ object FiniteFixpointSolver {
     * @param params the parameters for the solver
     */
   def apply[U, V: Domain, E](eqs: GraphEquationSystem[U, V, E], params: Params[U, V]): IOAssignment[U, V] = {
-    import params._
+    import params.*
 
     val startAssn = params.start.getOrElse(eqs.initial)
 
@@ -65,7 +65,7 @@ object FiniteFixpointSolver {
         None
     }
 
-    val ordering: Option[GraphOrdering[U]] = boxlocation match {
+    val ordering: Option[GraphOrdering[U]] = (boxlocation: @unchecked) match {
       case BoxLocation.None | BoxLocation.All =>
         None
       case BoxLocation.Loop =>
@@ -76,32 +76,32 @@ object FiniteFixpointSolver {
       if (restartstrategy == RestartStrategy.Restart) { (x, y) => Domain[V].lt(x, y) }
       else { (_, _) => false }
 
-    boxstrategy match {
+    (boxstrategy: @unchecked) match {
       case BoxStrategy.OnlyWidening =>
-        val widening = boxFilter[U, V](eqs, wideningBoxAssn, boxlocation, ordering)
+        val widening = boxFilter[U, V](wideningBoxAssn, boxlocation, ordering)
         val withWidening = boxApply(eqs, widening, boxscope, ordering)
         applySolver(solver, withWidening, startAssn, ordering, restart, tracer)
       case BoxStrategy.TwoPhases =>
-        val widening = boxFilter[U, V](eqs, wideningBoxAssn, boxlocation, ordering)
+        val widening = boxFilter[U, V](wideningBoxAssn, boxlocation, ordering)
         val withWidening = boxApply(eqs, widening, boxscope, ordering)
         tracer.ascendingBegins(startAssn)
         val ascendingAssignment = applySolver(solver, withWidening, startAssn, ordering, restart, tracer)
-        val narrowing = boxFilter[U, V](eqs, narrowingBoxAssn, boxlocation, ordering)
+        val narrowing = boxFilter[U, V](narrowingBoxAssn, boxlocation, ordering)
         // localizing narrowings does not seem useful
         val withNarrowing = boxApply(eqs, narrowing, BoxScope.Standard, ordering)
         tracer.descendingBegins(ascendingAssignment)
         applySolver(solver, withNarrowing, ascendingAssignment, ordering, restart, tracer)
       case BoxStrategy.Warrowing =>
         if (boxscope == BoxScope.Localized) {
-          val widening = boxFilter[U, V](eqs, wideningBoxAssn, boxlocation, ordering)
-          val narrowing = boxFilter[U, V](eqs, narrowingBoxAssn, boxlocation, ordering)
+          val widening = boxFilter[U, V](wideningBoxAssn, boxlocation, ordering)
+          val narrowing = boxFilter[U, V](narrowingBoxAssn, boxlocation, ordering)
           val withUpdate = if (widening.isEmpty && narrowing.isEmpty)
             eqs
           else
             eqs.withLocalizedWarrowing(widening, narrowing, ordering.get)
           applySolver(solver, withUpdate, startAssn, ordering, restart, tracer)
         } else {
-          val warrowingAssignment = boxFilter[U, V](eqs, BoxAssignment.warrowing(wideningBoxAssn, narrowingBoxAssn), boxlocation, ordering)
+          val warrowingAssignment = boxFilter[U, V](BoxAssignment.warrowing(wideningBoxAssn, narrowingBoxAssn), boxlocation, ordering)
           val eqsWithWarrowing = boxApply(eqs, warrowingAssignment, boxscope, ordering)
           applySolver(solver, eqsWithWarrowing, startAssn, ordering, restart, tracer)
         }
@@ -118,12 +118,11 @@ object FiniteFixpointSolver {
     * @param ordering a GraphOrdering used when we need to detect heads
     */
   private def boxFilter[U, V](
-                               eqs: FiniteEquationSystem[U, V],
                                boxAssn: BoxAssignment[U, V],
                                location: BoxLocation.Value,
                                ordering: Option[GraphOrdering[U]]
                              ): BoxAssignment[U, V] =
-    location match {
+    (location: @unchecked) match {
       case BoxLocation.None => BoxAssignment.empty
       case BoxLocation.All => boxAssn
       case BoxLocation.Loop => boxAssn.restrict(ordering.get.isHead)
@@ -143,10 +142,10 @@ object FiniteFixpointSolver {
                                  scope: BoxScope.Value,
                                  ordering: Option[Ordering[U]]
                                ): FiniteEquationSystem[U, V] = {
-    scope match {
+    (scope: @unchecked) match {
       case BoxScope.Standard => eqs.withBoxes(boxes)
       case BoxScope.Localized => eqs match {
-        case eqs: GraphEquationSystem[U, V, _] => eqs.withLocalizedBoxes(boxes, ordering.get)
+        case eqs: GraphEquationSystem[U, V, ?] => eqs.withLocalizedBoxes(boxes, ordering.get)
         case _ => throw new DriverBadParameters("Localized boxes needs a GraphEquationSystem")
       }
     }
@@ -171,7 +170,7 @@ object FiniteFixpointSolver {
                                  restart: (V, V) => Boolean,
                                  tracer: FixpointSolverTracer[U, V]
                                ): IOAssignment[U, V] = {
-    solver match {
+    (solver: @unchecked) match {
       case Solver.RoundRobinSolver => RoundRobinSolver(eqs)(start, tracer)
       case Solver.KleeneSolver => KleeneSolver(eqs)(start, tracer)
       case Solver.WorkListSolver => WorkListSolver(eqs)(start, tracer)

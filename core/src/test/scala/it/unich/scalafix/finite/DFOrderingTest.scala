@@ -19,12 +19,12 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.utils.Relation
-import org.scalatest.FunSpec
-import org.scalatest.prop.PropertyChecks
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class DFOrderingTest extends FunSpec with PropertyChecks {
+class DFOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks {
 
-  import DFOrdering.EdgeType._
+  import DFOrdering.EdgeType.*
 
   // This example comes from "Aho, Sethi, Ullman - Compilers: Principles, Techniques and Tool - Addison Wesley"
   private val graph = Relation(Seq(1 -> 3, 1 -> 2, 2 -> 3, 3 -> 4, 4 -> 6, 4 -> 5, 4 -> 8, 5 -> 7, 6 -> 7, 7 -> 4,

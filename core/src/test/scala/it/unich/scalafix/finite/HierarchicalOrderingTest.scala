@@ -18,23 +18,23 @@
 
 package it.unich.scalafix.finite
 
-import it.unich.scalafix.finite.HierarchicalOrdering._
+import it.unich.scalafix.finite.HierarchicalOrdering.*
 import it.unich.scalafix.utils.Relation
-import org.scalatest.FunSpec
+import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.prop.TableDrivenPropertyChecks
 
-class HierarchicalOrderingTest extends FunSpec with TableDrivenPropertyChecks {
+class HierarchicalOrderingTest extends AnyFunSpec with TableDrivenPropertyChecks {
 
   private val seqp1 = Seq(Left, Val(0), Left, Val(1), Val(2), Val(3), Right, Right)
   private val seq1 = Seq(0, 1, 2, 3)
   private val heads1 = Set(0, 1)
-  private val o1 = HierarchicalOrdering[Int](seqp1: _*)
+  private val o1 = HierarchicalOrdering[Int](seqp1*)
   private val out1 = "HierarchicalOrdering( 0 ( 1 2 3 ) )"
 
   private val seqp2 = Seq(Left, Val(3), Left, Val(2), Val(1), Right, Val(0), Right)
   private val seq2 = Seq(3, 2, 1, 0)
   private val heads2 = Set(3, 2)
-  private val o2 = HierarchicalOrdering[Int](seqp2: _*)
+  private val o2 = HierarchicalOrdering[Int](seqp2*)
   private val out2 = "HierarchicalOrdering( 3 ( 2 1 ) 0 )"
 
   private val graph = Seq(1 -> 3, 1 -> 2, 2 -> 3, 3 -> 4, 4 -> 6, 4 -> 5, 4 -> 8, 5 -> 7, 6 -> 7, 7 -> 4, 7 -> 8,

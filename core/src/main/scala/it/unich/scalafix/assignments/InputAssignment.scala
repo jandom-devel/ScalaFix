@@ -62,7 +62,7 @@ object InputAssignment {
   implicit class Default[U, V](v: V) extends InputAssignment[U, V] {
     def apply(u: U): V = v
 
-    def toIOAssignment: IOAssignment[U, V] = new IOAssignment.HashBasedIOAssignment({ _: U => v })
+    def toIOAssignment: IOAssignment[U, V] = new IOAssignment.HashBasedIOAssignment({ _ => v })
 
     override def toString: String = s"constant value $v"
   }

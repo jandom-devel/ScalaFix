@@ -1,5 +1,4 @@
-/**
-  * Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
+/** Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
   *
   * This file is part of ScalaFix.
   * ScalaFix is free software: you can redistribute it and/or modify
@@ -18,50 +17,49 @@
 
 package it.unich.scalafix
 
-import org.scalatest.FunSpec
-import org.scalatest.prop.PropertyChecks
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class BoxAssignmentTest extends FunSpec with PropertyChecks {
+class BoxAssignmentTest extends AnyFunSpec with ScalaCheckPropertyChecks {
 
   private val maxbox: Box[Int] = { (x: Int, y: Int) => x max y }
 
   def checkDefinedEverywhere[V](boxes: BoxAssignment[Int, V]): Unit =
     it("is defined everywhere") {
-      forAll { u: Int => assertResult(true)(boxes.isDefinedAt(u))
-      }
+      forAll { (u: Int) => assertResult(true)(boxes.isDefinedAt(u)) }
     }
 
-  def checkIsEmpty(boxes: BoxAssignment[Nothing, _]) {
+  def checkIsEmpty(boxes: BoxAssignment[Nothing, ?]) = {
     it("is empty") {
       assertResult(true)(boxes.isEmpty)
     }
   }
 
-  def checkIsNotEmpty(boxes: BoxAssignment[Nothing, _]) {
+  def checkIsNotEmpty(boxes: BoxAssignment[Nothing, ?]) = {
     it("is not empty") {
       assertResult(false)(boxes.isEmpty)
     }
   }
 
-  def checkIsIdempotent(boxes: BoxAssignment[Nothing, _]) {
+  def checkIsIdempotent(boxes: BoxAssignment[Nothing, ?]) = {
     it("is idempotent") {
       assertResult(true)(boxes.boxesAreIdempotent)
     }
   }
 
-  def checkIsNotIdempotent(boxes: BoxAssignment[Nothing, _]) {
+  def checkIsNotIdempotent(boxes: BoxAssignment[Nothing, ?]) = {
     it("is not idempotent") {
       assertResult(false)(boxes.boxesAreIdempotent)
     }
   }
 
-  def copyIdempotent(boxes: BoxAssignment[Nothing, _]) {
+  def copyIdempotent(boxes: BoxAssignment[Nothing, ?]) = {
     it("has a copy method which returns itself") {
       assertResult(boxes)(boxes.copy)
     }
   }
 
-  def copyNotIdempotent(boxes: BoxAssignment[Nothing, _]) {
+  def copyNotIdempotent(boxes: BoxAssignment[Nothing, ?]) = {
     it("has a copy method which returns a new object") {
       assert(boxes != boxes.copy)
     }
@@ -70,12 +68,10 @@ class BoxAssignmentTest extends FunSpec with PropertyChecks {
   describe("The empty box assignment") {
     val boxes = BoxAssignment.empty[Int]
     it("it returns a right box for each unknown") {
-      forAll { u: Int => assertResult(true)(boxes(u).isRight)
-      }
+      forAll { (u: Int) => assertResult(true)(boxes(u).isRight) }
     }
     it("is defined nowhere") {
-      forAll { u: Int => assertResult(true)(!boxes.isDefinedAt(u))
-      }
+      forAll { (u: Int) => assertResult(true)(!boxes.isDefinedAt(u)) }
     }
     checkIsEmpty(boxes)
     checkIsIdempotent(boxes)
@@ -85,8 +81,7 @@ class BoxAssignmentTest extends FunSpec with PropertyChecks {
   describe("The constant box assignment for the min box") {
     val boxes: BoxAssignment[Int, Int] = { (x: Int, y: Int) => x min y }
     it("returns the same box for each unknown") {
-      forAll { (u: Int, v: Int) => assertResult(true)(boxes(u) eq boxes(v))
-      }
+      forAll { (u: Int) => assertResult(true)(boxes(u) eq boxes(u)) }
     }
     it("returns the correct box") {
       forAll { (u: Int, x: Int, y: Int) =>
@@ -102,12 +97,10 @@ class BoxAssignmentTest extends FunSpec with PropertyChecks {
   describe("The box assignment built from an immutable idempotent box") {
     val boxes: BoxAssignment[Int, Int] = maxbox
     it("returns the same box for each unknown") {
-      forAll { u: Int => assertResult(true)(maxbox eq boxes(u))
-      }
+      forAll { (u: Int) => assertResult(true)(maxbox eq boxes(u)) }
     }
     it("returns the same box each time it is applied to the same unknown") {
-      forAll { u: Int => assertResult(true)(boxes(u) eq boxes(u))
-      }
+      forAll { (u: Int) => assertResult(true)(boxes(u) eq boxes(u)) }
     }
     checkIsNotEmpty(boxes)
     checkDefinedEverywhere(boxes)
@@ -115,14 +108,13 @@ class BoxAssignmentTest extends FunSpec with PropertyChecks {
     copyIdempotent(boxes)
   }
 
-
   describe("The box assignment built from a mutable box") {
     val maxboxDelayed: Box[Int] = maxbox.delayed(2)
     val boxes: BoxAssignment[Int, Int] = maxboxDelayed
     it("returns a different box for each unknown") {
-      forAll { u: Int =>
+      forAll { (u: Int) =>
         assertResult(false)(maxboxDelayed eq boxes(u))
-        forAll { v: Int =>
+        forAll { (v: Int)  =>
           whenever(u != v) {
             assertResult(false)(boxes(v) eq boxes(u))
           }
@@ -130,8 +122,7 @@ class BoxAssignmentTest extends FunSpec with PropertyChecks {
       }
     }
     it("returns the same box each time it is applied to the same unknown") {
-      forAll { u: Int => assertResult(true)(boxes(u) eq boxes(u))
-      }
+      forAll { (u: Int) => assertResult(true)(boxes(u) eq boxes(u)) }
     }
     checkIsNotEmpty(boxes)
     checkDefinedEverywhere(boxes)

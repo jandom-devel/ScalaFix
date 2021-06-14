@@ -29,7 +29,7 @@ import scala.collection.mutable
   */
 trait Relation[A] extends (A => collection.Set[A]) {
 
-  import Relation._
+  import Relation.*
 
   /**
     * Returns a new relation where each element is in relation with itself.
@@ -43,7 +43,8 @@ trait Relation[A] extends (A => collection.Set[A]) {
 object Relation {
 
   private class InfluenceWithDiagonal[A](r: Relation[A]) extends Relation[A] {
-    def apply(x: A): collection.Set[A] = r(x) + x
+    // TODO: check for faster implementation
+    def apply(x: A): collection.Set[A] = r(x).toSet + x
 
     override def withDiagonal: Relation[A] = this
   }
@@ -74,10 +75,10 @@ object Relation {
     * order in which they appear in graph.
     */
   def apply[A](graph: Seq[(A, A)]): Relation[A] = {
-    val hash: mutable.MultiMap[A, A] = new mutable.HashMap[A, mutable.Set[A]] with mutable.MultiMap[A, A] {
-      override def makeSet = new mutable.LinkedHashSet[A]
+    val hash = mutable.HashMap.empty[A, mutable.LinkedHashSet[A]]
+    for ((u, v) <- graph) {
+      hash.getOrElseUpdate(u, mutable.LinkedHashSet.empty[A]) += v
     }
-    for ((u, v) <- graph) hash.addBinding(u, v)
     new InfluenceRelationFromHash[A](hash)
   }
 }

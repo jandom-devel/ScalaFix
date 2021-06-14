@@ -43,7 +43,7 @@ object HierarchicalOrderingSolver {
                    ordering: HierarchicalOrdering[U] = HierarchicalOrdering(DFOrdering(eqs)),
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
                  ): IOAssignment[U, V] = {
-    import HierarchicalOrdering._
+    import HierarchicalOrdering.*
 
     val current = start.toIOAssignment
     tracer.initialized(current)

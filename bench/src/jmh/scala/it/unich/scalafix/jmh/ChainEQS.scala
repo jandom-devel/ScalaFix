@@ -18,8 +18,8 @@
 
 package it.unich.scalafix.jmh
 
-import it.unich.scalafix._
-import it.unich.scalafix.finite._
+import it.unich.scalafix.*
+import it.unich.scalafix.finite.*
 import it.unich.scalafix.lattice.Domain
 import it.unich.scalafix.utils.Relation
 
@@ -34,17 +34,17 @@ import it.unich.scalafix.utils.Relation
 class ChainGraphEQS[V: Domain](n: Int, v: V) extends SimpleGraphEquationSystem[Int, V, Int](
   unknowns = 0 until n,
   inputUnknowns = Set(0),
-  edgeAction = { rho: Assignment[Int, V] => i: Int => rho(i) },
-  sources = { i: Int => Seq(i) },
-  target = { i: Int => i + 1 },
-  outgoing = { i: Int => if (i == n - 1) Seq.empty else Seq(i) },
-  ingoing = { i: Int => if (i == 0) Seq.empty else Seq(i - 1) },
+  edgeAction = { (rho: Assignment[Int, V]) => (i: Int) => rho(i) },
+  sources = { (i: Int) => Seq(i) },
+  target = { (i: Int) => i + 1 },
+  outgoing = { (i: Int) => if (i == n - 1) Seq.empty else Seq(i) },
+  ingoing = { (i: Int) => if (i == 0) Seq.empty else Seq(i - 1) },
   initial = v
 ) {
-  override val infl: Relation[Int] = Relation({ i: Int => Set(i + 1) })
-  override val body: Body[Int, V] = { rho: Assignment[Int, V] => i: Int => if (i > 0) rho(i - 1) else rho(0) }
+  override val infl: Relation[Int] = Relation({ (i: Int) => Set(i + 1) })
+  override val body: Body[Int, V] = { (rho: Assignment[Int, V]) => (i: Int) => if (i > 0) rho(i - 1) else rho(0) }
   override val bodyWithDependencies: BodyWithDependencies[Int, V] = {
-    rho: Assignment[Int, V] => i: Int => if (i > 0) (rho(i - 1), Seq(i - 1)) else (rho(0), Seq(0))
+    (rho: Assignment[Int, V]) => (i: Int) => if (i > 0) (rho(i - 1), Seq(i - 1)) else (rho(0), Seq(0))
   }
 }
 
@@ -59,11 +59,11 @@ class ChainGraphEQS[V: Domain](n: Int, v: V) extends SimpleGraphEquationSystem[I
 class ChainSimpleGraphEQS[V: Domain](n: Int, v: V) extends SimpleGraphEquationSystem[Int, V, Int](
   unknowns = 0 until n,
   inputUnknowns = Set(0),
-  edgeAction = { rho: Assignment[Int, V] => i: Int => rho(i) },
-  sources = { i: Int => Seq(i) },
-  target = { i: Int => i + 1 },
-  outgoing = { i: Int => Seq(i) },
-  ingoing = { i: Int => if (i == 0) Seq.empty else Seq(i - 1) },
+  edgeAction = { (rho: Assignment[Int, V]) => (i: Int) => rho(i) },
+  sources = { (i: Int) => Seq(i) },
+  target = { (i: Int) => i + 1 },
+  outgoing = { (i: Int) => Seq(i) },
+  ingoing = { (i: Int) => if (i == 0) Seq.empty else Seq(i - 1) },
   initial = v,
 )
 
@@ -75,12 +75,12 @@ class ChainSimpleGraphEQS[V: Domain](n: Int, v: V) extends SimpleGraphEquationSy
   * @param n number of unknowns
   * @param v the initial value for all unknowns
   */
-class ChainSimpleFiniteEQS[V: Domain](n: Int, v: V) extends SimpleFiniteEquationSystem[Int, V](
-  body = { rho: Assignment[Int, V] => i: Int => if (i > 0) rho(i - 1) else rho(0) },
+class ChainSimpleFiniteEQS[V](n: Int, v: V) extends SimpleFiniteEquationSystem[Int, V](
+  body = { (rho: Assignment[Int, V]) => (i: Int) => if (i > 0) rho(i - 1) else rho(0) },
   initial = v,
   inputUnknowns = Set(0),
   unknowns = 0 to n,
-  infl = Relation({ i: Int => Set(i + 1) })
+  infl = Relation({ (i: Int) => Set(i + 1) })
 )
 
 /**
@@ -91,12 +91,12 @@ class ChainSimpleFiniteEQS[V: Domain](n: Int, v: V) extends SimpleFiniteEquation
   * @param v the initial value for all unknowns
   */
 class ChainInfiniteEQS[V](v: V) extends SimpleEquationSystem[Int, V](
-  body = { rho: Assignment[Int, V] => i: Int => if (i > 0) rho(i - 1) else rho(0) }: Body[Int, V],
+  body = { (rho: Assignment[Int, V]) => (i: Int) => if (i > 0) rho(i - 1) else rho(0) }: Body[Int, V],
   initial = v,
   inputUnknowns = Set(0)
 ) {
   override val bodyWithDependencies: BodyWithDependencies[Int, V] = {
-    rho: Assignment[Int, V] => i: Int => (rho(i - 1), if (i > 0) Seq(i - 1) else Seq.empty)
+    (rho: Assignment[Int, V]) => (i: Int) => (rho(i - 1), if (i > 0) Seq(i - 1) else Seq.empty)
   }
 }
 
@@ -108,7 +108,7 @@ class ChainInfiniteEQS[V](v: V) extends SimpleEquationSystem[Int, V](
   * @param v the initial value for all unknowns
   */
 class ChainInfinite2EQS[V](v: V) extends SimpleEquationSystem[Int, V](
-  body = { rho: Assignment[Int, V] => i: Int => if (i > 0) rho(i - 1) else rho(0) }: Body[Int, V],
+  body = { (rho: Assignment[Int, V]) => (i: Int)   => if (i > 0) rho(i - 1) else rho(0) }: Body[Int, V],
   initial = v,
   inputUnknowns = Set(0)
 )

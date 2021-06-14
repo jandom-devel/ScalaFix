@@ -20,19 +20,19 @@ package it.unich.scalafix.infinite
 
 import it.unich.scalafix.assignments.{InputAssignment, IOAssignment}
 import it.unich.scalafix.{Box, EquationSystem, FixpointSolverTracerAdapter}
-import org.scalatest.FunSpec
-import org.scalatest.prop.PropertyChecks
+import org.scalatest.funspec.AnyFunSpec
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 import scala.collection.mutable
 
 /**
   * Test solvers for finite equation systems.
   */
-class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
+class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks {
 
   private val simpleEqs = EquationSystem[Int, Int](
-    body = { rho: (Int => Int) =>
-      x: Int =>
+    body = { (rho: Int => Int) =>
+      (x: Int) =>
         if (x % 2 == 0)
           rho(rho(x)) max x / 2
         else {
@@ -51,7 +51,7 @@ class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
   class EvaluationOrderListener[U, V] extends FixpointSolverTracerAdapter[U, V] {
     private val buffer = mutable.Buffer.empty[Any]
 
-    override def evaluated(rho: U => V, x: U, newval: V) {
+    override def evaluated(rho: U => V, x: U, newval: V) = {
       buffer += x
       ()
     }
@@ -61,7 +61,7 @@ class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
     * Test solvers for the `simpleEqs` equation system when starting from the initial
     * assignment `startRho`.
     */
-  def testExpectedResult(solver: SimpleSolver[Int, Int]) {
+  def testExpectedResult(solver: SimpleSolver[Int, Int]) = {
     it("gives the expected result starting from startRho with max") {
       val finalRho = solver(simpleEqs.withBoxes(maxBox), Seq(4), startRho)
       assertResult(Set(0, 1, 2, 4))(finalRho.unknowns)
@@ -81,7 +81,7 @@ class InfiniteEquationSystemTest extends FunSpec with PropertyChecks {
       }
     }
     it("returns the same value as body") {
-      forAll { x: Int =>
+      forAll { (x: Int) =>
         assertResult(simpleEqs.body(startRho)(x)) {
           simpleEqs.bodyWithDependencies(startRho)(x)._1
         }

@@ -1,49 +1,61 @@
-lazy val scalafix = (project in file("."))
-  .aggregate(core, bench)
-  .settings(inThisBuild(buildSettings))
-  .settings(inThisBuild(compilerSettings))
-  .settings(ideSettings)
-  .settings(noPublishSettings)  
+ThisBuild / version := "0.8.0"
+ThisBuild / scalaVersion := "3.0.0"
+ThisBuild / crossScalaVersions := Seq("2.13.6", "3.0.0")
+ThisBuild / organization := "it.unich.scalafix"
 
-lazy val core = (project in file("core"))
-  .settings(ideSettings)
-  .settings(publishSettings) 
+ThisBuild / scalacOptions ++= Seq(
+  "-deprecation",
+  "-feature",
+  "-unchecked",
+  "-Xfatal-warnings",
+)
+
+ThisBuild / scalacOptions ++= {
+  CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((3, _)) => Seq(
+      "-source", "future",
+      "-language:adhocExtensions"
+    )
+    case _  => Seq(
+      "-opt-warnings:_",
+      "-Xsource:3",
+      "-Xlint:_",
+      "-Wconf",
+      "-Wdead-code",
+      "-Wextra-implicit",
+      "-Wnumeric-widen",
+      "-Woctal-literal",
+      "-Wunused:_",
+      "-Wvalue-discard",
+    )
+ }
+}
+
+lazy val scalafix = project
+  .in(file("."))
+  .aggregate(core, bench)
+  .settings(noPublishSettings)
+  .settings(
+    Jmh / run := (bench / Jmh / run).evaluated
+  )
+
+lazy val core = project
+  .settings(publishSettings)
   .settings(
      libraryDependencies ++= Seq(
-       "org.scalatest" %% "scalatest" % "3.0.5" % Test,
-       "org.scalacheck" %% "scalacheck" % "1.14.0" % Test
-     )
-   )
+       "org.scalatest" %% "scalatest" % "3.2.9" % Test,
+       "org.scalatestplus" %% "scalacheck-1-15" % "3.2.9.0" % Test,
+       "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
+      )
+  )
 
-lazy val bench = (project in file("bench"))
-  .enablePlugins(JmhPlugin)
+lazy val bench = project
   .dependsOn(core)
-  .settings(ideSettings)
+  .enablePlugins(JmhPlugin)
   .settings(noPublishSettings)
 
-val buildSettings = Seq(
-  organization := "it.unich.scalafix",
-  scalaVersion := "2.12.8",
-  crossScalaVersions := Seq("2.11.12", "2.12.8")
-)
-
-val compilerSettings = Seq(
-  scalacOptions ++= Seq(
-    "-deprecation",
-    "-feature",
-    "-unchecked",
-    "-Xlint:_",
-    "-Ywarn-dead-code",
-    "-Ywarn-value-discard",
-    "-Ywarn-numeric-widen",
-  ) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((12, _))  => Seq("-Ywarn-unused:linted", "-Ywarn-extra-implicit")
-    case _ => Nil
-  })
-)
-
 val noPublishSettings = Seq(
-  skip in publish := true
+  publish / skip := true
 )
 
 val publishSettings = Seq(
@@ -55,7 +67,7 @@ val publishSettings = Seq(
   developers := List(
     Developer(
       "amato",
-      "Gianluca Amato", "gianluca.amato.74@unich.it",
+      "Gianluca Amato", "gianluca.amato.74@gmail.com",
       url("http://www.sci.unich.it/~amato/")
     )
   ),
@@ -72,10 +84,4 @@ val publishSettings = Seq(
     else
       Some(Opts.resolver.sonatypeStaging)
   }
-)
-
-val ideSettings = Seq(
-  EclipseKeys.eclipseOutput := Some("target.eclipse"),
-  ideOutputDirectory in Compile := Some(baseDirectory.value / "target/idea/classes"),
-  ideOutputDirectory in Test := Some(baseDirectory.value / "target/idea/test-classes"),
 )

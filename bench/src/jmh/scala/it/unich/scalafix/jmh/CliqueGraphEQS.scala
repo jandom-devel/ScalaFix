@@ -18,7 +18,7 @@
 
 package it.unich.scalafix.jmh
 
-import it.unich.scalafix._
+import it.unich.scalafix.*
 import it.unich.scalafix.finite.SimpleGraphEquationSystem
 import it.unich.scalafix.utils.Relation
 
@@ -33,18 +33,18 @@ import it.unich.scalafix.utils.Relation
 class CliqueGraphEQS[V](n: Int, v: Double) extends SimpleGraphEquationSystem[Int, Double, (Int, Int)](
   unknowns = 0 until n,
   inputUnknowns = Set(0),
-  edgeAction = { rho: Assignment[Int, Double] => p: (Int, Int) => rho(p._1) + 1 },
-  sources = { e: (Int, Int) => Seq(e._1) },
-  target = { e: (Int, Int) => e._2 },
-  outgoing = { i: Int => (i + 1 until n) map ((i, _)) },
-  ingoing = { i: Int => (0 until i) map ((_, i)) },
+  edgeAction = { (rho: Assignment[Int, Double]) => (p: (Int, Int)) => rho(p._1) + 1 },
+  sources = { (e: (Int, Int)) => Seq(e._1) },
+  target = { (e: (Int, Int)) => e._2 },
+  outgoing = { (i: Int) => (i + 1 until n) map ((i, _)) },
+  ingoing = { (i: Int) => (0 until i) map ((_, i)) },
   initial = v
 ) {
-  override val infl: Relation[Int] = Relation({ i: Int => (i + 1 until n).toSet })
+  override val infl: Relation[Int] = Relation({ (i: Int) => (i + 1 until n).toSet })
   override val body: Body[Int, Double] = {
-    rho: Assignment[Int, Double] => i: Int => (0 until i) map rho reduce dom.upperBound
+    (rho: Assignment[Int, Double]) => (i: Int) => (0 until i) map rho reduce dom.upperBound
   }
   override val bodyWithDependencies: BodyWithDependencies[Int, Double] = {
-    rho: Assignment[Int, Double] => i: Int => (body(rho)(i), (0 until i).toSet)
+    (rho: Assignment[Int, Double]) => (i: Int) => (body(rho)(i), (0 until i).toSet)
   }
 }

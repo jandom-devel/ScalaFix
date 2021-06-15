@@ -23,11 +23,6 @@
 package it.unich.scalafix
 
 /**
-  * An assignment for an equation system is a map from unknowns to values.
-  */
-type Assignment[U, V] = U => V
-
-/**
   * The body of an equation system, i.e., a map from assignments to assignments.
   */
 type Body[U, V] = Assignment[U, V] => Assignment[U, V]

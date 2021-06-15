@@ -18,8 +18,8 @@
 
 package it.unich.scalafix.finite
 
-import it.unich.scalafix.FixpointSolverTracer
-import it.unich.scalafix.assignments.{MutableAssignment, InputAssignment}
+import it.unich.scalafix.*
+import it.unich.scalafix.assignments.*
 
 /**
   * A fixpoint solver based on a worklist.
@@ -37,10 +37,11 @@ object WorkListSolver:
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
                  (
-                   start: InputAssignment[U, V] = eqs.initial,
+                   start: Assignment[U, V] = eqs.initial,
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
-                 ): MutableAssignment[U, V] =
-    val current = start.toMutableAssignment
+                 )
+                 (using factory: MutableAssignmentFactory[U,V,?]): MutableAssignment[U, V] =
+    val current = factory(start)
     tracer.initialized(current)
     // is it better to use a Queue for a worklist ?
     val workList = collection.mutable.LinkedHashSet.empty[U]

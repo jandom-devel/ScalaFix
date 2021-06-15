@@ -19,7 +19,7 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.*
-import it.unich.scalafix.assignments.{MutableAssignment, InputAssignment}
+import it.unich.scalafix.assignments.*
 import it.unich.scalafix.lattice.Domain
 
 /**
@@ -156,7 +156,7 @@ object FiniteFixpointSolver:
   private def applySolver[U, V](
                                  solver: Solver.Solver,
                                  eqs: FiniteEquationSystem[U, V],
-                                 start: InputAssignment[U, V],
+                                 start: Assignment[U, V],
                                  ordering: Option[Ordering[U]],
                                  restart: (V, V) => Boolean,
                                  tracer: FixpointSolverTracer[U, V]
@@ -186,7 +186,7 @@ object FiniteFixpointSolver:
     */
   case class Params[U, V](
                            solver: Solver.Solver,
-                           start: Option[InputAssignment[U, V]],
+                           start: Option[Assignment[U, V]],
                            boxlocation: BoxLocation.BoxLocation,
                            boxscope: BoxScope.BoxScope,
                            boxstrategy: BoxStrategy.BoxStrategy,

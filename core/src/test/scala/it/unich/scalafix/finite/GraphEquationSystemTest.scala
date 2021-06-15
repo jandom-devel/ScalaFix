@@ -21,6 +21,7 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 
 import it.unich.scalafix.*
 import it.unich.scalafix.lattice.Magma
+
 import org.scalatest.funspec.AnyFunSpec
 
 class GraphEquationSystemTest extends AnyFunSpec:
@@ -44,7 +45,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
     ingoing = Map((0, Seq()), (1, Seq('a', 'd')), (2, Seq('b')), (3, Seq('c'))),
     unknowns = unknowns,
     inputUnknowns = Set(0),
-    initial = 0
+    initial = { _ => 0 }
   )
   private val rho: Assignment[Int, Int] = identity
 

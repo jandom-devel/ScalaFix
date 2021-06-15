@@ -20,6 +20,7 @@ package it.unich.scalafix.finite
 
 import it.unich.scalafix.finite.HierarchicalOrdering.*
 import it.unich.scalafix.utils.Relation
+
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.prop.TableDrivenPropertyChecks
 

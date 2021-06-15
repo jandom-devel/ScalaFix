@@ -22,6 +22,7 @@ import java.io.PrintStream
 
 import scala.annotation.elidable
 
+
 /**
   * An EquationSystemTracer implements some methods which are called by equation systems when certain
   * events occurs. They may be used for debugging, tracing, etc...

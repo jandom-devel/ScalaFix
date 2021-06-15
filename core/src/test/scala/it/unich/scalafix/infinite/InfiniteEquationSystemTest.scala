@@ -18,8 +18,9 @@
 
 package it.unich.scalafix.infinite
 
-import it.unich.scalafix.assignments.{InputAssignment, MutableAssignment}
-import it.unich.scalafix.{Box, EquationSystem, FixpointSolverTracerAdapter}
+import it.unich.scalafix.assignments.*
+import it.unich.scalafix.*
+
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
@@ -29,6 +30,8 @@ import scala.collection.mutable
   * Test solvers for finite equation systems.
   */
 class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
+
+  import Assignment.given
 
   private val simpleEqs = EquationSystem[Int, Int](
     body = { (rho: Int => Int) =>
@@ -40,13 +43,13 @@ class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyCheck
           rho(6 * n + 4)
         }
     },
-    initial = 0
+    initial = { _ => 0 }
   )
 
   private val maxBox: Box[Int] = { (x: Int, y: Int) => x max y }
   private val startRho = simpleEqs.initial
 
-  private type SimpleSolver[U, V] = (EquationSystem[U, V], Seq[U], InputAssignment[U, V]) => MutableAssignment[U, V]
+  private type SimpleSolver[U, V] = (EquationSystem[U, V], Seq[U], Assignment[U, V]) => MutableAssignment[U, V]
 
   class EvaluationOrderListener[U, V] extends FixpointSolverTracerAdapter[U, V]:
     private val buffer = mutable.Buffer.empty[Any]

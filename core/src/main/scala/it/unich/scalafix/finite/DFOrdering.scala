@@ -18,10 +18,10 @@
 
 package it.unich.scalafix.finite
 
-import it.unich.scalafix.utils.Relation
-
 import scala.annotation.tailrec
 import scala.collection.mutable
+
+import it.unich.scalafix.utils.Relation
 
 /**
   * This class represents a depth-first ordering of a graph, as it appears in the Aho, Sehti, Ullman book

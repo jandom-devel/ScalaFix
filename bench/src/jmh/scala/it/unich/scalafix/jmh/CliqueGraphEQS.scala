@@ -19,6 +19,7 @@
 package it.unich.scalafix.jmh
 
 import it.unich.scalafix.*
+import it.unich.scalafix.assignments.*
 import it.unich.scalafix.finite.SimpleGraphEquationSystem
 import it.unich.scalafix.utils.Relation
 
@@ -38,7 +39,7 @@ class CliqueGraphEQS[V](n: Int, v: Double) extends SimpleGraphEquationSystem[Int
   target = { (e: (Int, Int)) => e._2 },
   outgoing = { (i: Int) => (i + 1 until n) map ((i, _)) },
   ingoing = { (i: Int) => (0 until i) map ((_, i)) },
-  initial = v
+  initial = { _ => v }
 ):
   override val infl: Relation[Int] = Relation({ (i: Int) => (i + 1 until n).toSet })
   override val body: Body[Int, Double] =

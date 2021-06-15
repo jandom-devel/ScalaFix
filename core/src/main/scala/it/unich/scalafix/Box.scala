@@ -38,7 +38,7 @@ abstract class Box[V] extends ((V, V) => V):
   /*
   I do not like very much the fact Box is both a box and its blueprint. Having two separate classes would
   be better from the point of view of the separation of concerns, but this solution is quite convenient. We do
-  not to write redundant code, we only need a copy method to properly and efficiently handling mutable objects,
+  not to write redundant code, we only need a copy method to properly and efficiently handle mutable objects,
   the API is simple. Keep in mind that one of the important point of this design is to reduce duplication of boxes
   in box assignments as much as possible.
   */
@@ -63,7 +63,7 @@ abstract class Box[V] extends ((V, V) => V):
 
   /**
     * Returns a copy of this box. An immutable box may just returns itself, but a mutable one should produce a
-    * distinct a copy of itself.
+    * distinct copy of itself.
     */
   def copy: Box[V]
 
@@ -200,4 +200,3 @@ object Box:
       right[V]
     else
       new Warrowing(widening, narrowing)
-

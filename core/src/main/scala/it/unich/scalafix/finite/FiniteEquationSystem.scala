@@ -19,7 +19,6 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.*
-import it.unich.scalafix.assignments.InputAssignment
 import it.unich.scalafix.lattice.Magma
 import it.unich.scalafix.utils.Relation
 
@@ -58,7 +57,7 @@ trait FiniteEquationSystem[U, V] extends EquationSystem[U, V]:
 case class SimpleFiniteEquationSystem[U, V]
 (
   body: Body[U, V],
-  initial: InputAssignment[U, V],
+  initial: Assignment[U, V],
   inputUnknowns: Set[U],
   unknowns: Iterable[U],
   infl: Relation[U],
@@ -82,7 +81,7 @@ object FiniteEquationSystem:
     */
   def apply[U, V](
                    body: Body[U, V],
-                   initial: InputAssignment[U, V],
+                   initial: Assignment[U, V],
                    inputUnknowns: Set[U],
                    unknowns: Iterable[U],
                    infl: Relation[U]

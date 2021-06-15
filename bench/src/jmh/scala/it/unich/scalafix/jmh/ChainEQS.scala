@@ -19,6 +19,7 @@
 package it.unich.scalafix.jmh
 
 import it.unich.scalafix.*
+import it.unich.scalafix.assignments.*
 import it.unich.scalafix.finite.*
 import it.unich.scalafix.lattice.Domain
 import it.unich.scalafix.utils.Relation
@@ -39,7 +40,7 @@ class ChainGraphEQS[V: Domain](n: Int, v: V) extends SimpleGraphEquationSystem[I
   target = { (i: Int) => i + 1 },
   outgoing = { (i: Int) => if i == n - 1 then Seq.empty else Seq(i) },
   ingoing = { (i: Int) => if i == 0 then Seq.empty else Seq(i - 1) },
-  initial = v
+  initial = { _ => v }
 ):
   override val infl: Relation[Int] = Relation({ (i: Int) => Set(i + 1) })
   override val body: Body[Int, V] = { (rho: Assignment[Int, V]) => (i: Int) => if i > 0 then rho(i - 1) else rho(0) }
@@ -62,7 +63,7 @@ class ChainSimpleGraphEQS[V: Domain](n: Int, v: V) extends SimpleGraphEquationSy
   target = { (i: Int) => i + 1 },
   outgoing = { (i: Int) => Seq(i) },
   ingoing = { (i: Int) => if i == 0 then Seq.empty else Seq(i - 1) },
-  initial = v,
+  initial = { _ => v },
 )
 
 /**
@@ -75,7 +76,7 @@ class ChainSimpleGraphEQS[V: Domain](n: Int, v: V) extends SimpleGraphEquationSy
   */
 class ChainSimpleFiniteEQS[V](n: Int, v: V) extends SimpleFiniteEquationSystem[Int, V](
   body = { (rho: Assignment[Int, V]) => (i: Int) => if i > 0 then rho(i - 1) else rho(0) },
-  initial = v,
+  initial = { _ => v },
   inputUnknowns = Set(0),
   unknowns = 0 to n,
   infl = Relation({ (i: Int) => Set(i + 1) })
@@ -90,7 +91,7 @@ class ChainSimpleFiniteEQS[V](n: Int, v: V) extends SimpleFiniteEquationSystem[I
   */
 class ChainInfiniteEQS[V](v: V) extends SimpleEquationSystem[Int, V](
   body = { (rho: Assignment[Int, V]) => (i: Int) => if i > 0 then rho(i - 1) else rho(0) }: Body[Int, V],
-  initial = v,
+  initial = { _ => v },
   inputUnknowns = Set(0)
 ):
   override val bodyWithDependencies: BodyWithDependencies[Int, V] =
@@ -105,6 +106,6 @@ class ChainInfiniteEQS[V](v: V) extends SimpleEquationSystem[Int, V](
   */
 class ChainInfinite2EQS[V](v: V) extends SimpleEquationSystem[Int, V](
   body = { (rho: Assignment[Int, V]) => (i: Int)   => if i > 0 then rho(i - 1) else rho(0) }: Body[Int, V],
-  initial = v,
+  initial = { _ => v },
   inputUnknowns = Set(0)
 )

@@ -18,10 +18,10 @@
 
 package it.unich.scalafix.infinite
 
-import it.unich.scalafix.*
-import it.unich.scalafix.assignments.{MutableAssignment, InputAssignment}
-
 import scala.collection.mutable
+
+import it.unich.scalafix.*
+import it.unich.scalafix.assignments.*
 
 /**
   * A local fixpoint solver based on a worklist.
@@ -41,14 +41,15 @@ object WorkListSolver:
   def apply[U, V](eqs: EquationSystem[U, V])
                  (
                    wanted: Iterable[U],
-                   start: InputAssignment[U, V] = eqs.initial,
+                   start: Assignment[U, V] = eqs.initial,
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
-                 ): MutableAssignment[U, V] =
+                 )
+                 (using factory: MutableAssignmentFactory[U,V,?]): MutableAssignment[U, V] =
     val infl = mutable.Map.empty[U,mutable.Set[U]]
     val workList = mutable.Queue.empty[U]
     workList ++= wanted
 
-    val current = start.toMutableAssignment
+    val current = factory(start)
     tracer.initialized(current)
     while workList.nonEmpty do
       val x = workList.dequeue()

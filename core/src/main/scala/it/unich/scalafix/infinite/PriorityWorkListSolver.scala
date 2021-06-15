@@ -18,10 +18,10 @@
 
 package it.unich.scalafix.infinite
 
-import it.unich.scalafix.assignments.{MutableAssignment, InputAssignment}
-import it.unich.scalafix.{EquationSystem, FixpointSolverTracer}
-
 import scala.collection.mutable
+
+import it.unich.scalafix.*
+import it.unich.scalafix.assignments.*
 
 /**
   * A local fixpoint solver based on a worklist with priorities.
@@ -64,15 +64,16 @@ object PriorityWorkListSolver:
   def apply[U, V](eqs: EquationSystem[U, V])
                  (
                    wanted: Iterable[U],
-                   start: InputAssignment[U, V] = eqs.initial,
+                   start: Assignment[U, V] = eqs.initial,
                    ordering: Ordering[U] = new DynamicPriority[U],
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
-                 ): MutableAssignment[U, V] =
+                 )
+                 (using factory: MutableAssignmentFactory[U,V,?]): MutableAssignment[U, V] =
     val infl = mutable.Map.empty[U, mutable.Set[U]]
     val workList = mutable.PriorityQueue.empty[U](ordering)
     workList ++= wanted
 
-    val current = start.toMutableAssignment
+    val current = factory(start)
     tracer.initialized(current)
     while workList.nonEmpty do
       val x = workList.dequeue()

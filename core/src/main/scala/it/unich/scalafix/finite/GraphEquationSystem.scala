@@ -19,7 +19,6 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.*
-import it.unich.scalafix.assignments.InputAssignment
 import it.unich.scalafix.lattice.{Domain, Magma}
 import it.unich.scalafix.utils.Relation
 
@@ -93,7 +92,7 @@ case class SimpleGraphEquationSystem[U, V, E]
   target: E => U,
   outgoing: U => Iterable[E],
   ingoing: U => Iterable[E],
-  initial: InputAssignment[U, V],
+  initial: Assignment[U, V],
   tracer: Option[EquationSystemTracer[U, V]] = None
 )(implicit val dom: Domain[V]) extends EquationSystemBase[U, V] with GraphEquationSystem[U, V, E]:
 
@@ -201,6 +200,6 @@ object GraphEquationSystem:
     target: E => U,
     outgoing: U => Iterable[E],
     ingoing: U => Iterable[E],
-    initial: InputAssignment[U, V]
+    initial: Assignment[U, V]
   ): GraphEquationSystem[U, V, E] =
     SimpleGraphEquationSystem(unknowns, inputUnknowns, edgeAction, source, target, outgoing, ingoing, initial, None)

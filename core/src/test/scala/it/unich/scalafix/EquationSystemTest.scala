@@ -17,6 +17,8 @@
 
 package it.unich.scalafix
 
+import it.unich.scalafix.assignments.*
+
 import java.io.{ByteArrayOutputStream, PrintStream}
 
 import org.scalatest.funspec.AnyFunSpec

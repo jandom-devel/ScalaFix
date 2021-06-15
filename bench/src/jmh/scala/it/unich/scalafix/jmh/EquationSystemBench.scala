@@ -18,9 +18,10 @@
 
 package it.unich.scalafix.jmh
 
-import it.unich.scalafix.Assignment
+import it.unich.scalafix.*
 import it.unich.scalafix.finite.{RoundRobinSolver, WorkListSolver as FiniteWorkListSolver}
 import it.unich.scalafix.infinite.WorkListSolver as InfiniteWorkListSolver
+
 import org.openjdk.jmh.annotations.*
 
 /**

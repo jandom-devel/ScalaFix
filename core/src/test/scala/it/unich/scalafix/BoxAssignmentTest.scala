@@ -20,7 +20,7 @@ package it.unich.scalafix
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class BoxAssignmentTest extends AnyFunSpec with ScalaCheckPropertyChecks {
+class BoxAssignmentTest extends AnyFunSpec with ScalaCheckPropertyChecks:
 
   private val maxbox: Box[Int] = { (x: Int, y: Int) => x max y }
 
@@ -29,41 +29,35 @@ class BoxAssignmentTest extends AnyFunSpec with ScalaCheckPropertyChecks {
       forAll { (u: Int) => assertResult(true)(boxes.isDefinedAt(u)) }
     }
 
-  def checkIsEmpty(boxes: BoxAssignment[Nothing, ?]) = {
+  def checkIsEmpty(boxes: BoxAssignment[Nothing, ?]) =
     it("is empty") {
       assertResult(true)(boxes.isEmpty)
     }
-  }
 
-  def checkIsNotEmpty(boxes: BoxAssignment[Nothing, ?]) = {
+  def checkIsNotEmpty(boxes: BoxAssignment[Nothing, ?]) =
     it("is not empty") {
       assertResult(false)(boxes.isEmpty)
     }
-  }
 
-  def checkIsIdempotent(boxes: BoxAssignment[Nothing, ?]) = {
+  def checkIsIdempotent(boxes: BoxAssignment[Nothing, ?]) =
     it("is idempotent") {
       assertResult(true)(boxes.boxesAreIdempotent)
     }
-  }
 
-  def checkIsNotIdempotent(boxes: BoxAssignment[Nothing, ?]) = {
+  def checkIsNotIdempotent(boxes: BoxAssignment[Nothing, ?]) =
     it("is not idempotent") {
       assertResult(false)(boxes.boxesAreIdempotent)
     }
-  }
 
-  def copyIdempotent(boxes: BoxAssignment[Nothing, ?]) = {
+  def copyIdempotent(boxes: BoxAssignment[Nothing, ?]) =
     it("has a copy method which returns itself") {
       assertResult(boxes)(boxes.copy)
     }
-  }
 
-  def copyNotIdempotent(boxes: BoxAssignment[Nothing, ?]) = {
+  def copyNotIdempotent(boxes: BoxAssignment[Nothing, ?]) =
     it("has a copy method which returns a new object") {
       assert(boxes != boxes.copy)
     }
-  }
 
   describe("The empty box assignment") {
     val boxes = BoxAssignment.empty[Int]
@@ -129,4 +123,3 @@ class BoxAssignmentTest extends AnyFunSpec with ScalaCheckPropertyChecks {
     checkIsNotIdempotent(boxes)
     copyNotIdempotent(boxes)
   }
-}

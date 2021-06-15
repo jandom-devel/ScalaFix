@@ -19,14 +19,14 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.FixpointSolverTracer
-import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
+import it.unich.scalafix.assignments.{MutableAssignment, InputAssignment}
 
 import scala.collection.mutable
 
 /**
   * A fixpoint solver based on priority worklists.
   */
-object PriorityWorkListSolver {
+object PriorityWorkListSolver:
   /**
     * Solve a finite equation system.
     *
@@ -47,25 +47,21 @@ object PriorityWorkListSolver {
                    ordering: Ordering[U] = DFOrdering(eqs),
                    restart: (V, V) => Boolean = { (_: V, _: V) => false },
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
-                 ): IOAssignment[U, V] = {
-    val current = start.toIOAssignment
+                 ): MutableAssignment[U, V] =
+    val current = start.toMutableAssignment
     tracer.initialized(current)
     val workList = mutable.PriorityQueue.empty[U](ordering)
     workList ++= eqs.unknowns
-    while (workList.nonEmpty) {
+    while workList.nonEmpty do
       val x = workList.dequeue()
       val newval = eqs.body(current)(x)
       tracer.evaluated(current, x, newval)
       val oldval = current(x)
-      if (restart(newval, oldval))
-        for (y <- eqs.unknowns; if ordering.gt(y, x))
+      if restart(newval, oldval) then
+        for y <- eqs.unknowns; if ordering.gt(y, x) do
           current(y) = start(y)
-      if (newval != oldval) {
+      if newval != oldval then
         current(x) = newval
         workList ++= eqs.infl(x)
-      }
-    }
     tracer.completed(current)
     current
-  }
-}

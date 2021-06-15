@@ -27,7 +27,7 @@ import scala.collection.mutable
   *
   * @tparam A the domain of the relation.
   */
-trait Relation[A] extends (A => collection.Set[A]) {
+trait Relation[A] extends (A => collection.Set[A]):
 
   import Relation.*
 
@@ -35,27 +35,23 @@ trait Relation[A] extends (A => collection.Set[A]) {
     * Returns a new relation where each element is in relation with itself.
     */
   def withDiagonal: Relation[A] = new InfluenceWithDiagonal(this)
-}
 
 /**
   * The `Relation` object contains factory methods and concrete implementations.
   */
-object Relation {
+object Relation:
 
-  private class InfluenceWithDiagonal[A](r: Relation[A]) extends Relation[A] {
+  private class InfluenceWithDiagonal[A](r: Relation[A]) extends Relation[A]:
     // TODO: check for faster implementation
     def apply(x: A): collection.Set[A] = r(x).toSet + x
 
     override def withDiagonal: Relation[A] = this
-  }
 
-  private class InfluenceRelationFromFunction[A](f: A => collection.Set[A]) extends Relation[A] {
+  private class InfluenceRelationFromFunction[A](f: A => collection.Set[A]) extends Relation[A]:
     def apply(x: A): collection.Set[A] = f(x)
-  }
 
-  private class InfluenceRelationFromHash[A](hash: collection.Map[A, collection.Set[A]]) extends Relation[A] {
+  private class InfluenceRelationFromHash[A](hash: collection.Map[A, collection.Set[A]]) extends Relation[A]:
     def apply(x: A): collection.Set[A] = hash.getOrElse(x, Set.empty[A])
-  }
 
   /**
     * Returns an influence relation given a function `A => Set[A]`. To respect the contract of a `Relation`, the map
@@ -74,11 +70,8 @@ object Relation {
     * relates to `v`. When iterating over the image of `u`, elements are guaranteed to be returned in the
     * order in which they appear in graph.
     */
-  def apply[A](graph: Seq[(A, A)]): Relation[A] = {
+  def apply[A](graph: Seq[(A, A)]): Relation[A] =
     val hash = mutable.HashMap.empty[A, mutable.LinkedHashSet[A]]
-    for ((u, v) <- graph) {
+    for (u, v) <- graph do
       hash.getOrElseUpdate(u, mutable.LinkedHashSet.empty[A]) += v
-    }
     new InfluenceRelationFromHash[A](hash)
-  }
-}

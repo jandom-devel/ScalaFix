@@ -22,7 +22,7 @@ import org.scalacheck.Gen
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class GraphOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks {
+class GraphOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks:
 
   describe("A trivial graph ordering") {
     it("returns the original sequence") {
@@ -48,8 +48,7 @@ class GraphOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks {
       forAll { (s: Set[Int]) =>
         val seq = s.toSeq
         val o = GraphOrdering(seq*)
-        for (x <- s) assertResult(true)(o.isHead(x))
+        for x <- s do assertResult(true)(o.isHead(x))
       }
     }
   }
-}

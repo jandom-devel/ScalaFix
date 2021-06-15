@@ -39,12 +39,9 @@ class CliqueGraphEQS[V](n: Int, v: Double) extends SimpleGraphEquationSystem[Int
   outgoing = { (i: Int) => (i + 1 until n) map ((i, _)) },
   ingoing = { (i: Int) => (0 until i) map ((_, i)) },
   initial = v
-) {
+):
   override val infl: Relation[Int] = Relation({ (i: Int) => (i + 1 until n).toSet })
-  override val body: Body[Int, Double] = {
+  override val body: Body[Int, Double] =
     (rho: Assignment[Int, Double]) => (i: Int) => (0 until i) map rho reduce dom.upperBound
-  }
-  override val bodyWithDependencies: BodyWithDependencies[Int, Double] = {
+  override val bodyWithDependencies: BodyWithDependencies[Int, Double] =
     (rho: Assignment[Int, Double]) => (i: Int) => (body(rho)(i), (0 until i).toSet)
-  }
-}

@@ -19,12 +19,12 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.FixpointSolverTracer
-import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
+import it.unich.scalafix.assignments.{MutableAssignment, InputAssignment}
 
 /**
   * A solver whose strategy in based on a hierarchical ordering.
   */
-object HierarchicalOrderingSolver {
+object HierarchicalOrderingSolver:
   /**
     * Solve a finite equation system.
     *
@@ -42,10 +42,10 @@ object HierarchicalOrderingSolver {
                    start: InputAssignment[U, V],
                    ordering: HierarchicalOrdering[U] = HierarchicalOrdering(DFOrdering(eqs)),
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
-                 ): IOAssignment[U, V] = {
+                 ): MutableAssignment[U, V] =
     import HierarchicalOrdering.*
 
-    val current = start.toIOAssignment
+    val current = start.toMutableAssignment
     tracer.initialized(current)
     var stack = List.empty[Int]
     var stackdirty = List.empty[Boolean]
@@ -54,8 +54,8 @@ object HierarchicalOrderingSolver {
     var i = 0
     val sequence = ordering.toSeqWithParenthesis
 
-    while (i < sequence.length) {
-      sequence(i) match {
+    while i < sequence.length do
+      sequence(i) match
         case Left =>
           stack = (i + 1) +: stack
           stackdirty = dirty +: stackdirty
@@ -64,24 +64,18 @@ object HierarchicalOrderingSolver {
         case Val(x) =>
           val newval = eqs.body(current)(x)
           tracer.evaluated(current, x, newval)
-          if (newval != current(x)) {
+          if newval != current(x) then
             current(x) = newval
             dirty = true
-          }
           i += 1
         case Right =>
-          if (dirty) {
+          if dirty then
             i = stack.head
             dirty = false
-          } else {
+          else
             stack = stack.tail
             dirty = stackdirty.head
             stackdirty = stackdirty.tail
             i += 1
-          }
-      }
-    }
     tracer.completed(current)
     current
-  }
-}

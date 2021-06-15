@@ -19,12 +19,12 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.FixpointSolverTracer
-import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
+import it.unich.scalafix.assignments.{MutableAssignment, InputAssignment}
 
 /**
   * A fixpoint solver based on a worklist.
   */
-object WorkListSolver {
+object WorkListSolver:
   /**
     * Solve a finite equation system.
     *
@@ -39,25 +39,21 @@ object WorkListSolver {
                  (
                    start: InputAssignment[U, V] = eqs.initial,
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
-                 ): IOAssignment[U, V] = {
-    val current = start.toIOAssignment
+                 ): MutableAssignment[U, V] =
+    val current = start.toMutableAssignment
     tracer.initialized(current)
     // is it better to use a Queue for a worklist ?
     val workList = collection.mutable.LinkedHashSet.empty[U]
     workList ++= eqs.unknowns
-    while (workList.nonEmpty) {
+    while workList.nonEmpty do
       val x = workList.head
       workList.remove(x)
       val newval = eqs.body(current)(x)
       tracer.evaluated(current, x, newval)
-      if (newval != current(x)) {
+      if newval != current(x) then
         current(x) = newval
         // variant with Queue
         // for (y <- eqs.infl(x); if !(workList contains y)) workList += y
         workList ++= eqs.infl(x)
-      }
-    }
     tracer.completed(current)
     current
-  }
-}

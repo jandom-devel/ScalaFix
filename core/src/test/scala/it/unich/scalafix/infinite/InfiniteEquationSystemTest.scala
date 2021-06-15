@@ -18,7 +18,7 @@
 
 package it.unich.scalafix.infinite
 
-import it.unich.scalafix.assignments.{InputAssignment, IOAssignment}
+import it.unich.scalafix.assignments.{InputAssignment, MutableAssignment}
 import it.unich.scalafix.{Box, EquationSystem, FixpointSolverTracerAdapter}
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
@@ -28,12 +28,12 @@ import scala.collection.mutable
 /**
   * Test solvers for finite equation systems.
   */
-class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks {
+class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
 
   private val simpleEqs = EquationSystem[Int, Int](
     body = { (rho: Int => Int) =>
       (x: Int) =>
-        if (x % 2 == 0)
+        if x % 2 == 0 then
           rho(rho(x)) max x / 2
         else {
           val n = (x - 1) / 2
@@ -46,22 +46,20 @@ class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyCheck
   private val maxBox: Box[Int] = { (x: Int, y: Int) => x max y }
   private val startRho = simpleEqs.initial
 
-  private type SimpleSolver[U, V] = (EquationSystem[U, V], Seq[U], InputAssignment[U, V]) => IOAssignment[U, V]
+  private type SimpleSolver[U, V] = (EquationSystem[U, V], Seq[U], InputAssignment[U, V]) => MutableAssignment[U, V]
 
-  class EvaluationOrderListener[U, V] extends FixpointSolverTracerAdapter[U, V] {
+  class EvaluationOrderListener[U, V] extends FixpointSolverTracerAdapter[U, V]:
     private val buffer = mutable.Buffer.empty[Any]
 
-    override def evaluated(rho: U => V, x: U, newval: V) = {
+    override def evaluated(rho: U => V, x: U, newval: V) =
       buffer += x
       ()
-    }
-  }
 
   /**
     * Test solvers for the `simpleEqs` equation system when starting from the initial
     * assignment `startRho`.
     */
-  def testExpectedResult(solver: SimpleSolver[Int, Int]) = {
+  def testExpectedResult(solver: SimpleSolver[Int, Int]) =
     it("gives the expected result starting from startRho with max") {
       val finalRho = solver(simpleEqs.withBoxes(maxBox), Seq(4), startRho)
       assertResult(Set(0, 1, 2, 4))(finalRho.unknowns)
@@ -69,7 +67,6 @@ class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyCheck
       assertResult(2)(finalRho(2))
       assertResult(2)(finalRho(4))
     }
-  }
 
   describe("The standard bodyWithDependencies method") {
     it("returns the correct dependencies") {
@@ -107,4 +104,3 @@ class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyCheck
   describe("The PriorityWorkListSolver") {
     testExpectedResult(PriorityWorkListSolver(_)(_, _))
   }
-}

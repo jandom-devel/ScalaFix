@@ -30,7 +30,7 @@ import scala.collection.mutable
   *
   * @tparam N the type of the nodes of the graph
   */
-abstract class DFOrdering[N] extends GraphOrdering[N] {
+abstract class DFOrdering[N] extends GraphOrdering[N]:
 
   import DFOrdering.EdgeType.*
 
@@ -41,23 +41,21 @@ abstract class DFOrdering[N] extends GraphOrdering[N] {
     * @param v target node
     */
   def edgeType(u: N, v: N): EdgeType
-}
 
 /**
   * The companion class for a DFOrdering defines the required enumerations and factory
   * methods.
   */
-object DFOrdering {
+object DFOrdering:
 
   /**
     * Every edge may be of three different kinds: Advancing, Retreating and Cross.
     */
-  object EdgeType extends Enumeration {
+  object EdgeType extends Enumeration:
     type EdgeType = Value
     val Advancing = Value
     val Retreating = Value
     val Cross = Value
-  }
 
   /**
     * Returns the DFOrdering for a finite equation system.
@@ -79,7 +77,7 @@ object DFOrdering {
     * @param nodes   the set of all initial nodes
     * @param entries nodes from which to start the visit.
     */
-  private final class DFOrderingFromR[N](r: Relation[N], nodes: Iterable[N], entries: Iterable[N]) extends DFOrdering[N] {
+  private final class DFOrderingFromR[N](r: Relation[N], nodes: Iterable[N], entries: Iterable[N]) extends DFOrdering[N]:
 
     import DFOrdering.EdgeType.*
 
@@ -92,23 +90,21 @@ object DFOrdering {
     private val heads = mutable.Set.empty[N] // Set of heads
     initDFO()
 
-    def initDFO() = {
+    def initDFO() =
       val visited = mutable.LinkedHashSet.empty[N]
       var c = 0
-      for (x <- entries) if (!(visited contains x)) dfsVisit(x)
-      for (x <- nodes) if (!(visited contains x)) dfsVisit(x)
+      for x <- entries do if !(visited contains x) then dfsVisit(x)
+      for x <- nodes do if !(visited contains x) then dfsVisit(x)
 
-      def dfsVisit(u: N): Unit = {
+      def dfsVisit(u: N): Unit =
         visited += u
-        for (v <- r(u))
-          if (!(visited contains v)) {
+        for v <- r(u) do
+          if !(visited contains v) then
             dfst += (u -> v)
             dfsVisit(v)
-          } else if (!dfn.isDefinedAt(v)) heads += v
+          else if !dfn.isDefinedAt(v) then heads += v
         dfn += u -> c
         c -= 1
-      }
-    }
 
     lazy val toSeq: Seq[N] = nodes.toSeq.sorted(this)
 
@@ -117,24 +113,21 @@ object DFOrdering {
     /**
       * Returns whether y is a child of x in the depth-first spanning tree.
       */
-    @tailrec private def connected(x: N, y: N): Boolean = {
+    @tailrec private def connected(x: N, y: N): Boolean =
       val z = dfst.find(_._2 == y)
-      if (z.isEmpty)
+      if z.isEmpty then
         false
-      else if (z.get._1 == x)
+      else if z.get._1 == x then
         true
       else
         connected(x, z.get._1)
-    }
 
-    def edgeType(x: N, y: N): EdgeType = if (y <= x)
+    def edgeType(x: N, y: N): EdgeType = if y <= x then
       Retreating
-    else if (connected(x, y))
+    else if connected(x, y) then
       Advancing
     else
       Cross
 
     def isHead(u: N): Boolean = heads contains u
-  }
 
-}

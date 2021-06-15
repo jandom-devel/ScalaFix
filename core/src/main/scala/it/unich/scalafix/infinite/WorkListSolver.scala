@@ -19,14 +19,14 @@
 package it.unich.scalafix.infinite
 
 import it.unich.scalafix.*
-import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
+import it.unich.scalafix.assignments.{MutableAssignment, InputAssignment}
 
 import scala.collection.mutable
 
 /**
   * A local fixpoint solver based on a worklist.
   */
-object WorkListSolver {
+object WorkListSolver:
   /**
     * Locally solve a finite equation system.
     *
@@ -43,30 +43,24 @@ object WorkListSolver {
                    wanted: Iterable[U],
                    start: InputAssignment[U, V] = eqs.initial,
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
-                 ): IOAssignment[U, V] = {
+                 ): MutableAssignment[U, V] =
     val infl = mutable.Map.empty[U,mutable.Set[U]]
     val workList = mutable.Queue.empty[U]
     workList ++= wanted
 
-    val current = start.toIOAssignment
+    val current = start.toMutableAssignment
     tracer.initialized(current)
-    while (workList.nonEmpty) {
+    while workList.nonEmpty do
       val x = workList.dequeue()
       val (newval, dependencies) = eqs.bodyWithDependencies(current)(x)
       tracer.evaluated(current, x, newval)
-      for (y <- dependencies) {
-        if (!current.isDefinedAt(y)) {
+      for y <- dependencies do
+        if !current.isDefinedAt(y) then
           current(y) = start(y)
           workList += y
-        }
         infl.getOrElseUpdate(y, mutable.Set.empty[U]) += x
-      }
-      if (newval != current(x)) {
+      if newval != current(x) then
         current(x) = newval
         workList ++= infl(x)
-      }
-    }
     tracer.completed(current)
     current
-  }
-}

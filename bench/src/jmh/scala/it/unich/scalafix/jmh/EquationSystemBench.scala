@@ -29,7 +29,7 @@ import org.openjdk.jmh.annotations.*
   */
 @State(Scope.Benchmark)
 @Warmup(iterations = 3)
-class EquationSystemBench {
+class EquationSystemBench:
   val initVal = 1
   val numUnknowns = 10000
   val chainGraphEqs = new ChainGraphEQS(numUnknowns, initVal)
@@ -38,56 +38,46 @@ class EquationSystemBench {
   val chainInfiniteEqs = new ChainInfiniteEQS[Int](initVal)
   val chainInfinite2Eqs = new ChainInfinite2EQS[Int](initVal)
 
-  def validate(rho: Assignment[Int, Int]) = {
-    for (i <- 0 until numUnknowns) assert(rho(i) == initVal)
-  }
+  def validate(rho: Assignment[Int, Int]) =
+    for i <- 0 until numUnknowns do assert(rho(i) == initVal)
 
   @Benchmark
-  def RRGraph() = {
+  def RRGraph() =
     val result = RoundRobinSolver(chainGraphEqs)()
     validate(result)
-  }
 
   @Benchmark
-  def RRSimpleGraph() = {
+  def RRSimpleGraph() =
     val result = RoundRobinSolver(chainSimpleGraphEqs)()
     validate(result)
-  }
 
   @Benchmark
-  def RRSimpleFinite() = {
+  def RRSimpleFinite() =
     val result = RoundRobinSolver(chainSimpleFiniteEqs)()
     validate(result)
-  }
 
   @Benchmark
-  def FWLGraph() = {
+  def FWLGraph() =
     val result = FiniteWorkListSolver(chainGraphEqs)()
     validate(result)
-  }
 
   @Benchmark
-  def FWLSimpleGraph() = {
+  def FWLSimpleGraph() =
     val result = FiniteWorkListSolver(chainSimpleGraphEqs)()
     validate(result)
-  }
 
   @Benchmark
-  def FWLSimpleFinite() = {
+  def FWLSimpleFinite() =
     val result = FiniteWorkListSolver(chainSimpleFiniteEqs)()
     validate(result)
-  }
 
 
   @Benchmark
-  def IWLInfinite() = {
+  def IWLInfinite() =
     val result = InfiniteWorkListSolver(chainInfiniteEqs)(Seq(numUnknowns))
     validate(result)
-  }
 
   @Benchmark
-  def IWLInfinite2() = {
+  def IWLInfinite2() =
     val result = InfiniteWorkListSolver(chainInfinite2Eqs)(Seq(numUnknowns))
     validate(result)
-  }
-}

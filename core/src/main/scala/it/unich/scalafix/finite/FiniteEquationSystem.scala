@@ -28,7 +28,7 @@ import it.unich.scalafix.utils.Relation
   * them. When computing `apply(rho)(x)`, the result may only depend on values of `rho(y)` for an `y` such that
   * `y infl x`.
   */
-trait FiniteEquationSystem[U, V] extends EquationSystem[U, V] {
+trait FiniteEquationSystem[U, V] extends EquationSystem[U, V]:
   /**
     * The collection of all unknowns.
     */
@@ -50,7 +50,6 @@ trait FiniteEquationSystem[U, V] extends EquationSystem[U, V] {
   override def withBaseAssignment(init: PartialFunction[U, V])(implicit magma: Magma[V]): FiniteEquationSystem[U, V]
 
   override def withTracer(t: EquationSystemTracer[U, V]): FiniteEquationSystem[U, V]
-}
 
 /**
   * A simple standard implementation of FiniteEquationSystem. All fields must be provided explicitly by
@@ -64,23 +63,19 @@ case class SimpleFiniteEquationSystem[U, V]
   unknowns: Iterable[U],
   infl: Relation[U],
   tracer: Option[EquationSystemTracer[U, V]] = None
-) extends EquationSystemBase[U, V] with FiniteEquationSystem[U, V] {
+) extends EquationSystemBase[U, V] with FiniteEquationSystem[U, V]:
 
-  def withBoxes(boxes: BoxAssignment[U, V]): FiniteEquationSystem[U, V] = {
-    val newInfl = if (boxes.boxesAreIdempotent) infl else infl.withDiagonal
+  def withBoxes(boxes: BoxAssignment[U, V]): FiniteEquationSystem[U, V] =
+    val newInfl = if boxes.boxesAreIdempotent then infl else infl.withDiagonal
     copy(body = bodyWithBoxAssignment(boxes), infl = newInfl)
-  }
 
-  def withBaseAssignment(init: PartialFunction[U, V])(implicit magma: Magma[V]): FiniteEquationSystem[U, V] = {
+  def withBaseAssignment(init: PartialFunction[U, V])(implicit magma: Magma[V]): FiniteEquationSystem[U, V] =
     copy(body = bodyWithBaseAssignment(init, magma.op))
-  }
 
-  def withTracer(t: EquationSystemTracer[U, V]): FiniteEquationSystem[U, V] = {
+  def withTracer(t: EquationSystemTracer[U, V]): FiniteEquationSystem[U, V] =
     copy(body = bodyWithTracer(t), tracer = Some(t))
-  }
-}
 
-object FiniteEquationSystem {
+object FiniteEquationSystem:
   /**
     * Returns the standard implementation of FiniteEquationSystem. All fields must be provided explicitly by
     * the user with the exception of `bodyWithDependencies`.
@@ -93,4 +88,3 @@ object FiniteEquationSystem {
                    infl: Relation[U]
                  ): FiniteEquationSystem[U, V] =
     SimpleFiniteEquationSystem(body, initial, inputUnknowns, unknowns, infl, None)
-}

@@ -21,44 +21,40 @@ package it.unich.scalafix
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class BoxTest extends AnyFunSpec with ScalaCheckPropertyChecks {
+class BoxTest extends AnyFunSpec with ScalaCheckPropertyChecks:
   // Why we need to import
   import scala.math.Ordering.{Int as IntOrdering}
 
-  private val intWidening: Box[Int] = { (x: Int, y: Int) => if (x >= y) x else Int.MaxValue }
-  private val intNarrowing: Box[Int] = { (x: Int, y: Int) => if (x == Int.MaxValue) y else x }
+  private val intWidening: Box[Int] = { (x: Int, y: Int) => if x >= y then x else Int.MaxValue }
+  private val intNarrowing: Box[Int] = { (x: Int, y: Int) => if x == Int.MaxValue then y else x }
   private val intMax: Box[Int] = { (x: Int, y: Int) => x max y }
   private val intUpperBound: Box[Int] = Box.upperBound[Int]
 
-  def testIsNotRight[V](box: Box[V]): Unit = {
+  def testIsNotRight[V](box: Box[V]): Unit =
     it("is not a right box") {
       assertResult(false)(box.isRight)
     }
-  }
 
-  def testIsRight[V](box: Box[V]): Unit = {
+  def testIsRight[V](box: Box[V]): Unit =
     it("is a right box") {
       assertResult(true)(box.isRight)
     }
-  }
 
-  def testImmutable[V](box: Box[V]): Unit = {
+  def testImmutable[V](box: Box[V]): Unit =
     it("is declared immutable") {
       assertResult(true)(box.isImmutable)
     }
     it("returns the same box each time copy is called") {
       assertResult(true)(box eq box.copy)
     }
-  }
 
-  def testMutable[V](box: Box[V]): Unit = {
+  def testMutable[V](box: Box[V]): Unit =
     it("is declared mutable") {
       assertResult(false)(box.isImmutable)
     }
     it("returns different boxes each time copy is called") {
       assertResult(false)(box eq box.copy)
     }
-  }
 
   describe("A left box") {
     val box = Box.left[Int]
@@ -191,4 +187,3 @@ class BoxTest extends AnyFunSpec with ScalaCheckPropertyChecks {
     testIsNotRight(box)
     testMutable(box)
   }
-}

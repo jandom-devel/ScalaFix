@@ -26,19 +26,17 @@ import scala.language.implicitConversions
   * If an implicit object of type `Magma[A]` is in scope, then a binary operator `|+|`
   * corresponding to the magma operation is available for objects of type `A`.
   */
-trait Magma[A] {
+trait Magma[A]:
   /**
     * The magma  operation.
     */
   def op(x: A, y: A): A
 
-  class Ops(lhs: A) {
+  class Ops(lhs: A):
     def |+|(rhs: A): A = op(lhs, rhs)
-  }
 
-}
 
-object Magma {
+object Magma:
   /**
     * Add syntactic sugar to easily get the current implicit Magma.
     */
@@ -56,4 +54,3 @@ object Magma {
     * use of the `|+|` operator.
     */
   implicit def infixMagmaOps[A](a: A)(implicit magma: Magma[A]): Magma[A]#Ops = new magma.Ops(a)
-}

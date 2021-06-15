@@ -24,7 +24,7 @@ import it.unich.scalafix.assignments.InputAssignment
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks {
+class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
 
   import FixpointSolver.*
 
@@ -47,48 +47,41 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks 
   private val solution = Map[Int, Double](0 -> 0, 1 -> 11, 2 -> 10, 3 -> 11)
   private val emptysol = (0 to 3).map { _ -> Double.NegativeInfinity }.toMap
   private val onlyWideningSol = Map[Int, Double](0 -> 0, 1 -> Double.PositiveInfinity, 2 -> 10, 3 -> 11)
-  private val doublewidening = { (x: Double, y: Double) => if (x.isNegInfinity) y else if (x >= y) x else Double.PositiveInfinity }
-  private val doublenarrowing = { (x: Double, y: Double) => if (x.isPosInfinity) y else x }
+  private val doublewidening = { (x: Double, y: Double) => if x.isNegInfinity then y else if x >= y then x else Double.PositiveInfinity }
+  private val doublenarrowing = { (x: Double, y: Double) => if x.isPosInfinity then y else x }
   private val CC77params = FiniteFixpointSolver.CC77[Int, Double](Solver.WorkListSolver, doublewidening, doublenarrowing)
 
-  def assertSolution(m: Map[Int, Double])(b: Int => Double): Unit = {
-    for (u <- simpleEqs.unknowns) assertResult(m(u), s"at unknown $u")(b(u))
-  }
+  def assertSolution(m: Map[Int, Double])(b: Int => Double): Unit =
+    for u <- simpleEqs.unknowns do assertResult(m(u), s"at unknown $u")(b(u))
 
-  class ValidationListener[U, V] extends PerformanceFixpointSolverTracer[U, V] {
+  class ValidationListener[U, V] extends PerformanceFixpointSolverTracer[U, V]:
     var initialized = false
     var phase = 0
 
-    override def evaluated(rho: U => V, u: U, newval: V): Unit = {
+    override def evaluated(rho: U => V, u: U, newval: V): Unit =
       assert(initialized)
       assert(phase != 0)
       super.evaluated(rho, u, newval)
-    }
 
-    override def initialized(rho: U => V): Unit = {
+    override def initialized(rho: U => V): Unit =
       assert(!initialized)
       assert(phase != 0)
       initialized = true
-    }
 
-    override def completed(rho: U => V): Unit = {
+    override def completed(rho: U => V): Unit =
       initialized = false
       assert(phase != 0)
       ()
-    }
 
-    override def ascendingBegins(rho: U => V): Unit = {
+    override def ascendingBegins(rho: U => V): Unit =
       assert(!initialized)
       assert(phase == 0)
       phase = 1
-    }
 
-    override def descendingBegins(rho: U => V): Unit = {
+    override def descendingBegins(rho: U => V): Unit =
       assert(!initialized)
       assert(phase == 1)
       phase = -1
-    }
-  }
 
   describe("The finite driver") {
     it("may be called with CC77 parameters") {
@@ -123,4 +116,3 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks 
       assert(t.evaluations > 0)
     }
   }
-}

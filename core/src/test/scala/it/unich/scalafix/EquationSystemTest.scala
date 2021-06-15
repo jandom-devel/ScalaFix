@@ -21,7 +21,7 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 
 import org.scalatest.funspec.AnyFunSpec
 
-class EquationSystemTest extends AnyFunSpec {
+class EquationSystemTest extends AnyFunSpec:
 
   private val simpleEqs = EquationSystem[Int, Int](
     body = { (rho: Int => Int) =>
@@ -80,4 +80,3 @@ class EquationSystemTest extends AnyFunSpec {
       )(os.toString)
     }
   }
-}

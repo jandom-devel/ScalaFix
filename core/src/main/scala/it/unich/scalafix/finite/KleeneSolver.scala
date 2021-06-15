@@ -19,12 +19,12 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.FixpointSolverTracer
-import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
+import it.unich.scalafix.assignments.{MutableAssignment, InputAssignment}
 
 /**
   * A solver based on Kleene iteration.
   */
-object KleeneSolver {
+object KleeneSolver:
   /**
     * Solve a finite equation system.
     *
@@ -39,24 +39,20 @@ object KleeneSolver {
                  (
                    start: InputAssignment[U, V] = eqs.initial,
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
-                 ): IOAssignment[U, V] = {
-    var current = start.toIOAssignment
-    var next = start.toIOAssignment
+                 ): MutableAssignment[U, V] =
+    var current = start.toMutableAssignment
+    var next = start.toMutableAssignment
     tracer.initialized(current)
     var dirty = true
-    while (dirty) {
+    while dirty do
       dirty = false
-      for (x <- eqs.unknowns) {
+      for x <- eqs.unknowns do
         val newval = eqs.body(current)(x)
         tracer.evaluated(current, x, newval)
-        if (newval != current(x)) dirty = true
+        if newval != current(x) then dirty = true
         next(x) = newval
-      }
       val temp = current
       current = next
       next = temp
-    }
     tracer.completed(current)
     current
-  }
-}

@@ -23,11 +23,10 @@ import it.unich.scalafix.*
 import it.unich.scalafix.lattice.Magma
 import org.scalatest.funspec.AnyFunSpec
 
-class GraphEquationSystemTest extends AnyFunSpec {
+class GraphEquationSystemTest extends AnyFunSpec:
 
-  private implicit object MagmaInt extends Magma[Int] {
+  private implicit object MagmaInt extends Magma[Int]:
     def op(x: Int, y: Int): Int = x max y
-  }
 
   private val unknowns = Set(0, 1, 2, 3)
   private val simpleEqs = GraphEquationSystem[Int, Int, Char](
@@ -87,13 +86,12 @@ class GraphEquationSystemTest extends AnyFunSpec {
     }
 
     it("correctly adds boxes") {
-      def test(eqs: FiniteEquationSystem[Int, Int]) = {
+      def test(eqs: FiniteEquationSystem[Int, Int]) =
         val body = eqs.body
         assertResult(0)(body(rho)(0))
         assertResult(7)(body(rho)(1))
         assertResult(4)(body(rho)(2))
         assertResult(9)(body(rho)(3))
-      }
 
       val box1: Box[Int] = { (x: Int, y: Int) => x + (2 * y) }
       val box2: Box[Int] = Box({ (x: Int, y: Int) => x + (2 * y) }, false)
@@ -102,23 +100,21 @@ class GraphEquationSystemTest extends AnyFunSpec {
 
       test(eqs1)
       test(eqs2)
-      for (x <- unknowns) {
+      for x <- unknowns do
         assert(simpleEqs.infl(x) === eqs1.infl(x))
         // TOOD: check if toSet may be avoided
         assert((simpleEqs.infl(x).toSet + x) === eqs2.infl(x))
-      }
     }
 
     it("correctly adds localized idempotent boxes") {
-      def test(eqs: FiniteEquationSystem[Int, Int]) = {
+      def test(eqs: FiniteEquationSystem[Int, Int]) =
         val body = eqs.body
-        val rho2 = { (x: Int) => if (x == 0) 9 else x }
+        val rho2 = { (x: Int) => if x == 0 then 9 else x }
         assertResult(0)(body(rho)(0))
         assertResult(7)(body(rho)(1))
         assertResult(1)(body(rho)(2))
         assertResult(3)(body(rho)(3))
         assertResult(9)(body(rho2)(1))
-      }
 
       val box1: Box[Int] = { (x: Int, y: Int) => x + (2 * y) }
       val box2: Box[Int] = Box({ (x: Int, y: Int) => x + (2 * y) }, false)
@@ -128,14 +124,13 @@ class GraphEquationSystemTest extends AnyFunSpec {
 
       test(eqs1)
       test(eqs2)
-      for (x <- unknowns) {
+      for x <- unknowns do
         assertResult(simpleEqs.infl(x))(eqs1.infl(x))
-        if (x != 1)
+        if x != 1 then
           assertResult(simpleEqs.infl(x))(eqs2.infl(x))
         else
           // TOOD: check if toSet may be avoided
           assertResult(simpleEqs.infl(x).toSet + x)(eqs2.infl(x))
-      }
     }
 
     it("correctly traces equations") {
@@ -159,4 +154,3 @@ class GraphEquationSystemTest extends AnyFunSpec {
       )(os.toString)
     }
   }
-}

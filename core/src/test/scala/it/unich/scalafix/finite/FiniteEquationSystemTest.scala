@@ -19,7 +19,7 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.*
-import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
+import it.unich.scalafix.assignments.{MutableAssignment, InputAssignment}
 import it.unich.scalafix.utils.Relation
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.funspec.AnyFunSpec
@@ -28,7 +28,7 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 /**
   * Test solvers for finite equation systems.
   */
-class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks {
+class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
 
   import HierarchicalOrdering.*
 
@@ -47,33 +47,32 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks 
     infl = Relation(Map(0 -> Set(0, 1, 2), 1 -> Set(2), 2 -> Set(1), 3 -> Set(1, 3))))
 
   private val simpleEqsStrategy = HierarchicalOrdering(Left, Val(0), Left, Val(1), Val(2), Val(3), Right, Right)
-  private val wideningBox: Box[Double] = { (x1: Double, x2: Double) => if (x2 > x1) Double.PositiveInfinity else x1 }
+  private val wideningBox: Box[Double] = { (x1: Double, x2: Double) => if x2 > x1 then Double.PositiveInfinity else x1 }
   private val maxBox: Box[Double] = { (x: Double, y: Double) => x max y }
   private val lastBox: Box[Double] = { (_: Double, x2: Double) => x2 }
 
   private val startRho: InputAssignment[Int, Double] = simpleEqs.initial
 
-  private type SimpleSolver[U, V] = (FiniteEquationSystem[U, V], InputAssignment[U, V]) => IOAssignment[U, V]
+  private type SimpleSolver[U, V] = (FiniteEquationSystem[U, V], InputAssignment[U, V]) => MutableAssignment[U, V]
 
   /**
     * Tests whether solving `eqs` equation system always returns a correct result. Should be used only for
     * solvers which are guaranteed to terminate with the given equation system.
     */
-  def testCorrectness[U, V](eqs: FiniteEquationSystem[U, V], solver: SimpleSolver[U, V])(implicit values: Arbitrary[V]) = {
+  def testCorrectness[U, V](eqs: FiniteEquationSystem[U, V], solver: SimpleSolver[U, V])(implicit values: Arbitrary[V]) =
     val startRhosList = Gen.listOfN(eqs.unknowns.size, values.arbitrary)
     val startRhos = startRhosList map { l => Map.from(eqs.unknowns.toList zip l) }
     forAll(startRhos) { start =>
       val finalEnv = solver(eqs, start)
-      for (x <- eqs.unknowns)
+      for x <- eqs.unknowns do
         assert(finalEnv(x) === eqs.body(finalEnv)(x))
     }
-  }
 
   /**
     * Test solvers for the `simpleEqs` equation system when starting from the initial
     * assignment `startRho`.
     */
-  def testExpectedResult(solver: SimpleSolver[Int, Double]) = {
+  def testExpectedResult(solver: SimpleSolver[Int, Double]) =
     it("gives the expected result starting from startRho with last") {
       val finalRho = solver(simpleEqs.withBoxes(lastBox), startRho)
       assert(finalRho(0) === 0.0)
@@ -101,7 +100,6 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks 
     it("always returns a box solution with widenings") {
       testCorrectness(simpleEqs.withBoxes(wideningBox), solver)
     }
-  }
 
   describe("The RoundRobinSolver") {
     testExpectedResult(RoundRobinSolver(_)(_))
@@ -118,4 +116,3 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks 
   describe("The HierarchicalOrderingSolver") {
     testExpectedResult(HierarchicalOrderingSolver(_)(_, simpleEqsStrategy))
   }
-}

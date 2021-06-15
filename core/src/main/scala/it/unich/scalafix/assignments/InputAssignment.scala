@@ -28,44 +28,40 @@ import it.unich.scalafix.Assignment
   * @tparam U type for unknowns
   * @tparam V type for values
   */
-trait InputAssignment[U, V] extends Assignment[U, V] {
+trait InputAssignment[U, V] extends Assignment[U, V]:
   /**
-    * Returns an IOAssignment with the same initial content as the current assignment. Changes to the IOAssignment
+    * Returns a MutableAssignment with the same initial content as the current assignment. Changes to the IOAssignment
     * are not reflected to the current assignment.
     */
-  def toIOAssignment: IOAssignment[U, V]
-}
+  def toMutableAssignment: MutableAssignment[U, V]
 
 /**
   * The companion object for the class `it.unich.scalafix.assignments.InputAssignment`.
   */
-object InputAssignment {
+object InputAssignment:
 
-  protected[assignments] def hashToString[U, V](m: collection.Map[U, V]): String = {
+  protected[assignments] def hashToString[U, V](m: collection.Map[U, V]): String =
     val sb = new StringBuffer()
     var first: Boolean = true
     sb.append(" [ ")
-    for ((u, v) <- m) {
-      if (!first) sb.append(" , ")
+    for (u, v) <- m do
+      if !first then sb.append(" , ")
       first = false
       sb.append(u).append(" -> ").append(v)
-    }
     sb.append(" ]")
     sb.toString
-  }
 
   /**
     * An assignment that always returns the same default value.
     *
     * @param v the default value returned by the assignment
     */
-  implicit class Default[U, V](v: V) extends InputAssignment[U, V] {
+  implicit class Default[U, V](v: V) extends InputAssignment[U, V]:
     def apply(u: U): V = v
 
-    def toIOAssignment: IOAssignment[U, V] = new IOAssignment.HashBasedIOAssignment({ _ => v })
+    def toMutableAssignment: MutableAssignment[U, V] = new IOAssignment.HashBasedAssignment({ _ => v })
 
     override def toString: String = s"constant value $v"
-  }
 
   /**
     * An input assignment obtained from another input assignment by modifying the value of an unknown with
@@ -75,43 +71,39 @@ object InputAssignment {
     * @param value   the new value of the unknown special
     * @param default the initial input assignment
     */
-  class Conditional[U, V](special: U, value: V, default: InputAssignment[U, V]) extends InputAssignment[U, V] {
-    def apply(u: U): V = if (u == special) value else default(u)
+  class Conditional[U, V](special: U, value: V, default: InputAssignment[U, V]) extends InputAssignment[U, V]:
+    def apply(u: U): V = if u == special then value else default(u)
 
-    def toIOAssignment: IOAssignment[U, V] = new IOAssignment.HashBasedIOAssignment(this)
+    def toMutableAssignment: MutableAssignment[U, V] = new IOAssignment.HashBasedAssignment(this)
 
     override def toString: String = s"[ $special -> $value ] else $default"
-  }
 
   /**
     * An implicit class converting a map into an input assignment.
     *
     * @param m hash map
     */
-  implicit class FromMap[U, V](m: Map[U, V]) extends InputAssignment[U, V] {
+  implicit class FromMap[U, V](m: Map[U, V]) extends InputAssignment[U, V]:
     def apply(u: U): V = m(u)
 
-    def toIOAssignment: IOAssignment[U, V] = new IOAssignment.HashBasedIOAssignment(this)
+    def toMutableAssignment: MutableAssignment[U, V] = new IOAssignment.HashBasedAssignment(this)
 
     override def toString: String = hashToString(m)
-  }
 
   /**
     * An implicit class converting an assignment into an input assignment.
     *
     * @param a the original assignment
     */
-  implicit class FromAssignment[U, V](a: Assignment[U, V]) extends InputAssignment[U, V] {
+  implicit class FromAssignment[U, V](a: Assignment[U, V]) extends InputAssignment[U, V]:
     def apply(u: U): V = a(u)
 
-    def toIOAssignment: IOAssignment[U, V] = new IOAssignment.HashBasedIOAssignment(a)
+    def toMutableAssignment: MutableAssignment[U, V] = new IOAssignment.HashBasedAssignment(a)
 
     override def toString: String = a.toString
-  }
 
   /**
     * Return the input assignment which behaves like `otherwise`, with the excpetion of the unknown
     * `special` for which it returns `value`.
     */
   def conditional[U, V](special: U, value: V, otherwise: InputAssignment[U, V]) = new Conditional(special, value, otherwise)
-}

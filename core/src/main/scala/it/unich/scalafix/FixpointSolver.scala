@@ -22,7 +22,7 @@ package it.unich.scalafix
   * The `FixpointSolver` object contains many enumerations and auxiliary classes which are used by
   * other fixpoint solvers.
   */
-object FixpointSolver {
+object FixpointSolver:
 
   /**
     * This exception is thrown when the parameters provided to the `Driver` are not correct.
@@ -32,7 +32,7 @@ object FixpointSolver {
   /**
     * An enumeration with the solvers supported by this driver.
     */
-  object Solver extends Enumeration {
+  object Solver extends Enumeration:
     type Solver = Value
 
     val KleeneSolver = Value
@@ -40,9 +40,8 @@ object FixpointSolver {
     val PriorityWorkListSolver = Value
     val WorkListSolver = Value
     val HierarchicalOrderingSolver = Value
-  }
 
-  object BoxStrategy extends Enumeration {
+  object BoxStrategy extends Enumeration:
     type BoxStrategy = Value
 
     /**
@@ -59,9 +58,8 @@ object FixpointSolver {
       * Single pass with a warrowing.
       */
     val Warrowing = Value
-  }
 
-  object BoxScope extends Enumeration {
+  object BoxScope extends Enumeration:
     type BoxScope = Value
 
     /**
@@ -73,9 +71,8 @@ object FixpointSolver {
       * Use localized widenings.
       */
     val Localized = Value
-  }
 
-  object BoxLocation extends Enumeration {
+  object BoxLocation extends Enumeration:
     type BoxLocation = Value
 
     /**
@@ -92,9 +89,8 @@ object FixpointSolver {
       * Put widenings/narrowings points at each loop head.
       */
     val Loop = Value
-  }
 
-  object RestartStrategy extends Enumeration {
+  object RestartStrategy extends Enumeration:
     type RestartStrategy = Value
 
     /**
@@ -106,6 +102,4 @@ object FixpointSolver {
       * Apply a restart strategy
       */
     val Restart = Value
-  }
 
-}

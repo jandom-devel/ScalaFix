@@ -29,7 +29,7 @@ import scala.annotation.elidable
   * @tparam U the type of unknowns supported by this tracer
   * @tparam V the type of values for unknowns supported by this tracer
   */
-trait EquationSystemTracer[U, V] {
+trait EquationSystemTracer[U, V]:
   /**
     * This method is called immediately before an unknown `u` is evaluated.
     *
@@ -56,13 +56,12 @@ trait EquationSystemTracer[U, V] {
     * @param boxed result of the evaluation of the original body, boxed with the original value
     */
   def boxEvaluation(rho: Assignment[U, V], u: U, res: V, boxed: V): Unit
-}
 
 /**
   * This abstract class implements a tracer which does nothing.
   * May be sub-classed in order to override only the methods we are interested in.
   */
-abstract class EquationSystemTracerAdapter[U, V] extends EquationSystemTracer[U, V] {
+abstract class EquationSystemTracerAdapter[U, V] extends EquationSystemTracer[U, V]:
   @elidable(TRACING)
   def beforeEvaluation(rho: Assignment[U, V], u: U): Unit = {}
 
@@ -71,9 +70,8 @@ abstract class EquationSystemTracerAdapter[U, V] extends EquationSystemTracer[U,
 
   @elidable(TRACING)
   def boxEvaluation(rho: Assignment[U, V], u: U, res: V, boxed: V): Unit = {}
-}
 
-object EquationSystemTracer {
+object EquationSystemTracer:
 
   /**
     * An empty listener which does nothing.
@@ -83,22 +81,18 @@ object EquationSystemTracer {
   /**
     * A tracer which prints many debug informations on a PrintStream.
     */
-  class DebugEquationSystemTracer[U, V](ps: PrintStream) extends EquationSystemTracer[U, V] {
+  class DebugEquationSystemTracer[U, V](ps: PrintStream) extends EquationSystemTracer[U, V]:
     @elidable(TRACING)
-    def beforeEvaluation(rho: Assignment[U, V], u: U) = {
+    def beforeEvaluation(rho: Assignment[U, V], u: U) =
       ps.println(s"evaluated: $u oldvalue: ${rho(u)}")
-    }
 
     @elidable(TRACING)
-    def afterEvaluation(rho: Assignment[U, V], u: U, res: V) = {
+    def afterEvaluation(rho: Assignment[U, V], u: U, res: V) =
       ps.println(s"evaluated: $u oldvalue: ${rho(u)} newvalue: $res")
-    }
 
     @elidable(TRACING)
-    def boxEvaluation(rho: Assignment[U, V], u: U, res: V, boxed: V) = {
+    def boxEvaluation(rho: Assignment[U, V], u: U, res: V, boxed: V) =
       ps.println(s"evaluated: $u, oldvalue: ${rho(u)}, newvalue: $res, boxed: $boxed")
-    }
-  }
 
   private val emptyEquationSystemTracer = new EmptyEquationSystemTracer[Any, Any]
 
@@ -109,4 +103,3 @@ object EquationSystemTracer {
   def debug[U, V]: DebugEquationSystemTracer[U, V] = debugEquationSystemTracer.asInstanceOf[DebugEquationSystemTracer[U, V]]
 
   def debug[U, V](ps: PrintStream) = new DebugEquationSystemTracer[U, V](ps)
-}

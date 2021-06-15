@@ -19,14 +19,14 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.*
-import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
+import it.unich.scalafix.assignments.{MutableAssignment, InputAssignment}
 import it.unich.scalafix.lattice.Domain
 
 /**
   * This solver is a commodity interface for the other finite fixpoint solvers. It takes some parameters
   * as inputs and plans a sequence of actions in order to obtain the desired solutions as the output.
   */
-object FiniteFixpointSolver {
+object FiniteFixpointSolver:
 
   import FixpointSolver.*
 
@@ -51,32 +51,30 @@ object FiniteFixpointSolver {
     * @param eqs    the equation system to solve
     * @param params the parameters for the solver
     */
-  def apply[U, V: Domain, E](eqs: GraphEquationSystem[U, V, E], params: Params[U, V]): IOAssignment[U, V] = {
+  def apply[U, V: Domain, E](eqs: GraphEquationSystem[U, V, E], params: Params[U, V]): MutableAssignment[U, V] =
     import params.*
 
     val startAssn = params.start.getOrElse(eqs.initial)
 
-    val ordering1: Option[GraphOrdering[U]] = (solver, boxscope) match {
+    val ordering1: Option[GraphOrdering[U]] = (solver, boxscope) match
       case (Solver.HierarchicalOrderingSolver, _) =>
         Some(HierarchicalOrdering(DFOrdering(eqs)))
       case (Solver.PriorityWorkListSolver, _) | (_, BoxScope.Localized) =>
         Some(DFOrdering(eqs))
       case _ =>
         None
-    }
 
-    val ordering: Option[GraphOrdering[U]] = (boxlocation: @unchecked) match {
+    val ordering: Option[GraphOrdering[U]] = (boxlocation: @unchecked) match
       case BoxLocation.None | BoxLocation.All =>
         None
       case BoxLocation.Loop =>
         ordering1 orElse Some(DFOrdering(eqs))
-    }
 
     val restart: (V, V) => Boolean =
-      if (restartstrategy == RestartStrategy.Restart) { (x, y) => Domain[V].lt(x, y) }
+      if restartstrategy == RestartStrategy.Restart then { (x, y) => Domain[V].lt(x, y) }
       else { (_, _) => false }
 
-    (boxstrategy: @unchecked) match {
+    (boxstrategy: @unchecked) match
       case BoxStrategy.OnlyWidening =>
         val widening = boxFilter[U, V](wideningBoxAssn, boxlocation, ordering)
         val withWidening = boxApply(eqs, widening, boxscope, ordering)
@@ -92,21 +90,18 @@ object FiniteFixpointSolver {
         tracer.descendingBegins(ascendingAssignment)
         applySolver(solver, withNarrowing, ascendingAssignment, ordering, restart, tracer)
       case BoxStrategy.Warrowing =>
-        if (boxscope == BoxScope.Localized) {
+        if boxscope == BoxScope.Localized then
           val widening = boxFilter[U, V](wideningBoxAssn, boxlocation, ordering)
           val narrowing = boxFilter[U, V](narrowingBoxAssn, boxlocation, ordering)
-          val withUpdate = if (widening.isEmpty && narrowing.isEmpty)
+          val withUpdate = if widening.isEmpty && narrowing.isEmpty then
             eqs
           else
             eqs.withLocalizedWarrowing(widening, narrowing, ordering.get)
           applySolver(solver, withUpdate, startAssn, ordering, restart, tracer)
-        } else {
+        else
           val warrowingAssignment = boxFilter[U, V](BoxAssignment.warrowing(wideningBoxAssn, narrowingBoxAssn), boxlocation, ordering)
           val eqsWithWarrowing = boxApply(eqs, warrowingAssignment, boxscope, ordering)
           applySolver(solver, eqsWithWarrowing, startAssn, ordering, restart, tracer)
-        }
-    }
-  }
 
   /**
     * Given an equation system and a box assignment, filter the assignment according to what specified in the
@@ -122,11 +117,10 @@ object FiniteFixpointSolver {
                                location: BoxLocation.Value,
                                ordering: Option[GraphOrdering[U]]
                              ): BoxAssignment[U, V] =
-    (location: @unchecked) match {
+    (location: @unchecked) match
       case BoxLocation.None => BoxAssignment.empty
       case BoxLocation.All => boxAssn
       case BoxLocation.Loop => boxAssn.restrict(ordering.get.isHead)
-    }
 
   /**
     * Apply a given box assignment to an equation system, generating a new equation system.
@@ -141,15 +135,12 @@ object FiniteFixpointSolver {
                                  boxes: BoxAssignment[U, V],
                                  scope: BoxScope.Value,
                                  ordering: Option[Ordering[U]]
-                               ): FiniteEquationSystem[U, V] = {
-    (scope: @unchecked) match {
+                               ): FiniteEquationSystem[U, V] =
+    (scope: @unchecked) match
       case BoxScope.Standard => eqs.withBoxes(boxes)
-      case BoxScope.Localized => eqs match {
+      case BoxScope.Localized => eqs match
         case eqs: GraphEquationSystem[U, V, ?] => eqs.withLocalizedBoxes(boxes, ordering.get)
         case _ => throw new DriverBadParameters("Localized boxes needs a GraphEquationSystem")
-      }
-    }
-  }
 
   /**
     * Apply a fixpoint solver given standard parameters
@@ -169,19 +160,16 @@ object FiniteFixpointSolver {
                                  ordering: Option[Ordering[U]],
                                  restart: (V, V) => Boolean,
                                  tracer: FixpointSolverTracer[U, V]
-                               ): IOAssignment[U, V] = {
-    (solver: @unchecked) match {
+                               ): MutableAssignment[U, V] =
+    (solver: @unchecked) match
       case Solver.RoundRobinSolver => RoundRobinSolver(eqs)(start, tracer)
       case Solver.KleeneSolver => KleeneSolver(eqs)(start, tracer)
       case Solver.WorkListSolver => WorkListSolver(eqs)(start, tracer)
       case Solver.PriorityWorkListSolver => PriorityWorkListSolver(eqs)(start, ordering.get, restart, tracer)
       case Solver.HierarchicalOrderingSolver =>
-        ordering.get match {
+        ordering.get match
           case ho: HierarchicalOrdering[U] => HierarchicalOrderingSolver(eqs)(start, ho, tracer)
           case _ => throw new DriverBadParameters("Ordering must be hierarchical for the HierarchicalOrderingSolver to work")
-        }
-    }
-  }
 
   /**
     * Parameters for this driver
@@ -208,4 +196,3 @@ object FiniteFixpointSolver {
                            tracer: FixpointSolverTracer[U, V]
                          )
 
-}

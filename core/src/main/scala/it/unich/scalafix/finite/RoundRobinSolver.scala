@@ -19,13 +19,13 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.FixpointSolverTracer
-import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
+import it.unich.scalafix.assignments.{MutableAssignment, InputAssignment}
 
 
 /**
   * A fixpoint solver based on the round robin strategy.
   */
-object RoundRobinSolver {
+object RoundRobinSolver:
   /**
     * Solve a finite equation system.
     *
@@ -40,22 +40,17 @@ object RoundRobinSolver {
                  (
                    start: InputAssignment[U, V] = eqs.initial,
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
-                 ): IOAssignment[U, V] = {
-    val current = start.toIOAssignment
+                 ): MutableAssignment[U, V] =
+    val current = start.toMutableAssignment
     tracer.initialized(current)
     var dirty = true
-    while (dirty) {
+    while dirty do
       dirty = false
-      for (x <- eqs.unknowns) {
+      for x <- eqs.unknowns do
         val newval = eqs.body(current)(x)
         tracer.evaluated(current, x, newval)
-        if (newval != current(x)) {
+        if newval != current(x) then
           current(x) = newval
           dirty = true
-        }
-      }
-    }
     tracer.completed(current)
     current
-  }
-}

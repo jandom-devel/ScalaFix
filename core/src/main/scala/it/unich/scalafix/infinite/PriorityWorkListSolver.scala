@@ -18,7 +18,7 @@
 
 package it.unich.scalafix.infinite
 
-import it.unich.scalafix.assignments.{IOAssignment, InputAssignment}
+import it.unich.scalafix.assignments.{MutableAssignment, InputAssignment}
 import it.unich.scalafix.{EquationSystem, FixpointSolverTracer}
 
 import scala.collection.mutable
@@ -26,18 +26,18 @@ import scala.collection.mutable
 /**
   * A local fixpoint solver based on a worklist with priorities.
   */
-object PriorityWorkListSolver {
+object PriorityWorkListSolver:
 
   /**
     * This is an dynamic ordering on unknowns: every time an unknown appears, it gets assigned a lower
     * priority than previous one (i.e., it comes earlier in the ordering). This is the default ordering
     * for PriorityWorkListSolver when an explicit one is not provided.
     */
-  class DynamicPriority[U] extends Ordering[U] {
+  class DynamicPriority[U] extends Ordering[U]:
     val map = mutable.Map.empty[U, Int]
     var current = 0
 
-    def compare(x: U, y: U): Int = {
+    def compare(x: U, y: U): Int =
       val xp = map.getOrElseUpdate(x, {
         current -= 1
         current
@@ -47,8 +47,6 @@ object PriorityWorkListSolver {
         current
       })
       xp - yp
-    }
-  }
 
   /**
     * Locally solve a finite equation system.
@@ -69,30 +67,24 @@ object PriorityWorkListSolver {
                    start: InputAssignment[U, V] = eqs.initial,
                    ordering: Ordering[U] = new DynamicPriority[U],
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
-                 ): IOAssignment[U, V] = {
+                 ): MutableAssignment[U, V] =
     val infl = mutable.Map.empty[U, mutable.Set[U]]
     val workList = mutable.PriorityQueue.empty[U](ordering)
     workList ++= wanted
 
-    val current = start.toIOAssignment
+    val current = start.toMutableAssignment
     tracer.initialized(current)
-    while (workList.nonEmpty) {
+    while workList.nonEmpty do
       val x = workList.dequeue()
       val (newval, dependencies) = eqs.bodyWithDependencies(current)(x)
       tracer.evaluated(current, x, newval)
-      for (y <- dependencies) {
-        if (!current.isDefinedAt(y)) {
+      for y <- dependencies do
+        if !current.isDefinedAt(y) then
           current(y) = start(y)
           workList += y
-        }
         infl.getOrElseUpdate(y, mutable.Set.empty[U]) += x
-      }
-      if (newval != current(x)) {
+      if newval != current(x) then
         current(x) = newval
         workList ++= infl(x)
-      }
-    }
     tracer.completed(current)
     current
-  }
-}

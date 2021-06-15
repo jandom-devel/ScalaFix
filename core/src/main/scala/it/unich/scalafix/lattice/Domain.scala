@@ -28,13 +28,13 @@ import scala.language.implicitConversions
   * If an implicit object of type `Domain[A]` is in scope, then binary operators
   * `<`, `<=`, `>`, `>=`, `equiv` and `upperBound` are available.
   */
-trait Domain[A] extends PartialOrdering[A] {
+trait Domain[A] extends PartialOrdering[A]:
   /**
     * It returns an upper bound of `x` and  `y`.
     */
   def upperBound(x: A, y: A): A
 
-  class Ops(lhs: A) {
+  class Ops(lhs: A):
     def <(rhs: A): Boolean = lt(lhs, rhs)
 
     def <=(rhs: A): Boolean = lteq(lhs, rhs)
@@ -46,14 +46,12 @@ trait Domain[A] extends PartialOrdering[A] {
     def equiv(rhs: A): Boolean = Domain.this.equiv(lhs, rhs)
 
     def upperBound(rhs: A): A = Domain.this.upperBound(lhs, rhs)
-  }
 
-}
 
 /**
   * A trait which contains low priority implicits to be mixed within Domain.
   */
-trait LowPriorityImplicitDomains {
+trait LowPriorityImplicitDomains:
   /**
     * An implicit domain obtained by an ordering, taking the max to be the upper bound operator.
     */
@@ -62,11 +60,10 @@ trait LowPriorityImplicitDomains {
 
     def tryCompare(x: A, y: A): Some[Int] = o.tryCompare(x, y)
 
-    def upperBound(x: A, y: A): A = if (o.compare(x, y) <= 0) y else x
+    def upperBound(x: A, y: A): A = if o.compare(x, y) <= 0 then y else x
   }
-}
 
-object Domain extends LowPriorityImplicitDomains {
+object Domain extends LowPriorityImplicitDomains:
   /**
     * Add a syntactic sugar to easily get the current implicit Domain.
     */
@@ -77,4 +74,3 @@ object Domain extends LowPriorityImplicitDomains {
     * use of the infix operators.
     */
   implicit def infixDomainOps[A](a: A)(implicit dom: Domain[A]): Domain[A]#Ops = new dom.Ops(a)
-}

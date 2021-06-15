@@ -37,16 +37,14 @@ class ChainGraphEQS[V: Domain](n: Int, v: V) extends SimpleGraphEquationSystem[I
   edgeAction = { (rho: Assignment[Int, V]) => (i: Int) => rho(i) },
   sources = { (i: Int) => Seq(i) },
   target = { (i: Int) => i + 1 },
-  outgoing = { (i: Int) => if (i == n - 1) Seq.empty else Seq(i) },
-  ingoing = { (i: Int) => if (i == 0) Seq.empty else Seq(i - 1) },
+  outgoing = { (i: Int) => if i == n - 1 then Seq.empty else Seq(i) },
+  ingoing = { (i: Int) => if i == 0 then Seq.empty else Seq(i - 1) },
   initial = v
-) {
+):
   override val infl: Relation[Int] = Relation({ (i: Int) => Set(i + 1) })
-  override val body: Body[Int, V] = { (rho: Assignment[Int, V]) => (i: Int) => if (i > 0) rho(i - 1) else rho(0) }
-  override val bodyWithDependencies: BodyWithDependencies[Int, V] = {
-    (rho: Assignment[Int, V]) => (i: Int) => if (i > 0) (rho(i - 1), Seq(i - 1)) else (rho(0), Seq(0))
-  }
-}
+  override val body: Body[Int, V] = { (rho: Assignment[Int, V]) => (i: Int) => if i > 0 then rho(i - 1) else rho(0) }
+  override val bodyWithDependencies: BodyWithDependencies[Int, V] =
+    (rho: Assignment[Int, V]) => (i: Int) => if i > 0 then (rho(i - 1), Seq(i - 1)) else (rho(0), Seq(0))
 
 /**
   * This class represents an equation system made of equations `x(i+1)=x(i)` for i from 0 to n-1. This is an
@@ -63,7 +61,7 @@ class ChainSimpleGraphEQS[V: Domain](n: Int, v: V) extends SimpleGraphEquationSy
   sources = { (i: Int) => Seq(i) },
   target = { (i: Int) => i + 1 },
   outgoing = { (i: Int) => Seq(i) },
-  ingoing = { (i: Int) => if (i == 0) Seq.empty else Seq(i - 1) },
+  ingoing = { (i: Int) => if i == 0 then Seq.empty else Seq(i - 1) },
   initial = v,
 )
 
@@ -76,7 +74,7 @@ class ChainSimpleGraphEQS[V: Domain](n: Int, v: V) extends SimpleGraphEquationSy
   * @param v the initial value for all unknowns
   */
 class ChainSimpleFiniteEQS[V](n: Int, v: V) extends SimpleFiniteEquationSystem[Int, V](
-  body = { (rho: Assignment[Int, V]) => (i: Int) => if (i > 0) rho(i - 1) else rho(0) },
+  body = { (rho: Assignment[Int, V]) => (i: Int) => if i > 0 then rho(i - 1) else rho(0) },
   initial = v,
   inputUnknowns = Set(0),
   unknowns = 0 to n,
@@ -91,14 +89,12 @@ class ChainSimpleFiniteEQS[V](n: Int, v: V) extends SimpleFiniteEquationSystem[I
   * @param v the initial value for all unknowns
   */
 class ChainInfiniteEQS[V](v: V) extends SimpleEquationSystem[Int, V](
-  body = { (rho: Assignment[Int, V]) => (i: Int) => if (i > 0) rho(i - 1) else rho(0) }: Body[Int, V],
+  body = { (rho: Assignment[Int, V]) => (i: Int) => if i > 0 then rho(i - 1) else rho(0) }: Body[Int, V],
   initial = v,
   inputUnknowns = Set(0)
-) {
-  override val bodyWithDependencies: BodyWithDependencies[Int, V] = {
-    (rho: Assignment[Int, V]) => (i: Int) => (rho(i - 1), if (i > 0) Seq(i - 1) else Seq.empty)
-  }
-}
+):
+  override val bodyWithDependencies: BodyWithDependencies[Int, V] =
+    (rho: Assignment[Int, V]) => (i: Int) => (rho(i - 1), if i > 0 then Seq(i - 1) else Seq.empty)
 
 /**
   * This class represents an infinite equation system made of equations `x(i+1)=x(i)`. This is an un-optimized version
@@ -108,7 +104,7 @@ class ChainInfiniteEQS[V](v: V) extends SimpleEquationSystem[Int, V](
   * @param v the initial value for all unknowns
   */
 class ChainInfinite2EQS[V](v: V) extends SimpleEquationSystem[Int, V](
-  body = { (rho: Assignment[Int, V]) => (i: Int)   => if (i > 0) rho(i - 1) else rho(0) }: Body[Int, V],
+  body = { (rho: Assignment[Int, V]) => (i: Int)   => if i > 0 then rho(i - 1) else rho(0) }: Body[Int, V],
   initial = v,
   inputUnknowns = Set(0)
 )

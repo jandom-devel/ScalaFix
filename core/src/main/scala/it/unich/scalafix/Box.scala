@@ -34,7 +34,7 @@ import scala.language.implicitConversions
   *
   * @tparam V the type of the values to combine.
   */
-abstract class Box[V] extends ((V, V) => V) {
+abstract class Box[V] extends ((V, V) => V):
   /*
   I do not like very much the fact Box is both a box and its blueprint. Having two separate classes would
   be better from the point of view of the separation of concerns, but this solution is quite convenient. We do
@@ -71,48 +71,42 @@ abstract class Box[V] extends ((V, V) => V) {
     * Returns a delayed version of the box. It is equivalent to applying cascade to the right box.
     */
   def delayed(delay: Int): Box[V] = Box.cascade(Box.right[V], delay, this)
-}
 
 /**
   * The `Box` object defines several factories for building boxes.
   */
 // TODO: Decide whether we want to keep the variants for PartiallyOrdered.
-object Box {
+object Box:
 
-  abstract class ImmutableBox[V] extends Box[V] {
+  abstract class ImmutableBox[V] extends Box[V]:
     def isImmutable = true
 
     def copy: this.type = this
-  }
 
-  private abstract class MutableBox[V] extends Box[V] {
+  private abstract class MutableBox[V] extends Box[V]:
     def isImmutable = false
-  }
 
-  private object RightBox extends ImmutableBox[Any] {
+  private object RightBox extends ImmutableBox[Any]:
     def apply(x: Any, y: Any): Any = y
 
     def isIdempotent = true
 
     def isRight = true
-  }
 
-  private object LeftBox extends ImmutableBox[Any] {
+  private object LeftBox extends ImmutableBox[Any]:
     def apply(x: Any, y: Any): Any = x
 
     def isIdempotent = true
 
     def isRight = false
-  }
 
-  private final class FromFunction[V](f: (V, V) => V, val isIdempotent: Boolean) extends ImmutableBox[V] {
+  private final class FromFunction[V](f: (V, V) => V, val isIdempotent: Boolean) extends ImmutableBox[V]:
     def apply(x: V, y: V): V = f(x, y)
 
     def isRight = false
-  }
 
-  private final class Warrowing[V: PartialOrdering](widening: Box[V], narrowing: Box[V]) extends Box[V] {
-    def apply(x: V, y: V): V = if (implicitly[PartialOrdering[V]].lteq(y, x)) narrowing(x, y) else widening(x, y)
+  private final class Warrowing[V: PartialOrdering](widening: Box[V], narrowing: Box[V]) extends Box[V]:
+    def apply(x: V, y: V): V = if implicitly[PartialOrdering[V]].lteq(y, x) then narrowing(x, y) else widening(x, y)
 
     def isIdempotent = false
 
@@ -120,10 +114,9 @@ object Box {
 
     def isImmutable: Boolean = widening.isImmutable && narrowing.isImmutable
 
-    def copy: Warrowing[V] = if (isImmutable) this else new Warrowing(widening.copy, narrowing.copy)
-  }
+    def copy: Warrowing[V] = if isImmutable then this else new Warrowing(widening.copy, narrowing.copy)
 
-  private final class Cascade[V](first: Box[V], delay: Int, second: Box[V]) extends MutableBox[V] {
+  private final class Cascade[V](first: Box[V], delay: Int, second: Box[V]) extends MutableBox[V]:
     var steps = 0
 
     def isIdempotent = false
@@ -132,14 +125,12 @@ object Box {
 
     def copy = new Cascade(first.copy, delay, second.copy)
 
-    def apply(x: V, y: V): V = {
-      if (steps < delay) {
+    def apply(x: V, y: V): V =
+      if steps < delay then
         steps += 1
         first(x, y)
-      } else
+      else
         second(x, y)
-    }
-  }
 
   /**
     * A box which always returns its right component (new contribution)
@@ -185,15 +176,14 @@ object Box {
     * A mutable box which behaves as `this` for the first `delay` steps and as `that` for the rest of its
     * existence. This may be used to implement delayed widenings and narrowings.
     */
-  def cascade[V](first: Box[V], delay: Int, second: Box[V]): Box[V] = {
+  def cascade[V](first: Box[V], delay: Int, second: Box[V]): Box[V] =
     require(delay >= 0)
-    if (first.isRight && second.isRight)
+    if first.isRight && second.isRight then
       Box.right[V]
-    else if (delay == 0)
+    else if delay == 0 then
       second
     else
       new Cascade(first, delay, second)
-  }
 
   /**
     * A warrowing obtained by combining the given widenings and narrowings, as defined in the paper:
@@ -205,11 +195,9 @@ object Box {
     * @param widening  a widening over V
     * @param narrowing a narrowing over V
     */
-  def warrowing[V: PartialOrdering](widening: Box[V], narrowing: Box[V]): Box[V] = {
-    if (widening.isRight && narrowing.isRight)
+  def warrowing[V: PartialOrdering](widening: Box[V], narrowing: Box[V]): Box[V] =
+    if widening.isRight && narrowing.isRight then
       right[V]
     else
       new Warrowing(widening, narrowing)
-  }
 
-}

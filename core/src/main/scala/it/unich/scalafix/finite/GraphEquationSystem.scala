@@ -28,7 +28,7 @@ import it.unich.scalafix.utils.Relation
   * of the graph and each hyper-edge has a single target and many possible sources. Given an assignment, each
   * hyper-edge produces a partial values. These values are combined with the upper bound operation.
   */
-trait GraphEquationSystem[U, V, E] extends FiniteEquationSystem[U, V] {
+trait GraphEquationSystem[U, V, E] extends FiniteEquationSystem[U, V]:
   /**
     * The domain type-class for the type `V`.
     */
@@ -78,7 +78,6 @@ trait GraphEquationSystem[U, V, E] extends FiniteEquationSystem[U, V] {
   def withLocalizedWarrowing(widenings: BoxAssignment[U, V], narrowings: BoxAssignment[U, V], ordering: Ordering[U]): FiniteEquationSystem[U, V]
 
   override def withTracer(t: EquationSystemTracer[U, V]): GraphEquationSystem[U, V, E]
-}
 
 /**
   * A simple standard implementation of FiniteEquationSystem. All fields must be provided explicitly by
@@ -96,114 +95,99 @@ case class SimpleGraphEquationSystem[U, V, E]
   ingoing: U => Iterable[E],
   initial: InputAssignment[U, V],
   tracer: Option[EquationSystemTracer[U, V]] = None
-)(implicit val dom: Domain[V]) extends EquationSystemBase[U, V] with GraphEquationSystem[U, V, E] {
+)(implicit val dom: Domain[V]) extends EquationSystemBase[U, V] with GraphEquationSystem[U, V, E]:
 
-  val body: Body[U, V] = {
+  val body: Body[U, V] =
     (rho: Assignment[U, V]) =>
       (x: U) =>
         tracer foreach (_.beforeEvaluation(rho, x))
-        val contributions = for (e <- ingoing(x)) yield edgeAction(rho)(e)
+        val contributions = for e <- ingoing(x) yield edgeAction(rho)(e)
         // if contribution is empty the unknown x has no right hand side... it seems
         // reasonable to return the old value.
-        val res = if (contributions.isEmpty)
+        val res = if contributions.isEmpty then
           rho(x)
         else
           contributions reduce dom.upperBound
         tracer foreach (_.afterEvaluation(rho, x, res))
         res
-  }
 
-  override val bodyWithDependencies: BodyWithDependencies[U, V] = {
+  override val bodyWithDependencies: BodyWithDependencies[U, V] =
     (rho: Assignment[U, V]) =>
       (x: U) => {
         val deps = ingoing(x).foldLeft(Iterable.empty[U])((acc: Iterable[U], e: E) => acc ++ sources(e))
         val res = body(rho)(x)
         (res, deps)
       }
-  }
 
   val infl: Relation[U] = Relation( {
     (u: U) => outgoing(u).view.map(target).to(Set)
   })
 
-  def withTracer(t: EquationSystemTracer[U, V]): GraphEquationSystem[U, V, E] = {
+  def withTracer(t: EquationSystemTracer[U, V]): GraphEquationSystem[U, V, E] =
     copy(tracer = Some(t))
-  }
 
-  def withBoxes(boxes: BoxAssignment[U, V]): FiniteEquationSystem[U, V] = {
+  def withBoxes(boxes: BoxAssignment[U, V]): FiniteEquationSystem[U, V] =
     val newbody = bodyWithBoxAssignment(boxes)
-    val newinfl = if (boxes.boxesAreIdempotent) infl else infl.withDiagonal
+    val newinfl = if boxes.boxesAreIdempotent then infl else infl.withDiagonal
     SimpleFiniteEquationSystem(newbody, initial, inputUnknowns, unknowns, newinfl, tracer)
-  }
 
-  def withBaseAssignment(init: PartialFunction[U, V])(implicit magma: Magma[V]): FiniteEquationSystem[U, V] = {
+  def withBaseAssignment(init: PartialFunction[U, V])(implicit magma: Magma[V]): FiniteEquationSystem[U, V] =
     val newbody = bodyWithBaseAssignment(init, magma.op)
     SimpleFiniteEquationSystem(newbody, initial, inputUnknowns, unknowns, infl, tracer)
-  }
 
-  def withLocalizedBoxes(boxes: BoxAssignment[U, V], ordering: Ordering[U]): GraphEquationSystem[U, V, E] = {
-    val newEdgeAction = {
+  def withLocalizedBoxes(boxes: BoxAssignment[U, V], ordering: Ordering[U]): GraphEquationSystem[U, V, E] =
+    val newEdgeAction =
       (rho: Assignment[U, V]) =>
         (e: E) =>
           val x = target(e)
-          if (boxes.isDefinedAt(x) && sources(e).exists(ordering.lteq(x, _))) {
+          if boxes.isDefinedAt(x) && sources(e).exists(ordering.lteq(x, _)) then
             boxes(x)(rho(x), edgeAction(rho)(e))
-          } else
+          else
             edgeAction(rho)(e)
-    }
-    if (boxes.boxesAreIdempotent) {
+    if boxes.boxesAreIdempotent then
       copy(edgeAction = newEdgeAction)
-    } else {
-      val newSources = {
+    else
+      val newSources =
         (e: E) =>
           val x = target(e)
-          if (boxes.isDefinedAt(x) && sources(e).exists(ordering.lteq(x, _)))
+          if boxes.isDefinedAt(x) && sources(e).exists(ordering.lteq(x, _)) then
             sources(e) ++ Iterable(x)
           else
             sources(e)
-      }
-      val newOutgoing = {
+      val newOutgoing =
         (u: U) =>
-          if (boxes.isDefinedAt(u)) {
+          if boxes.isDefinedAt(u) then
             val edges = ingoing(u).filter {
               (e: E) => sources(e).exists(ordering.lteq(u, _))
             }
             outgoing(u) ++ edges
-          } else
+          else
             outgoing(u)
-      }
       copy(edgeAction = newEdgeAction, sources = newSources, outgoing = newOutgoing)
-    }
-  }
 
-  def withLocalizedWarrowing(widenings: BoxAssignment[U, V], narrowings: BoxAssignment[U, V], ordering: Ordering[U]): FiniteEquationSystem[U, V] = {
-    val newBody: Body[U, V] = {
+  def withLocalizedWarrowing(widenings: BoxAssignment[U, V], narrowings: BoxAssignment[U, V], ordering: Ordering[U]): FiniteEquationSystem[U, V] =
+    val newBody: Body[U, V] =
       (rho: Assignment[U, V]) =>
         (x: U) =>
-          val contributions = for (e <- ingoing(x)) yield {
+          val contributions = for e <- ingoing(x) yield
             val contrib = edgeAction(rho)(e)
             val boxapply = sources(e).exists(ordering.lteq(x, _)) && !dom.lteq(contrib, rho(x))
             (contrib, boxapply)
-          }
           // if contribution is empty the unknown x has no right hand side... it seems
           // reasonable to return the old value.
-          if (contributions.isEmpty)
+          if contributions.isEmpty then
             rho(x)
-          else {
+          else
             val result = contributions reduce {
               (x: (V, Boolean), y: (V, Boolean)) => (dom.upperBound(x._1, y._1), x._2 || y._2)
             }
-            if (result._2) {
+            if result._2 then
               widenings(x)(rho(x), result._1)
-            } else if (dom.lt(result._1, rho(x))) narrowings(x)(rho(x), result._1) else result._1
-          }
-    }
-    val newInfl = if (widenings.boxesAreIdempotent && narrowings.boxesAreIdempotent) infl else infl.withDiagonal
+            else if dom.lt(result._1, rho(x)) then narrowings(x)(rho(x), result._1) else result._1
+    val newInfl = if widenings.boxesAreIdempotent && narrowings.boxesAreIdempotent then infl else infl.withDiagonal
     SimpleFiniteEquationSystem(newBody, initial, inputUnknowns, unknowns, newInfl)
-  }
-}
 
-object GraphEquationSystem {
+object GraphEquationSystem:
   /**
     * Returns the standard implementation of GraphEquationSystem. All fields must be provided explicitly by
     * the user with the exception of `body`, `bodyWithDependencies` and `infl`.
@@ -220,4 +204,3 @@ object GraphEquationSystem {
     initial: InputAssignment[U, V]
   ): GraphEquationSystem[U, V, E] =
     SimpleGraphEquationSystem(unknowns, inputUnknowns, edgeAction, source, target, outgoing, ingoing, initial, None)
-}

@@ -1,6 +1,5 @@
-ThisBuild / version := "0.8.0"
-ThisBuild / scalaVersion := "3.1.1"
-ThisBuild / crossScalaVersions := Seq("2.13.8", "3.0.1", "3.1.1")
+ThisBuild / version := "0.9.0-SNAPSHOT"
+ThisBuild / scalaVersion := "3.1.2"
 ThisBuild / organization := "it.unich.scalafix"
 
 ThisBuild / scalacOptions ++= Seq(
@@ -8,28 +7,10 @@ ThisBuild / scalacOptions ++= Seq(
   "-feature",
   "-unchecked",
   "-Xfatal-warnings",
+  "-source", "future",
+  "-language:adhocExtensions",
+  "-new-syntax"
 )
-
-ThisBuild / scalacOptions ++= {
-  CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((3, _)) => Seq(
-      "-source", "future",
-      "-language:adhocExtensions"
-    )
-    case _  => Seq(
-      "-opt-warnings:_",
-      "-Xsource:3",
-      "-Xlint:_",
-      "-Wconf",
-      "-Wdead-code",
-      "-Wextra-implicit",
-      "-Wnumeric-widen",
-      "-Woctal-literal",
-      "-Wunused:_",
-      "-Wvalue-discard",
-    )
- }
-}
 
 lazy val scalafix = project
   .in(file("."))

@@ -29,7 +29,7 @@ import scala.annotation.elidable
   * @tparam U the type of unknowns supported by this tracer
   * @tparam V the type of values for unknowns supported by this tracer
   */
-trait FixpointSolverTracer[U, V] {
+trait FixpointSolverTracer[U, V]:
   /**
     * This method is called when a fixpoint solver is started with the initial assignment.
     *
@@ -66,13 +66,12 @@ trait FixpointSolverTracer[U, V] {
     * @param rho the assignment at the beginning of the descending phase
     */
   def descendingBegins(rho: Assignment[U, V]): Unit
-}
 
 /**
   * This abstract class implements a tracer for fixpoint solvers which does nothing.
   * May be sub-classed in order to override only the methods we are interested in.
   */
-abstract class FixpointSolverTracerAdapter[U, V] extends FixpointSolverTracer[U, V] {
+abstract class FixpointSolverTracerAdapter[U, V] extends FixpointSolverTracer[U, V]:
   @elidable(TRACING)
   def evaluated(rho: Assignment[U, V], u: U, newval: V) = {}
 
@@ -87,7 +86,6 @@ abstract class FixpointSolverTracerAdapter[U, V] extends FixpointSolverTracer[U,
 
   @elidable(TRACING)
   def descendingBegins(rho: Assignment[U, V]) = {}
-}
 
 object FixpointSolverTracer {
 
@@ -99,36 +97,30 @@ object FixpointSolverTracer {
   /**
     * A tracer which prints all the informations on a PrintStream.
     */
-  class DebugFixpointSolverTracer[U, V](ps: PrintStream) extends FixpointSolverTracer[U, V] {
+  class DebugFixpointSolverTracer[U, V](ps: PrintStream) extends FixpointSolverTracer[U, V]:
     @elidable(TRACING)
-    def evaluated(rho: Assignment[U, V], u: U, newval: V) = {
+    def evaluated(rho: Assignment[U, V], u: U, newval: V) =
       ps.println(s"evaluated: $u oldvalue: ${rho(u)} newvalue: $newval")
-    }
 
     @elidable(TRACING)
-    def completed(rho: Assignment[U, V]) = {
+    def completed(rho: Assignment[U, V]) =
       ps.println(s"completed with assignment $rho")
-    }
 
     @elidable(TRACING)
-    def initialized(rho: Assignment[U, V]) = {
+    def initialized(rho: Assignment[U, V]) =
       ps.println(s"initialized with assignment $rho")
-    }
 
-    def ascendingBegins(rho: Assignment[U, V]) = {
+    def ascendingBegins(rho: Assignment[U, V]) =
       ps.println(s"ascending chain begins with assignment $rho")
-    }
 
     @elidable(TRACING)
-    def descendingBegins(rho: Assignment[U, V]) = {
+    def descendingBegins(rho: Assignment[U, V]) =
       ps.println(s"descending chain begins with assignment $rho")
-    }
-  }
 
   /**
     * A tracer which keeps track of performance measures.
     */
-  class PerformanceFixpointSolverTracer[U, V] extends FixpointSolverTracerAdapter[U, V] {
+  class PerformanceFixpointSolverTracer[U, V] extends FixpointSolverTracerAdapter[U, V]:
 
     private var numeval: Int = 0
 
@@ -138,10 +130,8 @@ object FixpointSolverTracer {
     def evaluations: Int = numeval
 
     @elidable(TRACING)
-    override def evaluated(rho: Assignment[U, V], u: U, newval: V) = {
+    override def evaluated(rho: Assignment[U, V], u: U, newval: V) =
       numeval += 1
-    }
-  }
 
   private val emptyFixpointSolverTracer = new EmptyFixpointSolverTracer[Any, Any]
 

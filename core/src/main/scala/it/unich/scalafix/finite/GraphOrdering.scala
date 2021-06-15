@@ -27,7 +27,7 @@ package it.unich.scalafix.finite
   *
   * @tparam N the type of the ordered element.
   */
-abstract class GraphOrdering[N] extends Ordering[N] {
+abstract class GraphOrdering[N] extends Ordering[N]:
   /**
     * Returns the elements which are part of the ordering in the correct order.
     */
@@ -48,15 +48,14 @@ abstract class GraphOrdering[N] extends Ordering[N] {
     * elements are marked with parenthesis.
     */
   override def toString: String =
-    stringPrefix + (toSeq map { x => if (isHead(x)) x.toString else "(" + x.toString + ")" }).mkString("( ", " ", " )")
-}
+    stringPrefix + (toSeq map { x => if isHead(x) then x.toString else "(" + x.toString + ")" }).mkString("( ", " ", " )")
 
-object GraphOrdering {
+object GraphOrdering:
 
   /**
     * A graph ordering where each element is an head, and the order is given by the sequence `elements`.
     */
-  private final class TrivialGraphOrdering[N](seq: Seq[N]) extends GraphOrdering[N] {
+  private final class TrivialGraphOrdering[N](seq: Seq[N]) extends GraphOrdering[N]:
     val stringPrefix = "GraphOrdering"
 
     def toSeq: Seq[N] = seq
@@ -64,7 +63,6 @@ object GraphOrdering {
     def isHead(x: N): Boolean = true
 
     def compare(x: N, y: N): Int = seq.indexOf(x) - seq.indexOf(y)
-  }
 
   /**
     * Build a graph ordering where each element is an head, and the order is given by the sequence of `elements`.
@@ -72,4 +70,3 @@ object GraphOrdering {
     * @todo Implementation is inefficient and can be improved using memoization
     */
   def apply[N](elements: N*): GraphOrdering[N] = new TrivialGraphOrdering(elements)
-}

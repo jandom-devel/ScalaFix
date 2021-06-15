@@ -23,7 +23,7 @@ import it.unich.scalafix.utils.Relation
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.prop.TableDrivenPropertyChecks
 
-class HierarchicalOrderingTest extends AnyFunSpec with TableDrivenPropertyChecks {
+class HierarchicalOrderingTest extends AnyFunSpec with TableDrivenPropertyChecks:
 
   private val seqp1 = Seq(Left, Val(0), Left, Val(1), Val(2), Val(3), Right, Right)
   private val seq1 = Seq(0, 1, 2, 3)
@@ -83,7 +83,7 @@ class HierarchicalOrderingTest extends AnyFunSpec with TableDrivenPropertyChecks
 
     it("has the correct heads") {
       forAll(table) { (o, _, _, _, _) =>
-        for (x <- o.toSeq) assertResult(o.isHead(x)) {
+        for x <- o.toSeq do assertResult(o.isHead(x)) {
           o.isHead(x)
         }
       }
@@ -91,11 +91,10 @@ class HierarchicalOrderingTest extends AnyFunSpec with TableDrivenPropertyChecks
 
     it("implements the correct ordering") {
       forAll(table) { (o, _, _, _, _) =>
-        for (x <- o.toSeq; y <- o.toSeq) {
+        for x <- o.toSeq; y <- o.toSeq do
           assertResult(scala.math.signum(o.toSeq.indexOf(x) compare o.toSeq.indexOf(y))) {
             scala.math.signum(o.compare(x, y))
           }
-        }
       }
     }
 
@@ -115,4 +114,3 @@ class HierarchicalOrderingTest extends AnyFunSpec with TableDrivenPropertyChecks
       }
     }
   }
-}

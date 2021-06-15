@@ -43,7 +43,7 @@ object HierarchicalOrderingSolver:
                    ordering: HierarchicalOrdering[U] = HierarchicalOrdering(DFOrdering(eqs)),
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
                  )
-                 (using factory: MutableAssignmentFactory[U,V,?]): MutableAssignment[U, V] =
+                 (using factory: MutableAssignmentFactory[U,V]): MutableAssignment[U, V] =
     import HierarchicalOrdering.*
 
     val current = factory(start)

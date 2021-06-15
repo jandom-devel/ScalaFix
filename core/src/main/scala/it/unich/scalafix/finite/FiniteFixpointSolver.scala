@@ -20,6 +20,7 @@ package it.unich.scalafix.finite
 
 import it.unich.scalafix.*
 import it.unich.scalafix.assignments.*
+import it.unich.scalafix.assignments.defaultMutableAssignmentFactory
 import it.unich.scalafix.lattice.Domain
 
 /**

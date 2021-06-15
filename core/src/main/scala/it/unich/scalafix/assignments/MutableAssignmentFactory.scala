@@ -1,5 +1,5 @@
 /**
-  * Copyright 2015, 2016, 2017 Gianluca Amato <gianluca.amato@unich.it>
+  * Copyright 2021 Gianluca Amato <gianluca.amato@unich.it>
   *
   * This file is part of ScalaFix.
   * ScalaFix is free software: you can redistribute it and/or modify
@@ -16,20 +16,19 @@
   * along with ScalaFix.  If not, see <http://www.gnu.org/licenses/>.
   */
 
-/**
-* The fixpoint package contains everything which is related to defining and solving systems
-* of equations. This package object defines some type aliases which are used in the API.
-*/
-package it.unich.scalafix
+package it.unich.scalafix.assignments
+
+import it.unich.scalafix.*
 
 /**
-  * The effect of an edge in a graph equation system.
+  * This is a factory which builds mutable assignments a simple assignment. Although some generic factories
+  * are provided in the library, other factories may be build for specialized use.
+  *
+  * @tparam U type for unknowns
+  * @tparam V type for values
+  * @tparam X type for the mutable assignment
   */
-type EdgeAction[U, V, E] = Assignment[U, V] => E => V
+trait MutableAssignmentFactory[U, V]:
+  def apply(rho: Assignment[U,V]): MutableAssignment[U,V]
 
-/**
-  * The constant to use in -Xelide-below in order to remove tracing code. Note that
-  * tracing might be required to make a program work, so only elide it if you
-  * known what you are doing.
-  */
-final val TRACING = 5000
+given defaultMutableAssignmentFactory[U,V]: MutableAssignmentFactory[U, V] =  MutableAssignment(_)

@@ -24,6 +24,8 @@ import it.unich.scalafix.lattice.Magma
 
 import org.scalatest.funspec.AnyFunSpec
 
+import scala.language.implicitConversions
+
 class GraphEquationSystemTest extends AnyFunSpec:
 
   private implicit object MagmaInt extends Magma[Int]:
@@ -94,8 +96,8 @@ class GraphEquationSystemTest extends AnyFunSpec:
         assertResult(4)(body(rho)(2))
         assertResult(9)(body(rho)(3))
 
-      val box1: Box[Int] = { (x: Int, y: Int) => x + (2 * y) }
-      val box2: Box[Int] = Box({ (x: Int, y: Int) => x + (2 * y) }, false)
+      val box1 = BoxAssignment { (x: Int, y: Int) => x + (2 * y) }
+      val box2 = BoxAssignment  ({ (x: Int, y: Int) => x + (2 * y) }, false)
       val eqs1 = simpleEqs.withBoxes(box1)
       val eqs2 = simpleEqs.withBoxes(box2)
 
@@ -117,8 +119,8 @@ class GraphEquationSystemTest extends AnyFunSpec:
         assertResult(3)(body(rho)(3))
         assertResult(9)(body(rho2)(1))
 
-      val box1: Box[Int] = { (x: Int, y: Int) => x + (2 * y) }
-      val box2: Box[Int] = Box({ (x: Int, y: Int) => x + (2 * y) }, false)
+      val box1 = BoxAssignment { (x: Int, y: Int) => x + (2 * y) }
+      val box2 = BoxAssignment ({ (x: Int, y: Int) => x + (2 * y) }, false)
       val ordering = DFOrdering(simpleEqs)
       val eqs1 = simpleEqs.withLocalizedBoxes(box1, ordering)
       val eqs2 = simpleEqs.withLocalizedBoxes(box2, ordering)
@@ -146,7 +148,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
         "evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\n"
       )(os.toString)
       os.reset()
-      val box: Box[Int] = { (x: Int, y: Int) => x + (2 * y) }
+      val box = BoxAssignment { (x: Int, y: Int) => x + (2 * y) }
       val boxTracingEqs = tracingEqs.withBoxes(box)
       boxTracingEqs.body(rho)(0)
       assertResult(

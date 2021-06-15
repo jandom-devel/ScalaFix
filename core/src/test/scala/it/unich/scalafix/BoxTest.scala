@@ -22,13 +22,13 @@ import org.scalatest.funspec.AnyFunSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 class BoxTest extends AnyFunSpec with ScalaCheckPropertyChecks:
-  // Why we need to import
-  import scala.math.Ordering.{Int as IntOrdering}
 
-  private val intWidening: Box[Int] = { (x: Int, y: Int) => if x >= y then x else Int.MaxValue }
-  private val intNarrowing: Box[Int] = { (x: Int, y: Int) => if x == Int.MaxValue then y else x }
-  private val intMax: Box[Int] = { (x: Int, y: Int) => x max y }
-  private val intUpperBound: Box[Int] = Box.upperBound[Int]
+  import scala.math.Ordering.given
+
+  private val intWidening = Box { (x: Int, y: Int) => if x >= y then x else Int.MaxValue }
+  private val intNarrowing = Box { (x: Int, y: Int) => if x == Int.MaxValue then y else x }
+  private val intMax = Box { (x: Int, y: Int) => x max y }
+  private val intUpperBound = Box.upperBound[Int]
 
   def testIsNotRight[V](box: Box[V]): Unit =
     it("is not a right box") {

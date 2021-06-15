@@ -68,7 +68,7 @@ object PriorityWorkListSolver:
                    ordering: Ordering[U] = new DynamicPriority[U],
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
                  )
-                 (using factory: MutableAssignmentFactory[U,V,?]): MutableAssignment[U, V] =
+                 (using factory: MutableAssignmentFactory[U,V]): MutableAssignment[U, V] =
     val infl = mutable.Map.empty[U, mutable.Set[U]]
     val workList = mutable.PriorityQueue.empty[U](ordering)
     workList ++= wanted

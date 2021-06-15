@@ -40,7 +40,7 @@ object KleeneSolver:
                    start: Assignment[U, V] = eqs.initial,
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
                  )
-                 (using factory: MutableAssignmentFactory[U,V,?]): MutableAssignment[U, V] =
+                 (using factory: MutableAssignmentFactory[U,V]): MutableAssignment[U, V] =
     var current = factory(start)
     var next = factory(start)
     tracer.initialized(current)

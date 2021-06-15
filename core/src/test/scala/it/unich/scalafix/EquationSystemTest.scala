@@ -23,6 +23,8 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 
 import org.scalatest.funspec.AnyFunSpec
 
+import scala.language.implicitConversions
+
 class EquationSystemTest extends AnyFunSpec:
 
   private val simpleEqs = EquationSystem[Int, Int](
@@ -37,7 +39,7 @@ class EquationSystemTest extends AnyFunSpec:
     initial = identity[Int]
   )
   private val rho: Assignment[Int, Int] = simpleEqs.initial
-  private val box: Box[Int] = { (x: Int, y: Int) => x * y }
+  private val box = BoxAssignment { (x: Int, y: Int) => x * y }
 
   describe("An equation system") {
     it("computes r.h.s. according to its body function") {

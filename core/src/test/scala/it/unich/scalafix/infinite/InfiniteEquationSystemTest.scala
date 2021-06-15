@@ -23,6 +23,7 @@ import it.unich.scalafix.*
 
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import it.unich.scalafix.assignments.defaultMutableAssignmentFactory
 
 import scala.collection.mutable
 
@@ -30,8 +31,6 @@ import scala.collection.mutable
   * Test solvers for finite equation systems.
   */
 class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
-
-  import Assignment.given
 
   private val simpleEqs = EquationSystem[Int, Int](
     body = { (rho: Int => Int) =>
@@ -46,7 +45,7 @@ class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyCheck
     initial = { _ => 0 }
   )
 
-  private val maxBox: Box[Int] = { (x: Int, y: Int) => x max y }
+  private val maxBox = BoxAssignment { (x: Int, y: Int) => x max y }
   private val startRho = simpleEqs.initial
 
   private type SimpleSolver[U, V] = (EquationSystem[U, V], Seq[U], Assignment[U, V]) => MutableAssignment[U, V]

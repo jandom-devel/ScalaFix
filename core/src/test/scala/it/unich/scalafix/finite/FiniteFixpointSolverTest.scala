@@ -47,8 +47,8 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
   private val solution = Map[Int, Double](0 -> 0, 1 -> 11, 2 -> 10, 3 -> 11)
   private val emptysol = (0 to 3).map { _ -> Double.NegativeInfinity }.toMap
   private val onlyWideningSol = Map[Int, Double](0 -> 0, 1 -> Double.PositiveInfinity, 2 -> 10, 3 -> 11)
-  private val doublewidening = { (x: Double, y: Double) => if x.isNegInfinity then y else if x >= y then x else Double.PositiveInfinity }
-  private val doublenarrowing = { (x: Double, y: Double) => if x.isPosInfinity then y else x }
+  private val doublewidening = BoxAssignment({ (x: Double, y: Double) => if x.isNegInfinity then y else if x >= y then x else Double.PositiveInfinity })
+  private val doublenarrowing = BoxAssignment({ (x: Double, y: Double) => if x.isPosInfinity then y else x })
   private val CC77params = FiniteFixpointSolver.CC77[Int, Double](Solver.WorkListSolver, doublewidening, doublenarrowing)
 
   def assertSolution(m: Map[Int, Double])(b: Int => Double): Unit =

@@ -1,5 +1,5 @@
 /**
-  * Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
+  * Copyright 2015, 2016, 2021 Gianluca Amato <gianluca.amato@unich.it>
   *
   * This file is part of ScalaFix.
   * ScalaFix is free software: you can redistribute it and/or modify
@@ -19,8 +19,6 @@
 package it.unich.scalafix
 
 import it.unich.scalafix.lattice.{Domain, Magma}
-
-import scala.language.implicitConversions
 
 /**
   * A Box is a way to combine two values into a new one. It is a specialization of the functional type
@@ -56,7 +54,7 @@ abstract class Box[V] extends ((V, V) => V):
   def isRight: Boolean
 
   /**
-    * It returns true if this box is immutable, i.e., if the `apply` method does not change its behaviour
+    * It returns true if this box is guaranteed to be immutable, i.e., if the `apply` method does not change its behaviour
     * over time.
     */
   def isImmutable: Boolean
@@ -75,55 +73,43 @@ abstract class Box[V] extends ((V, V) => V):
 /**
   * The `Box` object defines several factories for building boxes.
   */
-// TODO: Decide whether we want to keep the variants for PartiallyOrdered.
 object Box:
 
   abstract class ImmutableBox[V] extends Box[V]:
     def isImmutable = true
-
     def copy: this.type = this
-
-  private abstract class MutableBox[V] extends Box[V]:
-    def isImmutable = false
 
   private object RightBox extends ImmutableBox[Any]:
     def apply(x: Any, y: Any): Any = y
-
-    def isIdempotent = true
-
     def isRight = true
+    def isIdempotent = true
 
   private object LeftBox extends ImmutableBox[Any]:
     def apply(x: Any, y: Any): Any = x
-
+    def isRight = false
     def isIdempotent = true
 
-    def isRight = false
-
+  // We assume f is immutable, since we would not know how to handle the case with f mutable.
   private final class FromFunction[V](f: (V, V) => V, val isIdempotent: Boolean) extends ImmutableBox[V]:
     def apply(x: V, y: V): V = f(x, y)
-
     def isRight = false
 
+  // we only consider the case when either `first` or `second` is not a right box
   private final class Warrowing[V: PartialOrdering](widening: Box[V], narrowing: Box[V]) extends Box[V]:
-    def apply(x: V, y: V): V = if implicitly[PartialOrdering[V]].lteq(y, x) then narrowing(x, y) else widening(x, y)
-
-    def isIdempotent = false
-
-    def isRight: Boolean = widening.isRight && narrowing.isRight
-
+    def apply(x: V, y: V): V = if summon[PartialOrdering[V]].lteq(y, x) then narrowing(x, y) else widening(x, y)
+    def isRight: Boolean = false
+    def isIdempotent: Boolean = false
     def isImmutable: Boolean = widening.isImmutable && narrowing.isImmutable
+    def copy: Warrowing[V] = if isImmutable then this else Warrowing(widening.copy, narrowing.copy)
 
-    def copy: Warrowing[V] = if isImmutable then this else new Warrowing(widening.copy, narrowing.copy)
-
-  private final class Cascade[V](first: Box[V], delay: Int, second: Box[V]) extends MutableBox[V]:
+  // we only consider the case when `delay` > 0 and either `first` or `second` is not a right box
+  private final class Cascade[V](first: Box[V], delay: Int, second: Box[V]) extends Box[V]:
     var steps = 0
 
-    def isIdempotent = false
-
     def isRight = false
-
-    def copy = new Cascade(first.copy, delay, second.copy)
+    def isIdempotent = false
+    def isImmutable = false
+    def copy = Cascade(first.copy, delay, second.copy)
 
     def apply(x: V, y: V): V =
       if steps < delay then
@@ -133,7 +119,7 @@ object Box:
         second(x, y)
 
   /**
-    * A box which always returns its right component (new contribution)
+    * A box which always returns its right component (new contribution).
     */
   def right[V]: ImmutableBox[V] = RightBox.asInstanceOf[ImmutableBox[V]]
 
@@ -143,34 +129,23 @@ object Box:
   def left[V]: ImmutableBox[V] = LeftBox.asInstanceOf[ImmutableBox[V]]
 
   /**
-    * A box built from a function `f: (V,V) => V`. The box is declared to be idempotent and immutable.
-    *
-    * @param f the function to use for the `apply` method of the new box.
-    */
-  implicit def apply[V](f: (V, V) => V): ImmutableBox[V] =
-    new FromFunction(f, true)
-
-  /**
     * A box built from a function `f: (V,V) => V`. The box is declared to be immutable, while idempotency
     * depends from the parameter `areIdempotent`
     *
     * @param f            the function to use for the `apply` method of the new box.
-    * @param isIdempotent determines whether the returned box is declared to be idempotent
+    * @param isIdempotent determines whether the returned box is declared to be idempotent (default is `true`)
     */
-  def apply[V](f: (V, V) => V, isIdempotent: Boolean): Box[V] =
-    new FromFunction(f, isIdempotent)
+  def apply[V](f: (V, V) => V, isIdempotent: Boolean = true): Box[V] = FromFunction(f, isIdempotent)
 
   /**
     * A box given by the upper bound of a type `V` endowed with a directed partial ordering.
     */
-  def upperBound[V: Domain]: ImmutableBox[V] =
-    new FromFunction(Domain[V].upperBound, true)
+  def upperBound[V: Domain]: ImmutableBox[V] = FromFunction(Domain[V].upperBound, true)
 
   /**
     * A box given by the magma operator on a type `V`.
     */
-  def magma[V: Magma]: ImmutableBox[V] =
-    new FromFunction(Magma[V].op, true)
+  def magma[V: Magma]: ImmutableBox[V] = FromFunction(Magma[V].op, true)
 
   /**
     * A mutable box which behaves as `this` for the first `delay` steps and as `that` for the rest of its
@@ -183,7 +158,7 @@ object Box:
     else if delay == 0 then
       second
     else
-      new Cascade(first, delay, second)
+      Cascade(first, delay, second)
 
   /**
     * A warrowing obtained by combining the given widenings and narrowings, as defined in the paper:
@@ -191,7 +166,7 @@ object Box:
     * "Efficiently intertwining widenings and narrowings".
     * Science of Computer Programming
     *
-    * @tparam V the type of values, should be endowed with a partial ordering
+    * @tparam V        the type of values, should be endowed with a partial ordering
     * @param widening  a widening over V
     * @param narrowing a narrowing over V
     */
@@ -199,4 +174,4 @@ object Box:
     if widening.isRight && narrowing.isRight then
       right[V]
     else
-      new Warrowing(widening, narrowing)
+      Warrowing(widening, narrowing)

@@ -1,5 +1,5 @@
 /**
-  * Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
+  * Copyright 2015, 2016, 2021 Gianluca Amato <gianluca.amato@unich.it>
   *
   * This file is part of ScalaFix.
   * ScalaFix is free software: you can redistribute it and/or modify
@@ -18,8 +18,6 @@
 
 package it.unich.scalafix
 
-import scala.language.implicitConversions
-
 /**
   * A BoxAssignment maps a subset of unknowns to a Box. When `isDefinedAt(u)`
   * is false for a given unknown `u`, the corresponding `apply(u)` should be a right box.
@@ -29,8 +27,6 @@ import scala.language.implicitConversions
   * equivalent copy of `this`. The copy method should try to minimize object duplication.
   */
 abstract class BoxAssignment[-U, V] extends PartialFunction[U, Box[V]]:
-  outer =>
-
   /**
     * Returns true if the assignment is empty, i.e., it is undefined for all program points.
     */
@@ -65,7 +61,7 @@ abstract class BoxAssignment[-U, V] extends PartialFunction[U, Box[V]]:
     if isEmpty then
       this
     else
-      new BoxAssignment.RestrictAssignment(this, domain)
+      BoxAssignment.RestrictAssignment(this, domain)
 
 /**
   * The `BoxAssignment` object defines factories for building box assignments.
@@ -74,17 +70,11 @@ object BoxAssignment:
 
   private object EmptyAssigment extends BoxAssignment[Any, Any]:
     def apply(u: Any): Box.ImmutableBox[Any] = Box.right[Any]
-
     def isDefinedAt(u: Any) = false
-
     def isEmpty = true
-
     def boxesAreIdempotent = true
-
     def boxesAreRight = true
-
     def boxesAreImmutable = true
-
     def copy: this.type = this
 
   /**
@@ -97,18 +87,12 @@ object BoxAssignment:
     */
   private final class ConstantAssignment[V](box: Box[V]) extends BoxAssignment[Any, V]:
     def isDefinedAt(u: Any) = true
-
     def apply(u: Any): Box[V] = box
-
     def isEmpty = false
-
     def boxesAreIdempotent: Boolean = box.isIdempotent
-
     def boxesAreRight: Boolean = box.isRight
-
     def boxesAreImmutable: Boolean = box.isImmutable
-
-    def copy: ConstantAssignment[V] = if boxesAreImmutable then this else new ConstantAssignment(box.copy)
+    def copy: ConstantAssignment[V] = if boxesAreImmutable then this else ConstantAssignment(box.copy)
 
   /**
     * A box assignment which returns a copy of the same box for each program point.
@@ -119,20 +103,13 @@ object BoxAssignment:
     */
   private final class TemplateAssignment[V](box: Box[V]) extends BoxAssignment[Any, V]:
     private val hash = scala.collection.mutable.Map.empty[Any, Box[V]]
-
     def isDefinedAt(u: Any) = true
-
     def apply(u: Any): Box[V] = hash.getOrElseUpdate(u, box.copy)
-
     def isEmpty = false
-
     def boxesAreIdempotent: Boolean = box.isIdempotent
-
     def boxesAreImmutable: Boolean = box.isImmutable
-
     def boxesAreRight: Boolean = box.isRight
-
-    def copy: TemplateAssignment[V] = if boxesAreImmutable then this else new TemplateAssignment(box)
+    def copy: TemplateAssignment[V] = if boxesAreImmutable then this else TemplateAssignment(box)
 
   /**
     * A box assignment which restrict the assignment boxes to the set of program points which satisfy domain.
@@ -146,33 +123,21 @@ object BoxAssignment:
     */
   private final class RestrictAssignment[U, V, U1 <: U](boxes: BoxAssignment[U, V], domain: U1 => Boolean) extends BoxAssignment[U1, V]:
     def apply(u: U1): Box[V] = if domain(u) then boxes(u) else Box.right[V]
-
     def isDefinedAt(u: U1): Boolean = domain(u) && boxes.isDefinedAt(u)
-
     def isEmpty: Boolean = boxes.isEmpty
-
     def boxesAreIdempotent: Boolean = boxes.boxesAreIdempotent
-
     def boxesAreImmutable: Boolean = boxes.boxesAreImmutable
-
     def boxesAreRight: Boolean = boxes.boxesAreRight
-
-    def copy: RestrictAssignment[U, V, U1] = if boxesAreImmutable then this else new RestrictAssignment(boxes.copy, domain)
+    def copy: RestrictAssignment[U, V, U1] = if boxesAreImmutable then this else RestrictAssignment(boxes.copy, domain)
 
   private final class WarrowingAssignment[U, V: PartialOrdering](widenings: BoxAssignment[U, V], narrowings: BoxAssignment[U, V]) extends BoxAssignment[U, V]:
     def apply(u: U): Box[V] = Box.warrowing(widenings(u), narrowings(u))
-
     def isDefinedAt(x: U): Boolean = widenings.isDefinedAt(x) || narrowings.isDefinedAt(x)
-
     def isEmpty: Boolean = widenings.isEmpty && narrowings.isEmpty
-
     def boxesAreIdempotent = false
-
     def boxesAreImmutable: Boolean = widenings.boxesAreImmutable && narrowings.boxesAreImmutable
-
     def boxesAreRight: Boolean = widenings.boxesAreRight && narrowings.boxesAreRight
-
-    def copy: WarrowingAssignment[U, V] = if boxesAreImmutable then this else new WarrowingAssignment(widenings.copy, narrowings.copy)
+    def copy: WarrowingAssignment[U, V] = if boxesAreImmutable then this else WarrowingAssignment(widenings.copy, narrowings.copy)
 
   /**
     * A box assignment which returns the same box for each program point. If box is mutable, different copies
@@ -181,24 +146,22 @@ object BoxAssignment:
     * @tparam V the type of values
     * @param box the template for box to be returned at each program point
     */
-  implicit def apply[V](box: Box[V]): BoxAssignment[Any, V] =
-    if box.isImmutable then
-      new ConstantAssignment(box)
-    else
-      new TemplateAssignment(box)
+  def apply[V](box: Box[V]): BoxAssignment[Any, V] =
+      if box.isImmutable then
+        ConstantAssignment(box)
+      else
+        TemplateAssignment(box)
 
   /**
     * A box assignment which returns the immutable and idempotent box corresponding to the map  `f: (V,V) => V`,
     * for each program point.
     */
-  implicit def apply[V](f: (V, V) => V): BoxAssignment[Any, V] =
-    new ConstantAssignment[V](Box(f))
+  def apply[V](f: (V,V) => V, isIdempotent: Boolean = true): BoxAssignment[Any,V] = ConstantAssignment[V](Box(f, isIdempotent))
 
   /**
     * A box assignment which is undefined for each program point.
     */
   def empty[V]: BoxAssignment[Any, V] = EmptyAssigment.asInstanceOf[BoxAssignment[Any, V]]
-
 
   /**
     * A warrowing assignment obtained by combining the given widenings and narrowings, as defined in the paper:
@@ -213,6 +176,6 @@ object BoxAssignment:
     */
   def warrowing[U, V: PartialOrdering](widenings: BoxAssignment[U, V], narrowings: BoxAssignment[U, V]): BoxAssignment[U, V] =
     if widenings.boxesAreRight && narrowings.boxesAreRight then
-      Box.right[V]
+      BoxAssignment(Box.right[V])
     else
-      new WarrowingAssignment(widenings, narrowings)
+      WarrowingAssignment(widenings, narrowings)

@@ -40,7 +40,7 @@ object WorkListSolver:
                    start: Assignment[U, V] = eqs.initial,
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
                  )
-                 (using factory: MutableAssignmentFactory[U,V,?]): MutableAssignment[U, V] =
+                 (using factory: MutableAssignmentFactory[U,V]): MutableAssignment[U, V] =
     val current = factory(start)
     tracer.initialized(current)
     // is it better to use a Queue for a worklist ?

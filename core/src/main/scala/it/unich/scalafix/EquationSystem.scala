@@ -23,6 +23,16 @@ import it.unich.scalafix.lattice.Magma
 import scala.collection.mutable
 
 /**
+  * The body of an equation system, i.e., a map from assignments to assignments.
+  */
+type Body[U, V] = Assignment[U, V] => Assignment[U, V]
+
+/**
+  * A body which also calculates dependencies among unknowns.
+  */
+type BodyWithDependencies[U, V] = Assignment[U, V] => Assignment[U, (V, Iterable[U])]
+
+/**
   * This is the abstract class for a generic equation system.
   *
   * @tparam U the type for the unknowns of this equation system.

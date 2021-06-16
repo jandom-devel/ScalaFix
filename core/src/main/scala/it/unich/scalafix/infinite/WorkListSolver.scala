@@ -34,14 +34,14 @@ object WorkListSolver:
     * @tparam V type of values of the equatiom system
     * @param eqs    equation system to solve
     * @param wanted the unknowns we want to solve
-    * @param start  assignment to start the evaluation (defaults to `eqs.initial`)
+    * @param start  assignment to start the evaluation
     * @param tracer a tracer to track the behaviour of the solver (defaults to the empty tracer)
     * @return the solution of the equation system
     */
   def apply[U, V](eqs: EquationSystem[U, V])
                  (
+                   start: Assignment[U, V],
                    wanted: Iterable[U],
-                   start: Assignment[U, V] = eqs.initial,
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
                  )
                  (using factory: MutableAssignmentFactory[U,V]): MutableAssignment[U, V] =

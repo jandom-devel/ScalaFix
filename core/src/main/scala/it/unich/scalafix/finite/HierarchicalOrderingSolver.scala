@@ -31,7 +31,7 @@ object HierarchicalOrderingSolver:
     * @tparam U type of the unknowns for the equation system
     * @tparam V type of values of the equatiom system
     * @param eqs      equation system to solve
-    * @param start    assignment to start the evaluation (defaults to `eqs.initial`)
+    * @param start    assignment to start the evaluation
     * @param ordering a hierarchical ordering which specifies priorities between unknowns (defaults to the
     *                 hierarchical ordering induce by the depth-first ordering over `eqs`)
     * @param tracer   a tracer to track the behaviour of the solver (defaults to the empty tracer)

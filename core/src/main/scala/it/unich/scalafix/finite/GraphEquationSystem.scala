@@ -92,7 +92,6 @@ case class SimpleGraphEquationSystem[U, V, E]
   target: E => U,
   outgoing: U => Iterable[E],
   ingoing: U => Iterable[E],
-  initial: Assignment[U, V],
   tracer: Option[EquationSystemTracer[U, V]] = None
 )(implicit val dom: Domain[V]) extends EquationSystemBase[U, V] with GraphEquationSystem[U, V, E]:
 
@@ -128,11 +127,11 @@ case class SimpleGraphEquationSystem[U, V, E]
   def withBoxes(boxes: BoxAssignment[U, V]): FiniteEquationSystem[U, V] =
     val newbody = bodyWithBoxAssignment(boxes)
     val newinfl = if boxes.boxesAreIdempotent then infl else infl.withDiagonal
-    SimpleFiniteEquationSystem(newbody, initial, inputUnknowns, unknowns, newinfl, tracer)
+    SimpleFiniteEquationSystem(newbody, inputUnknowns, unknowns, newinfl, tracer)
 
   def withBaseAssignment(init: PartialFunction[U, V])(implicit magma: Magma[V]): FiniteEquationSystem[U, V] =
     val newbody = bodyWithBaseAssignment(init, magma.op)
-    SimpleFiniteEquationSystem(newbody, initial, inputUnknowns, unknowns, infl, tracer)
+    SimpleFiniteEquationSystem(newbody, inputUnknowns, unknowns, infl, tracer)
 
   def withLocalizedBoxes(boxes: BoxAssignment[U, V], ordering: Ordering[U]): GraphEquationSystem[U, V, E] =
     val newEdgeAction =
@@ -184,7 +183,7 @@ case class SimpleGraphEquationSystem[U, V, E]
               widenings(x)(rho(x), result._1)
             else if dom.lt(result._1, rho(x)) then narrowings(x)(rho(x), result._1) else result._1
     val newInfl = if widenings.boxesAreIdempotent && narrowings.boxesAreIdempotent then infl else infl.withDiagonal
-    SimpleFiniteEquationSystem(newBody, initial, inputUnknowns, unknowns, newInfl)
+    SimpleFiniteEquationSystem(newBody, inputUnknowns, unknowns, newInfl)
 
 object GraphEquationSystem:
   /**
@@ -200,6 +199,5 @@ object GraphEquationSystem:
     target: E => U,
     outgoing: U => Iterable[E],
     ingoing: U => Iterable[E],
-    initial: Assignment[U, V]
   ): GraphEquationSystem[U, V, E] =
-    SimpleGraphEquationSystem(unknowns, inputUnknowns, edgeAction, source, target, outgoing, ingoing, initial, None)
+    SimpleGraphEquationSystem(unknowns, inputUnknowns, edgeAction, source, target, outgoing, ingoing, None)

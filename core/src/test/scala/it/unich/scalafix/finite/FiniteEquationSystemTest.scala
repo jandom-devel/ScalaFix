@@ -43,7 +43,6 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
       }
     },
     inputUnknowns = Set(0, 1, 2, 3),
-    initial = Assignment.conditional(3, 10.0, { _ => 0.0 }),
     unknowns = Set(0, 1, 2, 3),
     infl = Relation(Map(0 -> Set(0, 1, 2), 1 -> Set(2), 2 -> Set(1), 3 -> Set(1, 3))))
 
@@ -52,7 +51,7 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
   private val maxBox = BoxAssignment { (x: Double, y: Double) => x max y }
   private val lastBox = BoxAssignment { (_: Double, x2: Double) => x2 }
 
-  private val startRho: Assignment[Int, Double] = simpleEqs.initial
+  private val startRho: Assignment[Int, Double] = Assignment.conditional(3, 10.0, { _ => 0.0 })
 
   private type SimpleSolver[U, V] = (FiniteEquationSystem[U, V], Assignment[U, V]) => MutableAssignment[U, V]
 

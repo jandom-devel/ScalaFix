@@ -46,8 +46,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
     outgoing = Map((0, Seq('a')), (1, Seq('b')), (2, Seq('c')), (3, Seq('d'))),
     ingoing = Map((0, Seq()), (1, Seq('a', 'd')), (2, Seq('b')), (3, Seq('c'))),
     unknowns = unknowns,
-    inputUnknowns = Set(0),
-    initial = { _ => 0 }
+    inputUnknowns = Set(0)
   )
   private val rho: Assignment[Int, Int] = identity
 

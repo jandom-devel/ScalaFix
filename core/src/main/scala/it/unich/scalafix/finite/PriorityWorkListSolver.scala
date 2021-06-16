@@ -44,7 +44,7 @@ object PriorityWorkListSolver:
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
                  (
-                   start: Assignment[U, V] = eqs.initial,
+                   start: Assignment[U, V],
                    ordering: Ordering[U] = DFOrdering(eqs),
                    restart: (V, V) => Boolean = { (_: V, _: V) => false },
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]

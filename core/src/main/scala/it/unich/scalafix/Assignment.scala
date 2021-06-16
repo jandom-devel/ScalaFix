@@ -18,6 +18,8 @@
 
 package it.unich.scalafix
 
+import it.unich.scalafix.lattice.Domain
+
 /**
   * An assignment for an equation system is a map from unknowns to values.
   *

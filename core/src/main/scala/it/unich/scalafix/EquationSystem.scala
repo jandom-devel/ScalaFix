@@ -52,11 +52,6 @@ trait EquationSystem[U, V]:
   val bodyWithDependencies: BodyWithDependencies[U, V]
 
   /**
-    * An initial value for starting the analyzer
-    */
-  val initial: Assignment[U, V]
-
-  /**
     * The unknowns which may be considered the input to this equation system.
     */
   val inputUnknowns: U => Boolean
@@ -153,7 +148,6 @@ abstract class EquationSystemBase[U, V] extends EquationSystem[U, V]:
 case class SimpleEquationSystem[U, V]
 (
   body: Body[U, V],
-  initial: Assignment[U, V],
   inputUnknowns: U => Boolean,
   tracer: Option[EquationSystemTracer[U, V]] = None
 ) extends EquationSystemBase[U, V]:
@@ -171,5 +165,5 @@ object EquationSystem:
     * Returns the standard implementation of EquationSystem. All fields must be provided explicitly by
     * the user with the exception of `bodyWithDependencies`.
     */
-  def apply[U, V](body: Body[U, V], initial: Assignment[U, V], inputUnknowns: U => Boolean = { (_: U) => false }): EquationSystem[U, V] =
-    SimpleEquationSystem(body, initial, inputUnknowns, None)
+  def apply[U, V](body: Body[U, V], inputUnknowns: U => Boolean = { (_: U) => false }): EquationSystem[U, V] =
+    SimpleEquationSystem(body, inputUnknowns, None)

@@ -29,17 +29,15 @@ import it.unich.scalafix.utils.Relation
   *
   * @tparam V type of the values
   * @param n number of unknowns
-  * @param v the initial v
   */
-class CliqueGraphEQS[V](n: Int, v: Double) extends SimpleGraphEquationSystem[Int, Double, (Int, Int)](
+class CliqueGraphEQS[V](n: Int) extends SimpleGraphEquationSystem[Int, Double, (Int, Int)](
   unknowns = 0 until n,
   inputUnknowns = Set(0),
   edgeAction = { (rho: Assignment[Int, Double]) => (p: (Int, Int)) => rho(p._1) + 1 },
   sources = { (e: (Int, Int)) => Seq(e._1) },
   target = { (e: (Int, Int)) => e._2 },
   outgoing = { (i: Int) => (i + 1 until n) map ((i, _)) },
-  ingoing = { (i: Int) => (0 until i) map ((_, i)) },
-  initial = { _ => v }
+  ingoing = { (i: Int) => (0 until i) map ((_, i)) }
 ):
   override val infl: Relation[Int] = Relation({ (i: Int) => (i + 1 until n).toSet })
   override val body: Body[Int, Double] =

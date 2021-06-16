@@ -35,10 +35,9 @@ class EquationSystemTest extends AnyFunSpec:
         case 2 => rho(1) + 1
         case 3 => rho(3)
       }
-    },
-    initial = identity[Int]
+    }
   )
-  private val rho: Assignment[Int, Int] = simpleEqs.initial
+  private val rho: Assignment[Int, Int] = identity[Int]
   private val box = BoxAssignment { (x: Int, y: Int) => x * y }
 
   describe("An equation system") {

@@ -30,17 +30,15 @@ import it.unich.scalafix.utils.Relation
   *
   * @tparam V type of the values
   * @param n number of unknowns
-  * @param v the initial value for all unknowns
   */
-class ChainGraphEQS[V: Domain](n: Int, v: V) extends SimpleGraphEquationSystem[Int, V, Int](
+class ChainGraphEQS[V: Domain](n: Int) extends SimpleGraphEquationSystem[Int, V, Int](
   unknowns = 0 until n,
   inputUnknowns = Set(0),
   edgeAction = { (rho: Assignment[Int, V]) => (i: Int) => rho(i) },
   sources = { (i: Int) => Seq(i) },
   target = { (i: Int) => i + 1 },
   outgoing = { (i: Int) => if i == n - 1 then Seq.empty else Seq(i) },
-  ingoing = { (i: Int) => if i == 0 then Seq.empty else Seq(i - 1) },
-  initial = { _ => v }
+  ingoing = { (i: Int) => if i == 0 then Seq.empty else Seq(i - 1) }
 ):
   override val infl: Relation[Int] = Relation({ (i: Int) => Set(i + 1) })
   override val body: Body[Int, V] = { (rho: Assignment[Int, V]) => (i: Int) => if i > 0 then rho(i - 1) else rho(0) }
@@ -53,9 +51,8 @@ class ChainGraphEQS[V: Domain](n: Int, v: V) extends SimpleGraphEquationSystem[I
   *
   * @tparam V type of the values
   * @param n number of unknowns
-  * @param v the initial value for all unknowns
   */
-class ChainSimpleGraphEQS[V: Domain](n: Int, v: V) extends SimpleGraphEquationSystem[Int, V, Int](
+class ChainSimpleGraphEQS[V: Domain](n: Int) extends SimpleGraphEquationSystem[Int, V, Int](
   unknowns = 0 until n,
   inputUnknowns = Set(0),
   edgeAction = { (rho: Assignment[Int, V]) => (i: Int) => rho(i) },
@@ -63,7 +60,6 @@ class ChainSimpleGraphEQS[V: Domain](n: Int, v: V) extends SimpleGraphEquationSy
   target = { (i: Int) => i + 1 },
   outgoing = { (i: Int) => Seq(i) },
   ingoing = { (i: Int) => if i == 0 then Seq.empty else Seq(i - 1) },
-  initial = { _ => v },
 )
 
 /**
@@ -72,11 +68,9 @@ class ChainSimpleGraphEQS[V: Domain](n: Int, v: V) extends SimpleGraphEquationSy
   *
   * @tparam V type of the values
   * @param n number of unknowns
-  * @param v the initial value for all unknowns
   */
-class ChainSimpleFiniteEQS[V](n: Int, v: V) extends SimpleFiniteEquationSystem[Int, V](
+class ChainSimpleFiniteEQS[V](n: Int) extends SimpleFiniteEquationSystem[Int, V](
   body = { (rho: Assignment[Int, V]) => (i: Int) => if i > 0 then rho(i - 1) else rho(0) },
-  initial = { _ => v },
   inputUnknowns = Set(0),
   unknowns = 0 to n,
   infl = Relation({ (i: Int) => Set(i + 1) })
@@ -89,9 +83,8 @@ class ChainSimpleFiniteEQS[V](n: Int, v: V) extends SimpleFiniteEquationSystem[I
   * @tparam V type of the values
   * @param v the initial value for all unknowns
   */
-class ChainInfiniteEQS[V](v: V) extends SimpleEquationSystem[Int, V](
+class ChainInfiniteEQS[V] extends SimpleEquationSystem[Int, V](
   body = { (rho: Assignment[Int, V]) => (i: Int) => if i > 0 then rho(i - 1) else rho(0) }: Body[Int, V],
-  initial = { _ => v },
   inputUnknowns = Set(0)
 ):
   override val bodyWithDependencies: BodyWithDependencies[Int, V] =
@@ -104,8 +97,7 @@ class ChainInfiniteEQS[V](v: V) extends SimpleEquationSystem[Int, V](
   * @tparam V type of the values
   * @param v the initial value for all unknowns
   */
-class ChainInfinite2EQS[V](v: V) extends SimpleEquationSystem[Int, V](
+class ChainInfinite2EQS[V] extends SimpleEquationSystem[Int, V](
   body = { (rho: Assignment[Int, V]) => (i: Int)   => if i > 0 then rho(i - 1) else rho(0) }: Body[Int, V],
-  initial = { _ => v },
   inputUnknowns = Set(0)
 )

@@ -41,14 +41,13 @@ class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyCheck
           val n = (x - 1) / 2
           rho(6 * n + 4)
         }
-    },
-    initial = { _ => 0 }
+    }
   )
 
   private val maxBox = BoxAssignment { (x: Int, y: Int) => x max y }
-  private val startRho = simpleEqs.initial
+  private val startRho = Assignment(0)
 
-  private type SimpleSolver[U, V] = (EquationSystem[U, V], Seq[U], Assignment[U, V]) => MutableAssignment[U, V]
+  private type SimpleSolver[U, V] = (EquationSystem[U, V], Assignment[U, V],  Seq[U]) => MutableAssignment[U, V]
 
   class EvaluationOrderListener[U, V] extends FixpointSolverTracerAdapter[U, V]:
     private val buffer = mutable.Buffer.empty[Any]
@@ -63,7 +62,7 @@ class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyCheck
     */
   def testExpectedResult(solver: SimpleSolver[Int, Int]) =
     it("gives the expected result starting from startRho with max") {
-      val finalRho = solver(simpleEqs.withBoxes(maxBox), Seq(4), startRho)
+      val finalRho = solver(simpleEqs.withBoxes(maxBox), startRho, Seq(4))
       assertResult(Set(0, 1, 2, 4))(finalRho.unknowns)
       assertResult(2)(finalRho(1))
       assertResult(2)(finalRho(2))

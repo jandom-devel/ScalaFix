@@ -31,13 +31,13 @@ object RoundRobinSolver:
     * @tparam U type of the unknowns for the equation system
     * @tparam V type of values of the equatiom system
     * @param eqs    equation system to solve
-    * @param start  a assignment to start the evaluation (defaults to `eqs.initial`)
+    * @param start  an assignment to start the evaluation
     * @param tracer a tracer to track the behaviour of the solver (defaults to the empty tracer)
     * @return the solution of the equation system
     */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])
                  (
-                   start: Assignment[U, V] = eqs.initial,
+                   start: Assignment[U, V],
                    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
                  )
                  (using factory: MutableAssignmentFactory[U,V]): MutableAssignment[U, V] =

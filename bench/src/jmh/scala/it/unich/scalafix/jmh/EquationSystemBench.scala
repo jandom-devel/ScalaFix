@@ -33,53 +33,54 @@ import org.openjdk.jmh.annotations.*
 @Warmup(iterations = 3)
 class EquationSystemBench:
   val initVal = 1
+  val initAssignment = Assignment(initVal)
   val numUnknowns = 10000
-  val chainGraphEqs = new ChainGraphEQS(numUnknowns, initVal)
-  val chainSimpleGraphEqs = new ChainSimpleGraphEQS(numUnknowns, initVal)
-  val chainSimpleFiniteEqs = new ChainSimpleFiniteEQS(numUnknowns, initVal)
-  val chainInfiniteEqs = new ChainInfiniteEQS[Int](initVal)
-  val chainInfinite2Eqs = new ChainInfinite2EQS[Int](initVal)
+  val chainGraphEqs = new ChainGraphEQS[Int](numUnknowns)
+  val chainSimpleGraphEqs = new ChainSimpleGraphEQS[Int](numUnknowns)
+  val chainSimpleFiniteEqs = new ChainSimpleFiniteEQS[Int](numUnknowns)
+  val chainInfiniteEqs = new ChainInfiniteEQS[Int]()
+  val chainInfinite2Eqs = new ChainInfinite2EQS[Int]()
 
   def validate(rho: Assignment[Int, Int]) =
     for i <- 0 until numUnknowns do assert(rho(i) == initVal)
 
   @Benchmark
   def RRGraph() =
-    val result = RoundRobinSolver(chainGraphEqs)()
+    val result = RoundRobinSolver(chainGraphEqs)(initAssignment)
     validate(result)
 
   @Benchmark
   def RRSimpleGraph() =
-    val result = RoundRobinSolver(chainSimpleGraphEqs)()
+    val result = RoundRobinSolver(chainSimpleGraphEqs)(initAssignment)
     validate(result)
 
   @Benchmark
   def RRSimpleFinite() =
-    val result = RoundRobinSolver(chainSimpleFiniteEqs)()
+    val result = RoundRobinSolver(chainSimpleFiniteEqs)(initAssignment)
     validate(result)
 
   @Benchmark
   def FWLGraph() =
-    val result = FiniteWorkListSolver(chainGraphEqs)()
+    val result = FiniteWorkListSolver(chainGraphEqs)(initAssignment)
     validate(result)
 
   @Benchmark
   def FWLSimpleGraph() =
-    val result = FiniteWorkListSolver(chainSimpleGraphEqs)()
+    val result = FiniteWorkListSolver(chainSimpleGraphEqs)(initAssignment)
     validate(result)
 
   @Benchmark
   def FWLSimpleFinite() =
-    val result = FiniteWorkListSolver(chainSimpleFiniteEqs)()
+    val result = FiniteWorkListSolver(chainSimpleFiniteEqs)(initAssignment)
     validate(result)
 
 
   @Benchmark
   def IWLInfinite() =
-    val result = InfiniteWorkListSolver(chainInfiniteEqs)(Seq(numUnknowns))
+    val result = InfiniteWorkListSolver(chainInfiniteEqs)(initAssignment, Seq(numUnknowns))
     validate(result)
 
   @Benchmark
   def IWLInfinite2() =
-    val result = InfiniteWorkListSolver(chainInfinite2Eqs)(Seq(numUnknowns))
+    val result = InfiniteWorkListSolver(chainInfinite2Eqs)(initAssignment, Seq(numUnknowns))
     validate(result)

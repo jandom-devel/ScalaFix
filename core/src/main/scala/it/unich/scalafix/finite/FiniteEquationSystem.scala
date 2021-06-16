@@ -57,7 +57,6 @@ trait FiniteEquationSystem[U, V] extends EquationSystem[U, V]:
 case class SimpleFiniteEquationSystem[U, V]
 (
   body: Body[U, V],
-  initial: Assignment[U, V],
   inputUnknowns: Set[U],
   unknowns: Iterable[U],
   infl: Relation[U],
@@ -81,9 +80,8 @@ object FiniteEquationSystem:
     */
   def apply[U, V](
                    body: Body[U, V],
-                   initial: Assignment[U, V],
                    inputUnknowns: Set[U],
                    unknowns: Iterable[U],
                    infl: Relation[U]
                  ): FiniteEquationSystem[U, V] =
-    SimpleFiniteEquationSystem(body, initial, inputUnknowns, unknowns, infl, None)
+    SimpleFiniteEquationSystem(body, inputUnknowns, unknowns, infl, None)

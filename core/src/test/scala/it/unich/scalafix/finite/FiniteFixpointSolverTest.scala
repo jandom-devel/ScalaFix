@@ -41,15 +41,14 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     outgoing = Map((0, Seq('a')), (1, Seq('b')), (2, Seq('c')), (3, Seq('d'))),
     ingoing = Map((0, Seq()), (1, Seq('a', 'd')), (2, Seq('b')), (3, Seq('c'))),
     unknowns = Set(0, 1, 2, 3),
-    inputUnknowns = Set(0),
-    initial =  { u => if u == 0 then 0.0 else Double.NegativeInfinity }
+    inputUnknowns = Set(0)
   )
   private val solution = Map[Int, Double](0 -> 0, 1 -> 11, 2 -> 10, 3 -> 11)
   private val emptysol = (0 to 3).map { _ -> Double.NegativeInfinity }.toMap
   private val onlyWideningSol = Map[Int, Double](0 -> 0, 1 -> Double.PositiveInfinity, 2 -> 10, 3 -> 11)
   private val doublewidening = BoxAssignment({ (x: Double, y: Double) => if x.isNegInfinity then y else if x >= y then x else Double.PositiveInfinity })
   private val doublenarrowing = BoxAssignment({ (x: Double, y: Double) => if x.isPosInfinity then y else x })
-  private val CC77params = FiniteFixpointSolver.CC77[Int, Double](Solver.WorkListSolver, doublewidening, doublenarrowing)
+  private val CC77params = FiniteFixpointSolver.CC77[Int, Double](Solver.WorkListSolver,  { u => if u == 0 then 0.0 else Double.NegativeInfinity },  doublewidening, doublenarrowing)
 
   def assertSolution(m: Map[Int, Double])(b: Int => Double): Unit =
     for u <- simpleEqs.unknowns do assertResult(m(u), s"at unknown $u")(b(u))
@@ -90,7 +89,7 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     }
 
     it("may use explicit initial assignment") {
-      val params = CC77params.copy[Int, Double](start = Some({ _ => Double.NegativeInfinity}))
+      val params = CC77params.copy[Int, Double](start = { _ => Double.NegativeInfinity})
       assertSolution(emptysol)(FiniteFixpointSolver(simpleEqs, params))
     }
 

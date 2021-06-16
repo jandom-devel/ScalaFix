@@ -40,10 +40,11 @@ object FiniteFixpointSolver:
     */
   def CC77[U, V](
                   solver: Solver.Solver,
+                  start: Assignment[U, V],
                   wideningBoxAssn: BoxAssignment[U, V],
                   narrowingBoxAssn: BoxAssignment[U, V]
                 ): Params[U, V] =
-    Params[U, V](solver, None, BoxLocation.Loop, BoxScope.Standard, BoxStrategy.TwoPhases, RestartStrategy.None,
+    Params[U, V](solver, start, BoxLocation.Loop, BoxScope.Standard, BoxStrategy.TwoPhases, RestartStrategy.None,
       wideningBoxAssn, narrowingBoxAssn, FixpointSolverTracer.empty[U, V])
 
   /**
@@ -55,7 +56,7 @@ object FiniteFixpointSolver:
   def apply[U, V: Domain, E](eqs: GraphEquationSystem[U, V, E], params: Params[U, V]): MutableAssignment[U, V] =
     import params.*
 
-    val startAssn = params.start.getOrElse(eqs.initial)
+    val startAssn = params.start
 
     val ordering1: Option[GraphOrdering[U]] = (solver, boxscope) match
       case (Solver.HierarchicalOrderingSolver, _) =>
@@ -187,7 +188,7 @@ object FiniteFixpointSolver:
     */
   case class Params[U, V](
                            solver: Solver.Solver,
-                           start: Option[Assignment[U, V]],
+                           start: Assignment[U, V],
                            boxlocation: BoxLocation.BoxLocation,
                            boxscope: BoxScope.BoxScope,
                            boxstrategy: BoxStrategy.BoxStrategy,

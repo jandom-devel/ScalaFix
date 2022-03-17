@@ -57,7 +57,7 @@ trait EquationSystem[U, V]:
   val inputUnknowns: U => Boolean
 
   /**
-    * Add boxes to the equation system
+    * Add boxes to the equation system.
     *
     * @param boxes a box assignment
     */
@@ -68,7 +68,7 @@ trait EquationSystem[U, V]:
     *
     * @param init the assignment to add to the equation system
     */
-  def withBaseAssignment(init: PartialFunction[U, V])(implicit magma: Magma[V]): EquationSystem[U, V]
+  def withBaseAssignment(init: PartialFunction[U, V])(using magma: Magma[V]): EquationSystem[U, V]
 
   /**
     * Add a tracer to the equation system. The tracer contains call-backs to be invoked during body evaluation.
@@ -123,7 +123,12 @@ abstract class EquationSystemBase[U, V] extends EquationSystem[U, V]:
     * trough the use of the `comb` combiner.
     */
   protected def bodyWithBaseAssignment(init: PartialFunction[U, V], comb: (V, V) => V): Body[U, V] =
-    (rho: Assignment[U, V]) => (x: U) => if init.isDefinedAt(x) then comb(init(x), body(rho)(x)) else body(rho)(x)
+    (rho: Assignment[U, V]) =>
+      (x: U) =>
+        if init.isDefinedAt(x) then
+          comb(init(x), body(rho)(x))
+        else
+          body(rho)(x)
 
   /**
     * Implement the `bodyWithDependencies` method by instrumenting the source assignment in order to
@@ -154,7 +159,7 @@ case class SimpleEquationSystem[U, V]
   def withBoxes(boxes: BoxAssignment[U, V]): EquationSystem[U, V] =
     copy(body = bodyWithBoxAssignment(boxes))
 
-  def withBaseAssignment(init: PartialFunction[U, V])(implicit magma: Magma[V]): EquationSystem[U, V] =
+  def withBaseAssignment(init: PartialFunction[U, V])(using  magma: Magma[V]): EquationSystem[U, V] =
     copy(body = bodyWithBaseAssignment(init, magma.op))
 
   def withTracer(t: EquationSystemTracer[U, V]): EquationSystem[U, V] =

@@ -53,10 +53,10 @@ object MutableAssignment:
     *
     * @param a the assignment which is the original content of this IOAssignment
     */
-  private final class MapBasedMutableAssignment[U, V](a: Assignment[U, V], f: MapFactory[mutable.Map] = mutable.Map) extends MutableAssignment[U, V]:
-    private val m = f.empty[U, V].withDefault(a)
+  private final class MapBasedMutableAssignment[U, V](a: Assignment[U, V], factory: MapFactory[mutable.Map] = mutable.Map) extends MutableAssignment[U, V]:
+    private val m = factory.empty[U, V].withDefault(a)
     export m.{apply, update, isDefinedAt, keys as unknowns}
     override def toString: String = s"${m.mkString("[ ", ", ", " ]")} over $a}"
 
-  def apply[U,V](a: Assignment[U, V], f: MapFactory[mutable.Map] = mutable.Map): MutableAssignment[U, V] =
-    MapBasedMutableAssignment(a, f)
+  def apply[U,V](a: Assignment[U, V], factory: MapFactory[mutable.Map] = mutable.Map): MutableAssignment[U, V] =
+    MapBasedMutableAssignment(a, factory)

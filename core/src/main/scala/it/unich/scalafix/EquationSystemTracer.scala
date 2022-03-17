@@ -22,7 +22,6 @@ import java.io.PrintStream
 
 import scala.annotation.elidable
 
-
 /**
   * An EquationSystemTracer implements some methods which are called by equation systems when certain
   * events occurs. They may be used for debugging, tracing, etc...
@@ -77,12 +76,12 @@ object EquationSystemTracer:
   /**
     * An empty listener which does nothing.
     */
-  class EmptyEquationSystemTracer[U, V] extends EquationSystemTracerAdapter[U, V]
+  private final class EmptyEquationSystemTracer[U, V] extends EquationSystemTracerAdapter[U, V]
 
   /**
     * A tracer which prints many debug informations on a PrintStream.
     */
-  class DebugEquationSystemTracer[U, V](ps: PrintStream) extends EquationSystemTracer[U, V]:
+  private final class DebugEquationSystemTracer[U, V](ps: PrintStream) extends EquationSystemTracer[U, V]:
     @elidable(TRACING)
     def beforeEvaluation(rho: Assignment[U, V], u: U) =
       ps.println(s"evaluated: $u oldvalue: ${rho(u)}")
@@ -95,12 +94,12 @@ object EquationSystemTracer:
     def boxEvaluation(rho: Assignment[U, V], u: U, res: V, boxed: V) =
       ps.println(s"evaluated: $u, oldvalue: ${rho(u)}, newvalue: $res, boxed: $boxed")
 
-  private val emptyEquationSystemTracer = new EmptyEquationSystemTracer[Any, Any]
+  private val emptyEquationSystemTracer = EmptyEquationSystemTracer[Any, Any]
 
-  private val debugEquationSystemTracer = new DebugEquationSystemTracer[Any, Any](System.out)
+  private val debugEquationSystemTracer = DebugEquationSystemTracer[Any, Any](System.out)
 
-  def empty[U, V]: EmptyEquationSystemTracer[U, V] = emptyEquationSystemTracer.asInstanceOf[EmptyEquationSystemTracer[U, V]]
+  def empty[U, V]: EquationSystemTracer[U, V] = emptyEquationSystemTracer.asInstanceOf[EmptyEquationSystemTracer[U, V]]
 
-  def debug[U, V]: DebugEquationSystemTracer[U, V] = debugEquationSystemTracer.asInstanceOf[DebugEquationSystemTracer[U, V]]
+  def debug[U, V]: EquationSystemTracer[U, V] = debugEquationSystemTracer.asInstanceOf[DebugEquationSystemTracer[U, V]]
 
-  def debug[U, V](ps: PrintStream) = new DebugEquationSystemTracer[U, V](ps)
+  def debug[U, V](ps: PrintStream): EquationSystemTracer[U, V] = DebugEquationSystemTracer[U, V](ps)

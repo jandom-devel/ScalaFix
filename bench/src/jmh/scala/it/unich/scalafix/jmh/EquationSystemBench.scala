@@ -22,6 +22,7 @@ import it.unich.scalafix.*
 import it.unich.scalafix.assignments.defaultMutableAssignmentFactory
 import it.unich.scalafix.finite.{RoundRobinSolver, WorkListSolver as FiniteWorkListSolver}
 import it.unich.scalafix.infinite.WorkListSolver as InfiniteWorkListSolver
+import it.unich.scalafix.lattice.given
 
 import org.openjdk.jmh.annotations.*
 

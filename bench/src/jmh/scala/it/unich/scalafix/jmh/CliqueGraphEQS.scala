@@ -22,6 +22,7 @@ import it.unich.scalafix.*
 import it.unich.scalafix.assignments.*
 import it.unich.scalafix.finite.SimpleGraphEquationSystem
 import it.unich.scalafix.utils.Relation
+import it.unich.scalafix.lattice.given
 
 /**
   * This class represents an equation system made of equations `x(i)=x(0) upperbound c(1) uperrbound ... x(n-1)`
@@ -39,8 +40,9 @@ class CliqueGraphEQS[V](n: Int) extends SimpleGraphEquationSystem[Int, Double, (
   outgoing = { (i: Int) => (i + 1 until n) map ((i, _)) },
   ingoing = { (i: Int) => (0 until i) map ((_, i)) }
 ):
+
   override val infl: Relation[Int] = Relation({ (i: Int) => (i + 1 until n).toSet })
   override val body: Body[Int, Double] =
-    (rho: Assignment[Int, Double]) => (i: Int) => (0 until i) map rho reduce dom.upperBound
+    (rho: Assignment[Int, Double]) => (i: Int) => (0 until i) map rho reduce (_ upperBound _)
   override val bodyWithDependencies: BodyWithDependencies[Int, Double] =
     (rho: Assignment[Int, Double]) => (i: Int) => (body(rho)(i), (0 until i).toSet)

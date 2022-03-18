@@ -36,7 +36,7 @@ abstract class Box[V] extends ((V, V) => V):
   /*
   I do not like very much the fact Box is both a box and its blueprint. Having two separate classes would
   be better from the point of view of the separation of concerns, but this solution is quite convenient. We do
-  not to write redundant code, we only need a copy method to properly and efficiently handle mutable objects,
+  not write redundant code, we only need a copy method to properly and efficiently handle mutable objects,
   the API is simple. Keep in mind that one of the important point of this design is to reduce duplication of boxes
   in box assignments as much as possible.
   */
@@ -140,12 +140,12 @@ object Box:
   /**
     * A box given by the upper bound of a type `V` endowed with a directed partial ordering.
     */
-  def upperBound[V: Domain]: ImmutableBox[V] = FromFunction(Domain[V].upperBound, true)
+  def upperBound[V: Domain]: ImmutableBox[V] = FromFunction(_ upperBound _, true)
 
   /**
     * A box given by the magma operator on a type `V`.
     */
-  def magma[V: Magma]: ImmutableBox[V] = FromFunction(Magma[V].op, true)
+  def magma[V: Magma]: ImmutableBox[V] = FromFunction(_ op _, true)
 
   /**
     * A mutable box which behaves as `this` for the first `delay` steps and as `that` for the rest of its

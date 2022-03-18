@@ -73,7 +73,7 @@ object FiniteFixpointSolver:
         ordering1 orElse Some(DFOrdering(eqs))
 
     val restart: (V, V) => Boolean =
-      if restartstrategy == RestartStrategy.Restart then { (x, y) => Domain[V].lt(x, y) }
+      if restartstrategy == RestartStrategy.Restart then { (x, y) => summon[Domain[V]].lt(x, y) }
       else { (_, _) => false }
 
     (boxstrategy: @unchecked) match

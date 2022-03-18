@@ -23,8 +23,6 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 
 import org.scalatest.funspec.AnyFunSpec
 
-import scala.language.implicitConversions
-
 class EquationSystemTest extends AnyFunSpec:
 
   private val simpleEqs = EquationSystem[Int, Int](

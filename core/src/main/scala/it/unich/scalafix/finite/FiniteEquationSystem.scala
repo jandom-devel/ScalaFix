@@ -46,7 +46,7 @@ trait FiniteEquationSystem[U, V] extends EquationSystem[U, V]:
 
   override def withBoxes(boxes: BoxAssignment[U, V]): FiniteEquationSystem[U, V]
 
-  override def withBaseAssignment(init: PartialFunction[U, V])(implicit magma: Magma[V]): FiniteEquationSystem[U, V]
+  override def withBaseAssignment(init: PartialFunction[U, V])(using magma: Magma[V]): FiniteEquationSystem[U, V]
 
   override def withTracer(t: EquationSystemTracer[U, V]): FiniteEquationSystem[U, V]
 
@@ -67,8 +67,8 @@ case class SimpleFiniteEquationSystem[U, V]
     val newInfl = if boxes.boxesAreIdempotent then infl else infl.withDiagonal
     copy(body = bodyWithBoxAssignment(boxes), infl = newInfl)
 
-  def withBaseAssignment(init: PartialFunction[U, V])(implicit magma: Magma[V]): FiniteEquationSystem[U, V] =
-    copy(body = bodyWithBaseAssignment(init, magma.op))
+  def withBaseAssignment(init: PartialFunction[U, V])(using magma: Magma[V]): FiniteEquationSystem[U, V] =
+    copy(body = bodyWithBaseAssignment(init, _ op _))
 
   def withTracer(t: EquationSystemTracer[U, V]): FiniteEquationSystem[U, V] =
     copy(body = bodyWithTracer(t), tracer = Some(t))

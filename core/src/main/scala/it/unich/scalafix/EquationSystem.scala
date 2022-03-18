@@ -160,7 +160,7 @@ case class SimpleEquationSystem[U, V]
     copy(body = bodyWithBoxAssignment(boxes))
 
   def withBaseAssignment(init: PartialFunction[U, V])(using  magma: Magma[V]): EquationSystem[U, V] =
-    copy(body = bodyWithBaseAssignment(init, magma.op))
+    copy(body = bodyWithBaseAssignment(init, _ op _))
 
   def withTracer(t: EquationSystemTracer[U, V]): EquationSystem[U, V] =
     copy(body = bodyWithTracer(t), tracer = Some(t))

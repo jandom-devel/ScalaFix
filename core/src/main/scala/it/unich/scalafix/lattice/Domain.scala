@@ -18,59 +18,25 @@
 
 package it.unich.scalafix.lattice
 
-import scala.language.implicitConversions
-
 /**
   * A `Domain` is a `PartialOrdering` where elements are endowed with an upper bound operator. However, not all
   * pairs of elements have an upper bound. Generally, elements in a domain are partitioned in fibers, and an
   * upper bound only exists for elements on the same fiber. This is not modeled by the current definition of `Domain`.
-  *
-  * If an implicit object of type `Domain[A]` is in scope, then binary operators
-  * `<`, `<=`, `>`, `>=`, `equiv` and `upperBound` are available.
   */
 trait Domain[A] extends PartialOrdering[A]:
-  /**
-    * It returns an upper bound of `x` and  `y`.
+
+  extension (x: A)
+    /**
+    * It returns an upper bound of `x` and `y`.
     */
-  def upperBound(x: A, y: A): A
-
-  class Ops(lhs: A):
-    def <(rhs: A): Boolean = lt(lhs, rhs)
-
-    def <=(rhs: A): Boolean = lteq(lhs, rhs)
-
-    def >=(rhs: A): Boolean = gteq(lhs, rhs)
-
-    def >(rhs: A): Boolean = gt(lhs, rhs)
-
-    def equiv(rhs: A): Boolean = Domain.this.equiv(lhs, rhs)
-
-    def upperBound(rhs: A): A = Domain.this.upperBound(lhs, rhs)
-
+    infix def upperBound(y: A): A
 
 /**
-  * A trait which contains low priority implicits to be mixed within Domain.
+  * A domain obtained by an ordering, taking the max to be the upper bound operator.
   */
-trait LowPriorityImplicitDomains:
-  /**
-    * An implicit domain obtained by an ordering, taking the max to be the upper bound operator.
-    */
-  implicit def orderingIsDomain[A](implicit o: Ordering[A]): Domain[A] = new Domain[A] {
-    def lteq(x: A, y: A): Boolean = o.lteq(x, y)
+given orderingIsDomain[A](using o: Ordering[A]): Domain[A] with
+  def lteq(x: A, y: A): Boolean = o.lteq(x, y)
 
-    def tryCompare(x: A, y: A): Some[Int] = o.tryCompare(x, y)
+  def tryCompare(x: A, y: A): Some[Int] = o.tryCompare(x, y)
 
-    def upperBound(x: A, y: A): A = if o.compare(x, y) <= 0 then y else x
-  }
-
-object Domain extends LowPriorityImplicitDomains:
-  /**
-    * Add a syntactic sugar to easily get the current implicit Domain.
-    */
-  def apply[A](implicit dom: Domain[A]): Domain[A] = dom
-
-  /**
-    * An implicit conversion from `A` to `Domain[A].Ops`, which allows the seamsless
-    * use of the infix operators.
-    */
-  implicit def infixDomainOps[A](a: A)(implicit dom: Domain[A]): Domain[A]#Ops = new dom.Ops(a)
+  extension (x: A) def upperBound (y: A): A = if o.compare(x, y) <= 0 then y else x

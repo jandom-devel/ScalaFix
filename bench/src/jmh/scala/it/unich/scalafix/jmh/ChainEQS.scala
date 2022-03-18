@@ -98,6 +98,6 @@ class ChainInfiniteEQS[V] extends SimpleEquationSystem[Int, V](
   * @param v the initial value for all unknowns
   */
 class ChainInfinite2EQS[V] extends SimpleEquationSystem[Int, V](
-  body = { (rho: Assignment[Int, V]) => (i: Int)   => if i > 0 then rho(i - 1) else rho(0) }: Body[Int, V],
+  body = { (rho: Assignment[Int, V]) => (i: Int) => if i > 0 then rho(i - 1) else rho(0) }: Body[Int, V],
   inputUnknowns = Set(0)
 )

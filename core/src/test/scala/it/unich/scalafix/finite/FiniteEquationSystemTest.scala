@@ -59,7 +59,7 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     * Tests whether solving `eqs` equation system always returns a correct result. Should be used only for
     * solvers which are guaranteed to terminate with the given equation system.
     */
-  def testCorrectness[U, V](eqs: FiniteEquationSystem[U, V], solver: SimpleSolver[U, V])(implicit values: Arbitrary[V]) =
+  def testCorrectness[U, V](eqs: FiniteEquationSystem[U, V], solver: SimpleSolver[U, V])(using values: Arbitrary[V]) =
     val startRhosList = Gen.listOfN(eqs.unknowns.size, values.arbitrary)
     val startRhos = startRhosList map { l => Map.from(eqs.unknowns.toList zip l) }
     forAll(startRhos) { start =>

@@ -21,15 +21,14 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 
 import it.unich.scalafix.*
 import it.unich.scalafix.lattice.Magma
+import it.unich.scalafix.lattice.given
 
 import org.scalatest.funspec.AnyFunSpec
 
-import scala.language.implicitConversions
-
 class GraphEquationSystemTest extends AnyFunSpec:
 
-  private implicit object MagmaInt extends Magma[Int]:
-    def op(x: Int, y: Int): Int = x max y
+  private given Magma[Int] with
+    extension (x: Int) def op(y: Int): Int = x max y
 
   private val unknowns = Set(0, 1, 2, 3)
   private val simpleEqs = GraphEquationSystem[Int, Int, Char](

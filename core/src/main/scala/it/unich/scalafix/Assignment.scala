@@ -42,9 +42,9 @@ object Assignment:
   /**
     * An assignment which reproduces the value of a map. Although the map might be
     * directly used as an assignment, this class overrides the `toString` method to be
-    * more usefult for debugging.
+    * more useful for debugging.
     *
-    * @param m hash map
+    * @param m the map
     */
   private final class MapBasedAssignment[-U, +V](m: Map[U, V]) extends Assignment[U, V]:
     export m.apply

@@ -18,14 +18,9 @@
 
 /**
 * The fixpoint package contains everything which is related to defining and solving systems
-* of equations. This package object defines some type aliases which are used in the API.
+* of equations.
 */
 package it.unich.scalafix
-
-/**
-  * The effect of an edge in a graph equation system.
-  */
-type EdgeAction[U, V, E] = Assignment[U, V] => E => V
 
 /**
   * The constant to use in -Xelide-below in order to remove tracing code. Note that

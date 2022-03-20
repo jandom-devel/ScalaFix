@@ -1,6 +1,6 @@
 ThisBuild / version := "0.8.0"
-ThisBuild / scalaVersion := "3.0.0"
-ThisBuild / crossScalaVersions := Seq("2.13.6", "3.0.0")
+ThisBuild / scalaVersion := "3.1.1"
+ThisBuild / crossScalaVersions := Seq("2.13.8", "3.1.1")
 ThisBuild / organization := "it.unich.scalafix"
 
 ThisBuild / scalacOptions ++= Seq(
@@ -43,8 +43,8 @@ lazy val core = project
   .settings(publishSettings)
   .settings(
      libraryDependencies ++= Seq(
-       "org.scalatest" %% "scalatest" % "3.2.9" % Test,
-       "org.scalatestplus" %% "scalacheck-1-15" % "3.2.9.0" % Test,
+       "org.scalatest" %% "scalatest" % "3.2.11" % Test,
+       "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
        "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
       )
   )

@@ -109,16 +109,18 @@ object HierarchicalOrdering {
     val stringPrefix = "HierarchicalOrdering"
 
     // TODO: check if this may be done faster
-    private lazy val orderingIndex: Map[N, Int] = (for {
-      (x, i) <- seq.zipWithIndex
-      if x.isInstanceOf[Val[?]]
-      Val(u) = x: @unchecked
-    } yield u -> i).to(Map)
+        private lazy val orderingIndex: Map[N, Int] =
+      val seqIndex: Seq[(N, Int)] = for
+        (x, i) <- seq.zipWithIndex
+        if x.isInstanceOf[Val[?]]
+        Val(u) = x.asInstanceOf[Val[N]]
+      yield u -> i
+      seqIndex.toMap
 
     def toSeq: Seq[N] = for {
       x <- seq
       if x.isInstanceOf[Val[?]]
-      Val(u) = x: @unchecked
+      Val(u) = x.asInstanceOf[Val[N]]
     } yield u
 
     def toSeqWithParenthesis: Seq[HOElement[N]] = seq

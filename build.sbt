@@ -43,7 +43,7 @@ lazy val core = project
   .settings(publishSettings)
   .settings(
      libraryDependencies ++= Seq(
-       "org.scalatest" %% "scalatest" % "3.2.11" % Test,
+       "org.scalatest" %% "scalatest-funspec" % "3.2.11" % Test,
        "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
        "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
       )
@@ -60,6 +60,7 @@ val noPublishSettings = Seq(
 
 val publishSettings = Seq(
   moduleName := "scalafix",
+  versionScheme := Some("early-semver"),
   description := "A Scala library for solving fixpoint equations",
   licenses := Seq("GPL-3.0" -> url("https://opensource.org/licenses/GPL-3.0")),
   homepage := Some(url("https://github.com/jandom-devel/ScalaFix")),

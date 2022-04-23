@@ -1,20 +1,19 @@
 /**
-  * Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
-  *
-  * This file is part of ScalaFix.
-  * ScalaFix is free software: you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation, either version 3 of the License, or
-  * (at your option) any later version.
-  *
-  * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with ScalaFix.  If not, see <http://www.gnu.org/licenses/>.
-  */
+ * Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
+ *
+ * This file is part of ScalaFix. ScalaFix is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * ScalaFix is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of a MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * ScalaFix. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package it.unich.scalafix.finite
 
@@ -38,21 +37,58 @@ class HierarchicalOrderingTest extends AnyFunSpec with TableDrivenPropertyChecks
   private val o2 = HierarchicalOrdering[Int](seqp2*)
   private val out2 = "HierarchicalOrdering( 3 ( 2 1 ) 0 )"
 
-  private val graph = Seq(1 -> 3, 1 -> 2, 2 -> 3, 3 -> 4, 4 -> 6, 4 -> 5, 4 -> 8, 5 -> 7, 6 -> 7, 7 -> 4, 7 -> 8,
-    8 -> 4, 8 -> 3, 8 -> 10, 8 -> 9, 9 -> 1, 10 -> 7)
+  private val graph = Seq(
+    1 -> 3,
+    1 -> 2,
+    2 -> 3,
+    3 -> 4,
+    4 -> 6,
+    4 -> 5,
+    4 -> 8,
+    5 -> 7,
+    6 -> 7,
+    7 -> 4,
+    7 -> 8,
+    8 -> 4,
+    8 -> 3,
+    8 -> 10,
+    8 -> 9,
+    9 -> 1,
+    10 -> 7
+  )
   private val r = Relation(graph)
   private val dfo = DFOrdering(r, 1 to 10, List(1))
   private val o3 = HierarchicalOrdering(dfo)
   private val seq3 = dfo.toSeq
   private val heads3 = Seq(1, 3, 4, 7)
-  private val seqp3 = Seq(Left, Val(1), Val(2), Left, Val(3), Left, Val(4), Val(5), Val(6), Left, Val(7), Val(8),
-    Val(9), Val(10), Right, Right, Right, Right)
+  private val seqp3 = Seq(
+    Left,
+    Val(1),
+    Val(2),
+    Left,
+    Val(3),
+    Left,
+    Val(4),
+    Val(5),
+    Val(6),
+    Left,
+    Val(7),
+    Val(8),
+    Val(9),
+    Val(10),
+    Right,
+    Right,
+    Right,
+    Right
+  )
   private val out3 = "HierarchicalOrdering( 1 2 ( 3 ( 4 5 6 ( 7 8 9 10 ) ) ) )"
 
-  private val table = Table(("Ordering", "Parenthesized Sequence", "Sequence", "Heads", "Output"),
+  private val table = Table(
+    ("Ordering", "Parenthesized Sequence", "Sequence", "Heads", "Output"),
     (o1, seqp1, seq1, heads1, out1),
     (o2, seqp2, seq2, heads2, out2),
-    (o3, seqp3, seq3, heads3, out3))
+    (o3, seqp3, seq3, heads3, out3)
+  )
 
   private val wto = Table(("Graph", "WTO"), (graph, o3))
 
@@ -84,9 +120,10 @@ class HierarchicalOrderingTest extends AnyFunSpec with TableDrivenPropertyChecks
 
     it("has the correct heads") {
       forAll(table) { (o, _, _, _, _) =>
-        for x <- o.toSeq do assertResult(o.isHead(x)) {
-          o.isHead(x)
-        }
+        for x <- o.toSeq do
+          assertResult(o.isHead(x)) {
+            o.isHead(x)
+          }
       }
     }
 

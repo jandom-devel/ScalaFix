@@ -1,19 +1,19 @@
-/** Copyright 2015, 2017 Gianluca Amato <gamato@unich.it>
-  *
-  * This file is part of JANDOM: JVM-based Analyzer for Numerical DOMains
-  * JANDOM is free software: you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation, either version 3 of the License, or
-  * (at your option) any later version.
-  *
-  * JANDOM is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with JANDOM.  If not, see <http://www.gnu.org/licenses/>.
-  */
+/**
+ * Copyright 2015, 2017 Gianluca Amato <gamato@unich.it>
+ *
+ * This file is part of JANDOM: JVM-based Analyzer for Numerical DOMains JANDOM
+ * is free software: you can redistribute it and/or modify it under the terms of
+ * the GNU General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later version.
+ *
+ * JANDOM is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of a MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * JANDOM. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package it.unich.scalafix.finite
 
@@ -95,7 +95,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
         assertResult(9)(body(rho)(3))
 
       val box1 = BoxAssignment { (x: Int, y: Int) => x + (2 * y) }
-      val box2 = BoxAssignment  ({ (x: Int, y: Int) => x + (2 * y) }, false)
+      val box2 = BoxAssignment({ (x: Int, y: Int) => x + (2 * y) }, false)
       val eqs1 = simpleEqs.withBoxes(box1)
       val eqs2 = simpleEqs.withBoxes(box2)
 
@@ -118,7 +118,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
         assertResult(9)(body(rho2)(1))
 
       val box1 = BoxAssignment { (x: Int, y: Int) => x + (2 * y) }
-      val box2 = BoxAssignment ({ (x: Int, y: Int) => x + (2 * y) }, false)
+      val box2 = BoxAssignment({ (x: Int, y: Int) => x + (2 * y) }, false)
       val ordering = DFOrdering(simpleEqs)
       val eqs1 = simpleEqs.withLocalizedBoxes(box1, ordering)
       val eqs2 = simpleEqs.withLocalizedBoxes(box2, ordering)
@@ -127,8 +127,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
       test(eqs2)
       for x <- unknowns do
         assertResult(simpleEqs.infl(x))(eqs1.infl(x))
-        if x != 1 then
-          assertResult(simpleEqs.infl(x))(eqs2.infl(x))
+        if x != 1 then assertResult(simpleEqs.infl(x))(eqs2.infl(x))
         else
           // TOOD: check if toSet may be avoided
           assertResult(simpleEqs.infl(x).toSet + x)(eqs2.infl(x))

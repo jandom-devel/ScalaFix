@@ -1,20 +1,19 @@
 /**
-  * Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
-  *
-  * This file is part of ScalaFix.
-  * ScalaFix is free software: you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation, either version 3 of the License, or
-  * (at your option) any later version.
-  *
-  * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with ScalaFix.  If not, see <http://www.gnu.org/licenses/>.
-  */
+ * Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
+ *
+ * This file is part of ScalaFix. ScalaFix is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * ScalaFix is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of a MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * ScalaFix. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package it.unich.scalafix.infinite
 
@@ -27,27 +26,24 @@ import it.unich.scalafix.assignments.defaultMutableAssignmentFactory
 
 import scala.collection.mutable
 
-/**
-  * Test solvers for finite equation systems.
-  */
+/** Test solvers for finite equation systems. */
 class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
 
   private val simpleEqs = EquationSystem[Int, Int](
-    body = { (rho: Int => Int) =>
-      (x: Int) =>
-        if x % 2 == 0 then
-          rho(rho(x)) max x / 2
-        else {
-          val n = (x - 1) / 2
-          rho(6 * n + 4)
-        }
+    body = { (rho: Int => Int) => (x: Int) =>
+      if x % 2 == 0 then rho(rho(x)) max x / 2
+      else {
+        val n = (x - 1) / 2
+        rho(6 * n + 4)
+      }
     }
   )
 
   private val maxBox = BoxAssignment { (x: Int, y: Int) => x max y }
   private val startRho = Assignment(0)
 
-  private type SimpleSolver[U, V] = (EquationSystem[U, V], Assignment[U, V],  Seq[U]) => MutableAssignment[U, V]
+  private type SimpleSolver[U, V] =
+    (EquationSystem[U, V], Assignment[U, V], Seq[U]) => MutableAssignment[U, V]
 
   class EvaluationOrderListener[U, V] extends FixpointSolverTracerAdapter[U, V]:
     private val buffer = mutable.Buffer.empty[Any]
@@ -57,9 +53,9 @@ class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyCheck
       ()
 
   /**
-    * Test solvers for the `simpleEqs` equation system when starting from the initial
-    * assignment `startRho`.
-    */
+   * Test solvers for the `simpleEqs` equation system when starting from the
+   * initial assignment `startRho`.
+   */
   def testExpectedResult(solver: SimpleSolver[Int, Int]) =
     it("gives the expected result starting from startRho with max") {
       val finalRho = solver(simpleEqs.withBoxes(maxBox), startRho, Seq(4))

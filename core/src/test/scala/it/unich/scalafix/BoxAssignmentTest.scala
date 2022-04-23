@@ -1,19 +1,19 @@
-/** Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
-  *
-  * This file is part of ScalaFix.
-  * ScalaFix is free software: you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation, either version 3 of the License, or
-  * (at your option) any later version.
-  *
-  * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of a
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with ScalaFix.  If not, see <http://www.gnu.org/licenses/>.
-  */
+/**
+ * Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
+ *
+ * This file is part of ScalaFix. ScalaFix is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * ScalaFix is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of a MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * ScalaFix. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package it.unich.scalafix
 
@@ -54,7 +54,7 @@ class BoxAssignmentTest extends AnyFunSpec with ScalaCheckPropertyChecks:
       assertResult(boxes)(boxes.copy)
     }
 
-  def copyNotIdempotent(boxes: BoxAssignment[Nothing, ?]): Unit=
+  def copyNotIdempotent(boxes: BoxAssignment[Nothing, ?]): Unit =
     it("has a copy method which returns a new object") {
       assert(boxes != boxes.copy)
     }
@@ -65,7 +65,7 @@ class BoxAssignmentTest extends AnyFunSpec with ScalaCheckPropertyChecks:
       forAll { (u: Int) => assertResult(true)(boxes(u).isRight) }
     }
     it("is defined nowhere") {
-      forAll { (u: Int) => assertResult(true)(! boxes.isDefinedAt(u)) }
+      forAll { (u: Int) => assertResult(true)(!boxes.isDefinedAt(u)) }
     }
     checkIsEmpty(boxes)
     checkIsIdempotent(boxes)
@@ -108,7 +108,7 @@ class BoxAssignmentTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     it("returns a different box for each unknown") {
       forAll { (u: Int) =>
         assertResult(false)(maxboxDelayed eq boxes(u))
-        forAll { (v: Int)  =>
+        forAll { (v: Int) =>
           whenever(u != v) {
             assertResult(false)(boxes(v) eq boxes(u))
           }

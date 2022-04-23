@@ -1,20 +1,19 @@
 /**
-  * Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
-  *
-  * This file is part of ScalaFix.
-  * ScalaFix is free software: you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation, either version 3 of the License, or
-  * (at your option) any later version.
-  *
-  * ScalaFix is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty ofa
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with ScalaFix.  If not, see <http://www.gnu.org/licenses/>.
-  */
+ * Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
+ *
+ * This file is part of ScalaFix. ScalaFix is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * ScalaFix is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty ofa MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * ScalaFix. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package it.unich.scalafix.finite
 
@@ -30,12 +29,13 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
   import FixpointSolver.*
 
   private val simpleEqs = GraphEquationSystem[Int, Double, Char](
-    edgeAction = { (rho: Int => Double) => {
-      case 'a' => rho(0)
-      case 'b' => rho(1) min 10
-      case 'c' => rho(2) + 1
-      case 'd' => rho(3)
-    }
+    edgeAction = { (rho: Int => Double) =>
+      {
+        case 'a' => rho(0)
+        case 'b' => rho(1) min 10
+        case 'c' => rho(2) + 1
+        case 'd' => rho(3)
+      }
     },
     source = Map(('a', Seq(0)), ('b', Seq(1)), ('c', Seq(2)), ('d', Seq(3))),
     target = Map(('a', 1), ('b', 2), ('c', 3), ('d', 1)),
@@ -46,10 +46,20 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
   )
   private val solution = Map[Int, Double](0 -> 0, 1 -> 11, 2 -> 10, 3 -> 11)
   private val emptysol = (0 to 3).map { _ -> Double.NegativeInfinity }.toMap
-  private val onlyWideningSol = Map[Int, Double](0 -> 0, 1 -> Double.PositiveInfinity, 2 -> 10, 3 -> 11)
-  private val doublewidening = BoxAssignment({ (x: Double, y: Double) => if x.isNegInfinity then y else if x >= y then x else Double.PositiveInfinity })
-  private val doublenarrowing = BoxAssignment({ (x: Double, y: Double) => if x.isPosInfinity then y else x })
-  private val CC77params = FiniteFixpointSolver.CC77[Int, Double](Solver.WorkListSolver,  { u => if u == 0 then 0.0 else Double.NegativeInfinity },  doublewidening, doublenarrowing)
+  private val onlyWideningSol =
+    Map[Int, Double](0 -> 0, 1 -> Double.PositiveInfinity, 2 -> 10, 3 -> 11)
+  private val doublewidening = BoxAssignment({ (x: Double, y: Double) =>
+    if x.isNegInfinity then y else if x >= y then x else Double.PositiveInfinity
+  })
+  private val doublenarrowing = BoxAssignment({ (x: Double, y: Double) =>
+    if x.isPosInfinity then y else x
+  })
+  private val CC77params = FiniteFixpointSolver.CC77[Int, Double](
+    Solver.WorkListSolver,
+    { u => if u == 0 then 0.0 else Double.NegativeInfinity },
+    doublewidening,
+    doublenarrowing
+  )
 
   def assertSolution(m: Map[Int, Double])(b: Int => Double): Unit =
     for u <- simpleEqs.unknowns do assertResult(m(u), s"at unknown $u")(b(u))
@@ -90,7 +100,7 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     }
 
     it("may use explicit initial assignment") {
-      val params = CC77params.copy[Int, Double](start = { _ => Double.NegativeInfinity})
+      val params = CC77params.copy[Int, Double](start = { _ => Double.NegativeInfinity })
       assertSolution(emptysol)(FiniteFixpointSolver(simpleEqs, params))
     }
 

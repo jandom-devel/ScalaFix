@@ -23,9 +23,9 @@ import scala.collection.MapFactory
 import scala.collection.mutable
 
 /**
- * A mutable assignment is an assignment used for the inner working of fixpoint
- * solvers. It also explicitly keeps track of unknowns which are explicitly
- * modified.
+ * A mutable assignment is an assignment used internally by fixpoint solvers. It
+ * keeps track of unknowns which are explicitly modified. While an hash table is
+ * the most obvious implementation, custom mutable assignment may be developed.
  *
  * @tparam U
  *   type for unknowns
@@ -33,33 +33,62 @@ import scala.collection.mutable
  *   type for values
  */
 trait MutableAssignment[U, V] extends Assignment[U, V]:
-  /** An iterable of unknowns which have been explicitly modified. */
+  /**
+   * An iterable of the unknowns which have been explicitly modified. Unknowns
+   * which have an associated value due to some default initial assignment
+   * should not be listed here.
+   */
   def unknowns: Iterable[U]
 
-  /** Determines whether the unknown u has been explicitly modified. */
+  /**
+   * Determines whether the unknown `u` has been explicitly modified. Unknowns
+   * which have an associated value due to some default initial assignment
+   * should be reported as undefined.
+   */
   def isDefinedAt(u: U): Boolean
 
-  /** Update a mutable assignment. */
+  /** Update this assignment. */
   def update(u: U, v: V): Unit
 
+/**
+ * Collection of private classes implementing mutabled assignments and
+ * corresponding public factory methods.
+ */
 object MutableAssignment:
 
   /**
-   * A mutable assignment which builds assignments based on mutable maps.
+   * A mutable assignment backed by a mutable map and a plain assignment. The
+   * latter is used for unknowns which have not been explicitly updated.
    *
-   * @param a
-   *   the assignment which is the original content of this IOAssignment
+   * @param rho
+   *   the assignment used for the value of unknowns which have not been
+   *   explicitly updated.
+   * @param factory
+   *   a factory for maps. Changed this parameter it is possible to choose which
+   *   implementation of mutable maps we want to use.
    */
   private final class MapBasedMutableAssignment[U, V](
-      a: Assignment[U, V],
+      rho: Assignment[U, V],
       factory: MapFactory[mutable.Map] = mutable.Map
   ) extends MutableAssignment[U, V]:
-    private val m = factory.empty[U, V].withDefault(a)
+    private val m = factory.empty[U, V].withDefault(rho)
     export m.{apply, update, isDefinedAt, keys as unknowns}
-    override def toString: String = s"${m.mkString("[ ", ", ", " ]")} over $a}"
+    override def toString: String = s"${m.mkString("[ ", ", ", " ]")} over $rho"
 
+  /**
+   * Returns a mutable assignment backed by a mutable map and a plain
+   * assignment. The latter is used for unknowns which have not been explicitly
+   * updated.
+   *
+   * @param rho
+   *   the assignment used for the value of unknowns which have not been
+   *   explicitly updated.
+   * @param factory
+   *   a factory for maps. Changed this parameter it is possible to choose which
+   *   implementation of mutable maps we want to use.
+   */
   def apply[U, V](
-      a: Assignment[U, V],
+      rho: Assignment[U, V],
       factory: MapFactory[mutable.Map] = mutable.Map
   ): MutableAssignment[U, V] =
-    MapBasedMutableAssignment(a, factory)
+    MapBasedMutableAssignment(rho, factory)

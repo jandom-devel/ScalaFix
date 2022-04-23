@@ -20,18 +20,19 @@ package it.unich.scalafix.assignments
 import it.unich.scalafix.*
 
 /**
- * This is a factory which builds mutable assignments a simple assignment.
- * Although some generic factories are provided in the library, other factories
- * may be build for specialized use.
+ * A factory which builds mutable assignments from a plan assignment.
  *
  * @tparam U
  *   type for unknowns
  * @tparam V
  *   type for values
- * @tparam X
- *   type for the mutable assignment
  */
 trait MutableAssignmentFactory[U, V]:
+  /**
+   * Returs a mutable assignment. The assignment `rho` is used for the unknowns
+   * which have not been explicitly modified.
+   */
   def apply(rho: Assignment[U, V]): MutableAssignment[U, V]
 
+/** The default factory for mutable assignments */
 given defaultMutableAssignmentFactory[U, V]: MutableAssignmentFactory[U, V] = MutableAssignment(_)

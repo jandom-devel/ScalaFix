@@ -19,7 +19,6 @@ package it.unich.scalafix.finite
 
 import it.unich.scalafix.*
 import it.unich.scalafix.assignments.*
-import it.unich.scalafix.assignments.defaultMutableAssignmentFactory
 import it.unich.scalafix.lattice.Domain
 
 /**
@@ -44,7 +43,7 @@ object FiniteFixpointSolver:
    */
   def CC77[U, V](
       solver: Solver.Solver,
-      start: Assignment[U, V],
+      start: InputAssignment[U, V],
       wideningBoxAssn: BoxAssignment[U, V],
       narrowingBoxAssn: BoxAssignment[U, V]
   ): Params[U, V] =
@@ -71,7 +70,7 @@ object FiniteFixpointSolver:
   def apply[U, V: Domain, E](
       eqs: GraphEquationSystem[U, V, E],
       params: Params[U, V]
-  ): MutableAssignment[U, V] =
+  ): OutputAssignment[U, V] =
     import params.*
 
     val startAssn = params.start
@@ -200,11 +199,11 @@ object FiniteFixpointSolver:
   private def applySolver[U, V](
       solver: Solver.Solver,
       eqs: FiniteEquationSystem[U, V],
-      start: Assignment[U, V],
+      start: InputAssignment[U, V],
       ordering: Option[Ordering[U]],
       restart: (V, V) => Boolean,
       tracer: FixpointSolverTracer[U, V]
-  ): MutableAssignment[U, V] =
+  ): OutputAssignment[U, V] =
     (solver: @unchecked) match
       case Solver.RoundRobinSolver => RoundRobinSolver(eqs)(start, tracer)
       case Solver.KleeneSolver     => KleeneSolver(eqs)(start, tracer)
@@ -243,7 +242,7 @@ object FiniteFixpointSolver:
    */
   case class Params[U, V](
       solver: Solver.Solver,
-      start: Assignment[U, V],
+      start: InputAssignment[U, V],
       boxlocation: BoxLocation.BoxLocation,
       boxscope: BoxScope.BoxScope,
       boxstrategy: BoxStrategy.BoxStrategy,

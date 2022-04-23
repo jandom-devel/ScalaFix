@@ -40,11 +40,11 @@ object KleeneSolver:
    *   the solution of the equation system
    */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])(
-      start: Assignment[U, V],
+      start: InputAssignment[U, V],
       tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
-  )(using factory: MutableAssignmentFactory[U, V]): MutableAssignment[U, V] =
-    var current = factory(start)
-    var next = factory(start)
+  ): OutputAssignment[U, V] =
+    var current = start.toMutableAssignment
+    var next = start.toMutableAssignment
     tracer.initialized(current)
     var dirty = true
     while dirty do
@@ -58,4 +58,4 @@ object KleeneSolver:
       current = next
       next = temp
     tracer.completed(current)
-    current
+    current.toOutputAssignment

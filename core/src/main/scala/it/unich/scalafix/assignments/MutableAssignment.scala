@@ -50,31 +50,43 @@ trait MutableAssignment[U, V] extends Assignment[U, V]:
   /** Update this assignment. */
   def update(u: U, v: V): Unit
 
+  /** Returns an output assignment with the same content as this. */
+  def toOutputAssignment: OutputAssignment[U, V]
+
+/**
+ * A mutable assignment backed by a mutable map and a plain assignment.
+ *
+ * @param rho
+ *   the assignment used for the value of unknowns which are not explictly
+ *   updated.
+ * @param m
+ *   an iterable of pairs (U, V) which are the initial elements of the mutable
+ *   map. The u's appeaing in `m` are considered explicitly modified.
+ * @param factory
+ *   a factory for maps. Changing this parameter it is possible to choose which
+ *   implementation of mutable maps we want to use.
+ */
+private[assignments] final class MapBasedMutableAssignment[U, V](
+    rho: InputAssignment[U, V],
+    m: Iterable[(U, V)],
+    factory: MapFactory[mutable.Map] = mutable.Map
+) extends MutableAssignment[U, V]:
+
+  private val mm = factory.from(m).withDefault(rho)
+
+  mm.addAll(m)
+
+  export mm.{apply, update, isDefinedAt, keys as unknowns}
+
+  def toOutputAssignment = MapBasedOutputAssignment(mm, rho)
+
+  override def toString: String = s"${m.mkString("[ ", ", ", " ]")} over $rho"
+
 /**
  * Collection of private classes implementing mutabled assignments and
  * corresponding public factory methods.
  */
 object MutableAssignment:
-
-  /**
-   * A mutable assignment backed by a mutable map and a plain assignment. The
-   * latter is used for unknowns which have not been explicitly updated.
-   *
-   * @param rho
-   *   the assignment used for the value of unknowns which have not been
-   *   explicitly updated.
-   * @param factory
-   *   a factory for maps. Changed this parameter it is possible to choose which
-   *   implementation of mutable maps we want to use.
-   */
-  private final class MapBasedMutableAssignment[U, V](
-      rho: Assignment[U, V],
-      factory: MapFactory[mutable.Map] = mutable.Map
-  ) extends MutableAssignment[U, V]:
-    private val m = factory.empty[U, V].withDefault(rho)
-    export m.{apply, update, isDefinedAt, keys as unknowns}
-    override def toString: String = s"${m.mkString("[ ", ", ", " ]")} over $rho"
-
   /**
    * Returns a mutable assignment backed by a mutable map and a plain
    * assignment. The latter is used for unknowns which have not been explicitly
@@ -83,12 +95,15 @@ object MutableAssignment:
    * @param rho
    *   the assignment used for the value of unknowns which have not been
    *   explicitly updated.
+   * @param m
+   *   the initial elements of the mutable map
    * @param factory
    *   a factory for maps. Changed this parameter it is possible to choose which
    *   implementation of mutable maps we want to use.
    */
   def apply[U, V](
-      rho: Assignment[U, V],
+      rho: InputAssignment[U, V],
+      m: Iterable[(U, V)] = Iterable.empty,
       factory: MapFactory[mutable.Map] = mutable.Map
   ): MutableAssignment[U, V] =
-    MapBasedMutableAssignment(rho, factory)
+    MapBasedMutableAssignment(rho, m, factory)

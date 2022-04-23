@@ -40,11 +40,11 @@ object RoundRobinSolver:
    *   the solution of the equation system
    */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])(
-      start: Assignment[U, V],
+      start: InputAssignment[U, V],
       tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
-  )(using factory: MutableAssignmentFactory[U, V]): MutableAssignment[U, V] =
+  ): OutputAssignment[U, V] =
 
-    val current = factory(start)
+    val current = start.toMutableAssignment
     tracer.initialized(current)
     var dirty = true
     while dirty do
@@ -56,4 +56,4 @@ object RoundRobinSolver:
           current(x) = newval
           dirty = true
     tracer.completed(current)
-    current
+    current.toOutputAssignment

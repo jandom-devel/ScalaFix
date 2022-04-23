@@ -73,16 +73,16 @@ object PriorityWorkListSolver:
    *   the solution of the equation system
    */
   def apply[U, V](eqs: EquationSystem[U, V])(
-      start: Assignment[U, V],
+      start: InputAssignment[U, V],
       wanted: Iterable[U],
       ordering: Ordering[U] = new DynamicPriority[U],
       tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
-  )(using factory: MutableAssignmentFactory[U, V]): MutableAssignment[U, V] =
+  ): OutputAssignment[U, V] =
     val infl = mutable.Map.empty[U, mutable.Set[U]]
     val workList = mutable.PriorityQueue.empty[U](ordering)
     workList ++= wanted
 
-    val current = factory(start)
+    val current = start.toMutableAssignment
     tracer.initialized(current)
     while workList.nonEmpty do
       val x = workList.dequeue()
@@ -97,4 +97,4 @@ object PriorityWorkListSolver:
         current(x) = newval
         workList ++= infl(x)
     tracer.completed(current)
-    current
+    current.toOutputAssignment

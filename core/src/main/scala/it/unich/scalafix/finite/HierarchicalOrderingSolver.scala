@@ -44,13 +44,13 @@ object HierarchicalOrderingSolver:
    *   the solution of the equation system
    */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])(
-      start: Assignment[U, V],
+      start: InputAssignment[U, V],
       ordering: HierarchicalOrdering[U] = HierarchicalOrdering(DFOrdering(eqs)),
       tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
-  )(using factory: MutableAssignmentFactory[U, V]): MutableAssignment[U, V] =
+  ): OutputAssignment[U, V] =
     import HierarchicalOrdering.*
 
-    val current = factory(start)
+    val current = start.toMutableAssignment
     tracer.initialized(current)
     var stack = List.empty[Int]
     var stackdirty = List.empty[Boolean]
@@ -83,4 +83,4 @@ object HierarchicalOrderingSolver:
             stackdirty = stackdirty.tail
             i += 1
     tracer.completed(current)
-    current
+    current.toOutputAssignment

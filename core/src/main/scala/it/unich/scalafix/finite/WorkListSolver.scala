@@ -40,10 +40,10 @@ object WorkListSolver:
    *   the solution of the equation system
    */
   def apply[U, V](eqs: FiniteEquationSystem[U, V])(
-      start: Assignment[U, V],
+      start: InputAssignment[U, V],
       tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
-  )(using factory: MutableAssignmentFactory[U, V]): MutableAssignment[U, V] =
-    val current = factory(start)
+  ): OutputAssignment[U, V] =
+    val current = start.toMutableAssignment
     tracer.initialized(current)
     // is it better to use a Queue for a worklist ?
     val workList = collection.mutable.LinkedHashSet.empty[U]
@@ -59,4 +59,4 @@ object WorkListSolver:
         // for (y <- eqs.infl(x); if !(workList contains y)) workList += y
         workList ++= eqs.infl(x)
     tracer.completed(current)
-    current
+    current.toOutputAssignment

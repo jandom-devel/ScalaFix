@@ -18,6 +18,7 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.*
+import it.unich.scalafix.assignments.*
 import it.unich.scalafix.FixpointSolverTracer.PerformanceFixpointSolverTracer
 import it.unich.scalafix.lattice.given
 
@@ -56,7 +57,7 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
   })
   private val CC77params = FiniteFixpointSolver.CC77[Int, Double](
     Solver.WorkListSolver,
-    { u => if u == 0 then 0.0 else Double.NegativeInfinity },
+    InputAssignment(Double.NegativeInfinity).updated(0, 0.0),
     doublewidening,
     doublenarrowing
   )
@@ -100,7 +101,7 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     }
 
     it("may use explicit initial assignment") {
-      val params = CC77params.copy[Int, Double](start = { _ => Double.NegativeInfinity })
+      val params = CC77params.copy[Int, Double](start = InputAssignment(Double.NegativeInfinity))
       assertSolution(emptysol)(FiniteFixpointSolver(simpleEqs, params))
     }
 

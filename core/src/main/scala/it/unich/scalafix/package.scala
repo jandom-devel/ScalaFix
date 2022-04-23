@@ -22,6 +22,16 @@
 package it.unich.scalafix
 
 /**
+ * An assignment is a map from unknowns to values.
+ *
+ * @tparam U
+ *   type for unknowns
+ * @tparam V
+ *   type for values
+ */
+type Assignment[-U, +V] = U => V
+
+/**
  * The constant to use in -Xelide-below in order to remove tracing code. Note
  * that tracing might be required to make a program work, so only elide it if
  * you known what you are doing.

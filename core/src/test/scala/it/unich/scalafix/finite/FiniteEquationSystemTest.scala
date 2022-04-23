@@ -18,7 +18,7 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.*
-import it.unich.scalafix.assignments.{*, given}
+import it.unich.scalafix.assignments.*
 import it.unich.scalafix.utils.Relation
 
 import org.scalacheck.{Arbitrary, Gen}
@@ -51,11 +51,10 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
   }
   private val maxBox = BoxAssignment { (x: Double, y: Double) => x max y }
   private val lastBox = BoxAssignment { (_: Double, x2: Double) => x2 }
-
-  private val startRho: Assignment[Int, Double] = Assignment.conditional(3, 10.0, { _ => 0.0 })
+  private val startRho = InputAssignment(0.0).updated(3, 10.0)
 
   private type SimpleSolver[U, V] =
-    (FiniteEquationSystem[U, V], Assignment[U, V]) => MutableAssignment[U, V]
+    (FiniteEquationSystem[U, V], InputAssignment[U, V]) => OutputAssignment[U, V]
 
   /**
    * Tests whether solving `eqs` equation system always returns a correct
@@ -68,7 +67,7 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     val startRhosList = Gen.listOfN(eqs.unknowns.size, values.arbitrary)
     val startRhos = startRhosList map { l => Map.from(eqs.unknowns.toList zip l) }
     forAll(startRhos) { start =>
-      val finalEnv = solver(eqs, start)
+      val finalEnv = solver(eqs, InputAssignment(start))
       for x <- eqs.unknowns do assert(finalEnv(x) === eqs.body(finalEnv)(x))
     }
 

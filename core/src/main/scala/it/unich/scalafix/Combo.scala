@@ -1,5 +1,6 @@
 /**
- * Copyright 2015, 2016, 2021 Gianluca Amato <gianluca.amato@unich.it>
+ * Copyright 2015, 2016, 2021, 2022 Gianluca Amato <gianluca.amato@unich.it> and
+ * Francesca Scozzari <francesca.scozzari@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -23,8 +24,8 @@ import it.unich.scalafix.lattice.{Domain, Magma}
  * A Combo is a way to combine two values into a new one. It is a specialization
  * of the functional type `(V,V) => V`, where the first parameter is the old
  * value of an unknown and the second parameter is the new contribution. Both
- * widenings and narrowings are examples of combos. Combos are mutable, i.e., the
- * apply method may give different results for the same input when called
+ * widenings and narrowings are examples of combos. Combos are mutable, i.e.,
+ * the apply method may give different results for the same input when called
  * multiple times.
  *
  * Another function of combos is to be blueprints for building other equivalent
@@ -32,28 +33,39 @@ import it.unich.scalafix.lattice.{Domain, Magma}
  * equivalent copy of `this`. The copy method should try to minimize object
  * duplication.
  *
+ * For the definition and examples of combos see:
+ *   - Cousot, P., Cousot, R. Comparing the galois connection and
+ *     widening/narrowing approaches to abstract interpretation Lecture Notes in
+ *     Computer Science, 631 LNCS, pp. 269-295. 1992
+ *   - Amato, G., Scozzari, F., Seidl, H., Apinis, K., Vojdani, V. Efficiently
+ *     intertwining widening and narrowing Science of Computer Programming, 120,
+ *     pp. 1-24. 2016
+ *
  * @tparam V
  *   the type of the values to combine.
  */
+
 abstract class Combo[V] extends ((V, V) => V):
-  /*
-  I do not like very much the fact Combo is both a combo and its blueprint. Having two separate classes would
-  be better from the point of view of the separation of concerns, but this solution is quite convenient. We do
-  not write redundant code, we only need a copy method to properly and efficiently handle mutable objects,
-  the API is simple. Keep in mind that one of the important point of this design is to reduce duplication of combos
-  in combo assignments as much as possible.
+  /**
+   * I do not like very much the fact Combo is both a combo and its blueprint.
+   * Having two separate classes would be better from the point of view of the
+   * separation of concerns, but this solution is quite convenient. We do not
+   * write redundant code, we only need a copy method to properly and
+   * efficiently handle mutable objects, the API is simple. Keep in mind that
+   * one of the important point of this design is to reduce duplication of
+   * combos in combo assignments as much as possible.
    */
 
   /**
-   * It returns true if the combo is guaranteed to be idempotent, i.e., if `x combo
-   * y = (x combo y) combo y`. This may be used for optimization purposes.
+   * It returns true if the combo is guaranteed to be idempotent, i.e., if `x
+   * combo y = (x combo y) combo y`. This may be used for optimization purposes.
    */
   def isIdempotent: Boolean
 
   /**
    * It returns true if this is guaranteed to be the right combo (i.e., the one
-   * which always returns the second component). This may be used for
-   * optimization purposes.
+   * which always returns the second component: `x combo y = y). This may be
+   * used for optimization purposes.
    */
   def isRight: Boolean
 
@@ -64,14 +76,14 @@ abstract class Combo[V] extends ((V, V) => V):
   def isImmutable: Boolean
 
   /**
-   * Returns a copy of this combo. An immutable combo may just returns itself, but a
-   * mutable one should produce a distinct copy of itself.
+   * Returns a copy of this combo. An immutable combo may just returns itself,
+   * but a mutable one should produce a distinct copy of itself.
    */
   def copy: Combo[V]
 
   /**
-   * Returns a delayed version of the combo. It is equivalent to applying cascade
-   * to the right combo.
+   * Returns a delayed version of the combo. It is equivalent to applying
+   * cascade to the right combo.
    */
   def delayed(delay: Int): Combo[V] = Combo.cascade(Combo.right[V], delay, this)
 
@@ -131,15 +143,16 @@ object Combo:
 
   /**
    * A combo built from a function `f: (V,V) => V`. The combo is declared to be
-   * immutable, while idempotency depends from the parameter `areIdempotent`
+   * immutable, while idempotency depends on the parameter `areIdempotent`
    *
    * @param f
    *   the function to use for the `apply` method of the new combo.
    * @param isIdempotent
-   *   determines whether the returned combo is declared to be idempotent (default
-   *   is `true`)
+   *   determines whether the returned combo is declared to be idempotent
+   *   (default is `true`)
    */
-  def apply[V](f: (V, V) => V, isIdempotent: Boolean = true): Combo[V] = FromFunction(f, isIdempotent)
+  def apply[V](f: (V, V) => V, isIdempotent: Boolean = true): Combo[V] =
+    FromFunction(f, isIdempotent)
 
   /**
    * A combo given by the upper bound of a type `V` endowed with a directed
@@ -151,9 +164,9 @@ object Combo:
   def magma[V: Magma]: ImmutableCombo[V] = FromFunction(_ op _, true)
 
   /**
-   * A mutable combo which behaves as `this` for the first `delay` steps and as
-   * `that` for the rest of its existence. This may be used to implement delayed
-   * widenings and narrowings.
+   * A mutable combo which behaves as `first` for the initial `delay` steps and
+   * as `second` for the rest of its existence. This may be used to implement
+   * delayed widenings and narrowings.
    */
   def cascade[V](first: Combo[V], delay: Int, second: Combo[V]): Combo[V] =
     require(delay >= 0)
@@ -163,8 +176,10 @@ object Combo:
 
   /**
    * A warrowing obtained by combining the given widenings and narrowings, as
-   * defined in the paper: Amato, Scozzari, Seidl, Apinis, Vodjani "Efficiently
-   * intertwining widenings and narrowings". Science of Computer Programming
+   * defined in the paper:
+   *   - Amato, G., Scozzari, F., Seidl, H., Apinis, K., Vojdani, V. Efficiently
+   *     intertwining widening and narrowing Science of Computer Programming,
+   *     120, pp. 1-24. 2016
    *
    * @tparam V
    *   the type of values, should be endowed with a partial ordering

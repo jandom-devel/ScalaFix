@@ -46,11 +46,11 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
 
   private val simpleEqsStrategy =
     HierarchicalOrdering(Left, Val(0), Left, Val(1), Val(2), Val(3), Right, Right)
-  private val wideningBox = BoxAssignment { (x1: Double, x2: Double) =>
+  private val wideningCombo = ComboAssignment { (x1: Double, x2: Double) =>
     if x2 > x1 then Double.PositiveInfinity else x1
   }
-  private val maxBox = BoxAssignment { (x: Double, y: Double) => x max y }
-  private val lastBox = BoxAssignment { (_: Double, x2: Double) => x2 }
+  private val maxCombo = ComboAssignment { (x: Double, y: Double) => x max y }
+  private val lastCombo = ComboAssignment { (_: Double, x2: Double) => x2 }
   private val startRho = InputAssignment(0.0).updated(3, 10.0)
 
   private type SimpleSolver[U, V] =
@@ -77,7 +77,7 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
    */
   def testExpectedResult(solver: SimpleSolver[Int, Double]) =
     it("gives the expected result starting from startRho with last") {
-      val finalRho = solver(simpleEqs.withBoxes(lastBox), startRho)
+      val finalRho = solver(simpleEqs.withCombos(lastCombo), startRho)
       assert(finalRho(0) === 0.0)
       assert(finalRho(1) === 10.0)
       assert(finalRho(2) === 11.0)
@@ -85,7 +85,7 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     }
 
     it("gives the expected result starting from startRho with max") {
-      val finalRho = solver(simpleEqs.withBoxes(maxBox), startRho)
+      val finalRho = solver(simpleEqs.withCombos(maxCombo), startRho)
       assert(finalRho(0) === 0.0)
       assert(finalRho(1) === 10.0)
       assert(finalRho(2) === 11.0)
@@ -93,15 +93,15 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     }
 
     it("gives the expected result starting from startRho with widenings") {
-      val finalRho = solver(simpleEqs.withBoxes(wideningBox), startRho)
+      val finalRho = solver(simpleEqs.withCombos(wideningCombo), startRho)
       assert(finalRho(0) === 0.0)
       assert(finalRho(1) === Double.PositiveInfinity)
       assert(finalRho(2) === Double.PositiveInfinity)
       assert(finalRho(3) === 10.0)
     }
 
-    it("always returns a box solution with widenings") {
-      testCorrectness(simpleEqs.withBoxes(wideningBox), solver)
+    it("always returns a combo solution with widenings") {
+      testCorrectness(simpleEqs.withCombos(wideningCombo), solver)
     }
 
   describe("The RoundRobinSolver") {

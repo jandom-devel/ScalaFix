@@ -55,7 +55,7 @@ trait EquationSystemTracer[U, V]:
   def afterEvaluation(rho: Assignment[U, V], u: U, res: V): Unit
 
   /**
-   * This method is called when a box is evaluated.
+   * This method is called when a combo is evaluated.
    *
    * @param rho
    *   the input assignment of the body
@@ -63,11 +63,11 @@ trait EquationSystemTracer[U, V]:
    *   the unknown to be evaluated
    * @param res
    *   result of the evaluation of the original body
-   * @param boxed
-   *   result of the evaluation of the original body, boxed with the original
+   * @param comboed
+   *   result of the evaluation of the original body, comboed with the original
    *   value
    */
-  def boxEvaluation(rho: Assignment[U, V], u: U, res: V, boxed: V): Unit
+  def comboEvaluation(rho: Assignment[U, V], u: U, res: V, comboed: V): Unit
 
 /**
  * This abstract class implements a tracer which does nothing. May be
@@ -81,7 +81,7 @@ abstract class EquationSystemTracerAdapter[U, V] extends EquationSystemTracer[U,
   def afterEvaluation(rho: Assignment[U, V], u: U, res: V): Unit = {}
 
   @elidable(TRACING)
-  def boxEvaluation(rho: Assignment[U, V], u: U, res: V, boxed: V): Unit = {}
+  def comboEvaluation(rho: Assignment[U, V], u: U, res: V, comboed: V): Unit = {}
 
 object EquationSystemTracer:
 
@@ -100,8 +100,8 @@ object EquationSystemTracer:
       ps.println(s"evaluated: $u oldvalue: ${rho(u)} newvalue: $res")
 
     @elidable(TRACING)
-    def boxEvaluation(rho: Assignment[U, V], u: U, res: V, boxed: V) =
-      ps.println(s"evaluated: $u, oldvalue: ${rho(u)}, newvalue: $res, boxed: $boxed")
+    def comboEvaluation(rho: Assignment[U, V], u: U, res: V, comboed: V) =
+      ps.println(s"evaluated: $u, oldvalue: ${rho(u)}, newvalue: $res, comboed: $comboed")
 
   private val emptyEquationSystemTracer = EmptyEquationSystemTracer[Any, Any]
 

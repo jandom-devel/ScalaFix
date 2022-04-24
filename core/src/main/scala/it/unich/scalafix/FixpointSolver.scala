@@ -39,8 +39,8 @@ object FixpointSolver:
     val WorkListSolver = Value
     val HierarchicalOrderingSolver = Value
 
-  object BoxStrategy extends Enumeration:
-    type BoxStrategy = Value
+  object ComboStrategy extends Enumeration:
+    type ComboStrategy = Value
 
     /** Only apply widenings. */
     val OnlyWidening = Value
@@ -51,8 +51,8 @@ object FixpointSolver:
     /** Single pass with a warrowing. */
     val Warrowing = Value
 
-  object BoxScope extends Enumeration:
-    type BoxScope = Value
+  object ComboScope extends Enumeration:
+    type ComboScope = Value
 
     /** Use standard widenings. */
     val Standard = Value
@@ -60,8 +60,8 @@ object FixpointSolver:
     /** Use localized widenings. */
     val Localized = Value
 
-  object BoxLocation extends Enumeration:
-    type BoxLocation = Value
+  object ComboLocation extends Enumeration:
+    type ComboLocation = Value
 
     /** Put widenings/narrowings points nowhere */
     val None = Value

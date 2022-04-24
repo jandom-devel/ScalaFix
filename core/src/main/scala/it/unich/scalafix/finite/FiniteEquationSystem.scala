@@ -41,7 +41,7 @@ trait FiniteEquationSystem[U, V] extends EquationSystem[U, V]:
    */
   val infl: Relation[U]
 
-  override def withBoxes(boxes: BoxAssignment[U, V]): FiniteEquationSystem[U, V]
+  override def withCombos(combos: ComboAssignment[U, V]): FiniteEquationSystem[U, V]
 
   override def withBaseAssignment(init: PartialFunction[U, V])(using
       magma: Magma[V]
@@ -63,9 +63,9 @@ case class SimpleFiniteEquationSystem[U, V](
 ) extends EquationSystemBase[U, V]
     with FiniteEquationSystem[U, V]:
 
-  def withBoxes(boxes: BoxAssignment[U, V]): FiniteEquationSystem[U, V] =
-    val newInfl = if boxes.boxesAreIdempotent then infl else infl.withDiagonal
-    copy(body = bodyWithBoxAssignment(boxes), infl = newInfl)
+  def withCombos(combos: ComboAssignment[U, V]): FiniteEquationSystem[U, V] =
+    val newInfl = if combos.combosAreIdempotent then infl else infl.withDiagonal
+    copy(body = bodyWithComboAssignment(combos), infl = newInfl)
 
   def withBaseAssignment(init: PartialFunction[U, V])(using
       magma: Magma[V]

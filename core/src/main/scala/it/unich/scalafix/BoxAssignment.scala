@@ -18,164 +18,164 @@
 package it.unich.scalafix
 
 /**
- * A BoxAssignment maps a subset of unknowns to a Box. When `isDefinedAt(u)` is
+ * A ComboAssignment maps a subset of unknowns to a Combo. When `isDefinedAt(u)` is
  * false for a given unknown `u`, the corresponding `apply(u)` should be a right
- * box.
+ * combo.
  *
- * Like it was the case for Box, a BoxAssignent is also a blueprint for buildind
- * equivalent BoxAssignments. Each BoxAssignmant has a copy method which should
+ * Like it was the case for Combo, a ComboAssignent is also a blueprint for buildind
+ * equivalent ComboAssignments. Each ComboAssignmant has a copy method which should
  * produce a functionally equivalent copy of `this`. The copy method should try
  * to minimize object duplication.
  */
-abstract class BoxAssignment[-U, V] extends PartialFunction[U, Box[V]]:
+abstract class ComboAssignment[-U, V] extends PartialFunction[U, Combo[V]]:
   /**
    * Returns true if the assignment is empty, i.e., it is undefined for all
    * program points.
    */
   def isEmpty: Boolean
 
-  /** Returns true if all returned boxes are idempotent. */
-  def boxesAreIdempotent: Boolean
+  /** Returns true if all returned combos are idempotent. */
+  def combosAreIdempotent: Boolean
 
-  /** Returns true if all boxes are right boxes. */
-  def boxesAreRight: Boolean
+  /** Returns true if all combos are right combos. */
+  def combosAreRight: Boolean
 
-  /** Returns true if all boxes are immutable */
-  def boxesAreImmutable: Boolean
+  /** Returns true if all combos are immutable */
+  def combosAreImmutable: Boolean
 
   /**
-   * Returns a copy of this box assignment. An immutable box assignment may just
+   * Returns a copy of this combo assignment. An immutable combo assignment may just
    * returns itself, but a mutable one should produce a copy of itself.
    */
-  def copy: BoxAssignment[U, V]
+  def copy: ComboAssignment[U, V]
 
   /**
-   * Restrict the domain of this box assignment. The new domain is the
+   * Restrict the domain of this combo assignment. The new domain is the
    * intersection of the old domain and the set whose characteristic function is
    * `domain`
    */
-  def restrict[U1 <: U](domain: U1 => Boolean): BoxAssignment[U1, V] =
+  def restrict[U1 <: U](domain: U1 => Boolean): ComboAssignment[U1, V] =
     if isEmpty then this
-    else BoxAssignment.RestrictAssignment(this, domain)
+    else ComboAssignment.RestrictAssignment(this, domain)
 
 /**
- * The `BoxAssignment` object defines factories for building box assignments.
+ * The `ComboAssignment` object defines factories for building combo assignments.
  */
-object BoxAssignment:
+object ComboAssignment:
 
-  private object EmptyAssigment extends BoxAssignment[Any, Any]:
-    def apply(u: Any): Box.ImmutableBox[Any] = Box.right[Any]
+  private object EmptyAssigment extends ComboAssignment[Any, Any]:
+    def apply(u: Any): Combo.ImmutableCombo[Any] = Combo.right[Any]
     def isDefinedAt(u: Any) = false
     def isEmpty = true
-    def boxesAreIdempotent = true
-    def boxesAreRight = true
-    def boxesAreImmutable = true
+    def combosAreIdempotent = true
+    def combosAreRight = true
+    def combosAreImmutable = true
     def copy: this.type = this
 
   /**
-   * A constant box assignment maps the same box to all program points. Be
-   * careful because if box has internal state, this is shared among all program
+   * A constant combo assignment maps the same combo to all program points. Be
+   * careful because if combo has internal state, this is shared among all program
    * points. For example, this is not suited for delayed widenings or
    * narrowings.
    *
    * @tparam V
    *   the type of the values
-   * @param box
-   *   the box to return for each program point
+   * @param combo
+   *   the combo to return for each program point
    */
-  private final class ConstantAssignment[V](box: Box[V]) extends BoxAssignment[Any, V]:
+  private final class ConstantAssignment[V](combo: Combo[V]) extends ComboAssignment[Any, V]:
     def isDefinedAt(u: Any) = true
-    def apply(u: Any): Box[V] = box
+    def apply(u: Any): Combo[V] = combo
     def isEmpty = false
-    def boxesAreIdempotent: Boolean = box.isIdempotent
-    def boxesAreRight: Boolean = box.isRight
-    def boxesAreImmutable: Boolean = box.isImmutable
+    def combosAreIdempotent: Boolean = combo.isIdempotent
+    def combosAreRight: Boolean = combo.isRight
+    def combosAreImmutable: Boolean = combo.isImmutable
     def copy: ConstantAssignment[V] =
-      if boxesAreImmutable then this else ConstantAssignment(box.copy)
+      if combosAreImmutable then this else ConstantAssignment(combo.copy)
 
   /**
-   * A box assignment which returns a copy of the same box for each program
+   * A combo assignment which returns a copy of the same combo for each program
    * point.
    *
    * @tparam V
    *   the type of values
-   * @param box
-   *   the template for the box we need to associate to program points
+   * @param combo
+   *   the template for the combo we need to associate to program points
    */
-  private final class TemplateAssignment[V](box: Box[V]) extends BoxAssignment[Any, V]:
-    private val hash = scala.collection.mutable.Map.empty[Any, Box[V]]
+  private final class TemplateAssignment[V](combo: Combo[V]) extends ComboAssignment[Any, V]:
+    private val hash = scala.collection.mutable.Map.empty[Any, Combo[V]]
     def isDefinedAt(u: Any) = true
-    def apply(u: Any): Box[V] = hash.getOrElseUpdate(u, box.copy)
+    def apply(u: Any): Combo[V] = hash.getOrElseUpdate(u, combo.copy)
     def isEmpty = false
-    def boxesAreIdempotent: Boolean = box.isIdempotent
-    def boxesAreImmutable: Boolean = box.isImmutable
-    def boxesAreRight: Boolean = box.isRight
-    def copy: TemplateAssignment[V] = if boxesAreImmutable then this else TemplateAssignment(box)
+    def combosAreIdempotent: Boolean = combo.isIdempotent
+    def combosAreImmutable: Boolean = combo.isImmutable
+    def combosAreRight: Boolean = combo.isRight
+    def copy: TemplateAssignment[V] = if combosAreImmutable then this else TemplateAssignment(combo)
 
   /**
-   * A box assignment which restrict the assignment boxes to the set of program
+   * A combo assignment which restrict the assignment combos to the set of program
    * points which satisfy domain.
    *
    * @tparam U
-   *   the type for program points of the box assignment
+   *   the type for program points of the combo assignment
    * @tparam V
    *   the type of values
    * @tparam U1
    *   the type of program points (subtype of U) to which we want to restrict
    *   the assignment
-   * @param boxes
-   *   the original box assignment
+   * @param combos
+   *   the original combo assignment
    * @param domain
-   *   the set of points on which we want to use a box
+   *   the set of points on which we want to use a combo
    */
   private final class RestrictAssignment[U, V, U1 <: U](
-      boxes: BoxAssignment[U, V],
+      combos: ComboAssignment[U, V],
       domain: U1 => Boolean
-  ) extends BoxAssignment[U1, V]:
-    def apply(u: U1): Box[V] = if domain(u) then boxes(u) else Box.right[V]
-    def isDefinedAt(u: U1): Boolean = domain(u) && boxes.isDefinedAt(u)
-    def isEmpty: Boolean = boxes.isEmpty
-    def boxesAreIdempotent: Boolean = boxes.boxesAreIdempotent
-    def boxesAreImmutable: Boolean = boxes.boxesAreImmutable
-    def boxesAreRight: Boolean = boxes.boxesAreRight
+  ) extends ComboAssignment[U1, V]:
+    def apply(u: U1): Combo[V] = if domain(u) then combos(u) else Combo.right[V]
+    def isDefinedAt(u: U1): Boolean = domain(u) && combos.isDefinedAt(u)
+    def isEmpty: Boolean = combos.isEmpty
+    def combosAreIdempotent: Boolean = combos.combosAreIdempotent
+    def combosAreImmutable: Boolean = combos.combosAreImmutable
+    def combosAreRight: Boolean = combos.combosAreRight
     def copy: RestrictAssignment[U, V, U1] =
-      if boxesAreImmutable then this else RestrictAssignment(boxes.copy, domain)
+      if combosAreImmutable then this else RestrictAssignment(combos.copy, domain)
 
   private final class WarrowingAssignment[U, V: PartialOrdering](
-      widenings: BoxAssignment[U, V],
-      narrowings: BoxAssignment[U, V]
-  ) extends BoxAssignment[U, V]:
-    def apply(u: U): Box[V] = Box.warrowing(widenings(u), narrowings(u))
+      widenings: ComboAssignment[U, V],
+      narrowings: ComboAssignment[U, V]
+  ) extends ComboAssignment[U, V]:
+    def apply(u: U): Combo[V] = Combo.warrowing(widenings(u), narrowings(u))
     def isDefinedAt(x: U): Boolean = widenings.isDefinedAt(x) || narrowings.isDefinedAt(x)
     def isEmpty: Boolean = widenings.isEmpty && narrowings.isEmpty
-    def boxesAreIdempotent = false
-    def boxesAreImmutable: Boolean = widenings.boxesAreImmutable && narrowings.boxesAreImmutable
-    def boxesAreRight: Boolean = widenings.boxesAreRight && narrowings.boxesAreRight
+    def combosAreIdempotent = false
+    def combosAreImmutable: Boolean = widenings.combosAreImmutable && narrowings.combosAreImmutable
+    def combosAreRight: Boolean = widenings.combosAreRight && narrowings.combosAreRight
     def copy: WarrowingAssignment[U, V] =
-      if boxesAreImmutable then this else WarrowingAssignment(widenings.copy, narrowings.copy)
+      if combosAreImmutable then this else WarrowingAssignment(widenings.copy, narrowings.copy)
 
   /**
-   * A box assignment which returns the same box for each program point. If box
+   * A combo assignment which returns the same combo for each program point. If combo
    * is mutable, different copies are used for the different program points.
    *
    * @tparam V
    *   the type of values
-   * @param box
-   *   the template for box to be returned at each program point
+   * @param combo
+   *   the template for combo to be returned at each program point
    */
-  def apply[V](box: Box[V]): BoxAssignment[Any, V] =
-    if box.isImmutable then ConstantAssignment(box)
-    else TemplateAssignment(box)
+  def apply[V](combo: Combo[V]): ComboAssignment[Any, V] =
+    if combo.isImmutable then ConstantAssignment(combo)
+    else TemplateAssignment(combo)
 
   /**
-   * A box assignment which returns the immutable and idempotent box
+   * A combo assignment which returns the immutable and idempotent combo
    * corresponding to the map `f: (V,V) => V`, for each program point.
    */
-  def apply[V](f: (V, V) => V, isIdempotent: Boolean = true): BoxAssignment[Any, V] =
-    ConstantAssignment[V](Box(f, isIdempotent))
+  def apply[V](f: (V, V) => V, isIdempotent: Boolean = true): ComboAssignment[Any, V] =
+    ConstantAssignment[V](Combo(f, isIdempotent))
 
-  /** A box assignment which is undefined for each program point. */
-  def empty[V]: BoxAssignment[Any, V] = EmptyAssigment.asInstanceOf[BoxAssignment[Any, V]]
+  /** A combo assignment which is undefined for each program point. */
+  def empty[V]: ComboAssignment[Any, V] = EmptyAssigment.asInstanceOf[ComboAssignment[Any, V]]
 
   /**
    * A warrowing assignment obtained by combining the given widenings and
@@ -193,8 +193,8 @@ object BoxAssignment:
    *   narrowing assignment over U and V
    */
   def warrowing[U, V: PartialOrdering](
-      widenings: BoxAssignment[U, V],
-      narrowings: BoxAssignment[U, V]
-  ): BoxAssignment[U, V] =
-    if widenings.boxesAreRight && narrowings.boxesAreRight then BoxAssignment(Box.right[V])
+      widenings: ComboAssignment[U, V],
+      narrowings: ComboAssignment[U, V]
+  ): ComboAssignment[U, V] =
+    if widenings.combosAreRight && narrowings.combosAreRight then ComboAssignment(Combo.right[V])
     else WarrowingAssignment(widenings, narrowings)

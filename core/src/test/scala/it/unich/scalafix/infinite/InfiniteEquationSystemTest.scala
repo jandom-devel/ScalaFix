@@ -38,7 +38,7 @@ class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyCheck
     }
   )
 
-  private val maxBox = BoxAssignment { (x: Int, y: Int) => x max y }
+  private val maxCombo = ComboAssignment { (x: Int, y: Int) => x max y }
   private val startRho = InputAssignment[Int, Int](0)
 
   private type SimpleSolver[U, V] =
@@ -57,7 +57,7 @@ class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyCheck
    */
   def testExpectedResult(solver: SimpleSolver[Int, Int]) =
     it("gives the expected result starting from startRho with max") {
-      val finalRho = solver(simpleEqs.withBoxes(maxBox), startRho, Seq(4))
+      val finalRho = solver(simpleEqs.withCombos(maxCombo), startRho, Seq(4))
       assertResult(Set(0, 1, 2, 4))(finalRho.unknowns)
       assertResult(2)(finalRho(1))
       assertResult(2)(finalRho(2))

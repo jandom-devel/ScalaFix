@@ -20,87 +20,87 @@ package it.unich.scalafix
 import it.unich.scalafix.lattice.{Domain, Magma}
 
 /**
- * A Box is a way to combine two values into a new one. It is a specialization
+ * A Combo is a way to combine two values into a new one. It is a specialization
  * of the functional type `(V,V) => V`, where the first parameter is the old
  * value of an unknown and the second parameter is the new contribution. Both
- * widenings and narrowings are examples of boxes. Boxes are mutable, i.e., the
+ * widenings and narrowings are examples of combos. Combos are mutable, i.e., the
  * apply method may give different results for the same input when called
  * multiple times.
  *
- * Another function of boxes is to be blueprints for building other equivalent
- * boxes. Each box has a copy method which should produce a functionally
+ * Another function of combos is to be blueprints for building other equivalent
+ * combos. Each combo has a copy method which should produce a functionally
  * equivalent copy of `this`. The copy method should try to minimize object
  * duplication.
  *
  * @tparam V
  *   the type of the values to combine.
  */
-abstract class Box[V] extends ((V, V) => V):
+abstract class Combo[V] extends ((V, V) => V):
   /*
-  I do not like very much the fact Box is both a box and its blueprint. Having two separate classes would
+  I do not like very much the fact Combo is both a combo and its blueprint. Having two separate classes would
   be better from the point of view of the separation of concerns, but this solution is quite convenient. We do
   not write redundant code, we only need a copy method to properly and efficiently handle mutable objects,
-  the API is simple. Keep in mind that one of the important point of this design is to reduce duplication of boxes
-  in box assignments as much as possible.
+  the API is simple. Keep in mind that one of the important point of this design is to reduce duplication of combos
+  in combo assignments as much as possible.
    */
 
   /**
-   * It returns true if the box is guaranteed to be idempotent, i.e., if `x box
-   * y = (x box y) box y`. This may be used for optimization purposes.
+   * It returns true if the combo is guaranteed to be idempotent, i.e., if `x combo
+   * y = (x combo y) combo y`. This may be used for optimization purposes.
    */
   def isIdempotent: Boolean
 
   /**
-   * It returns true if this is guaranteed to be the right box (i.e., the one
+   * It returns true if this is guaranteed to be the right combo (i.e., the one
    * which always returns the second component). This may be used for
    * optimization purposes.
    */
   def isRight: Boolean
 
   /**
-   * It returns true if this box is guaranteed to be immutable, i.e., if the
+   * It returns true if this combo is guaranteed to be immutable, i.e., if the
    * `apply` method does not change its behaviour over time.
    */
   def isImmutable: Boolean
 
   /**
-   * Returns a copy of this box. An immutable box may just returns itself, but a
+   * Returns a copy of this combo. An immutable combo may just returns itself, but a
    * mutable one should produce a distinct copy of itself.
    */
-  def copy: Box[V]
+  def copy: Combo[V]
 
   /**
-   * Returns a delayed version of the box. It is equivalent to applying cascade
-   * to the right box.
+   * Returns a delayed version of the combo. It is equivalent to applying cascade
+   * to the right combo.
    */
-  def delayed(delay: Int): Box[V] = Box.cascade(Box.right[V], delay, this)
+  def delayed(delay: Int): Combo[V] = Combo.cascade(Combo.right[V], delay, this)
 
-/** The `Box` object defines several factories for building boxes. */
-object Box:
+/** The `Combo` object defines several factories for building combos. */
+object Combo:
 
-  abstract class ImmutableBox[V] extends Box[V]:
+  abstract class ImmutableCombo[V] extends Combo[V]:
     def isImmutable = true
     def copy: this.type = this
 
-  private object RightBox extends ImmutableBox[Any]:
+  private object RightCombo extends ImmutableCombo[Any]:
     def apply(x: Any, y: Any): Any = y
     def isRight = true
     def isIdempotent = true
 
-  private object LeftBox extends ImmutableBox[Any]:
+  private object LeftCombo extends ImmutableCombo[Any]:
     def apply(x: Any, y: Any): Any = x
     def isRight = false
     def isIdempotent = true
 
   // We assume f is immutable, since we would not know how to handle the case with f mutable.
   private final class FromFunction[V](f: (V, V) => V, val isIdempotent: Boolean)
-      extends ImmutableBox[V]:
+      extends ImmutableCombo[V]:
     def apply(x: V, y: V): V = f(x, y)
     def isRight = false
 
-  // we only consider the case when either `first` or `second` is not a right box
-  private final class Warrowing[V: PartialOrdering](widening: Box[V], narrowing: Box[V])
-      extends Box[V]:
+  // we only consider the case when either `first` or `second` is not a right combo
+  private final class Warrowing[V: PartialOrdering](widening: Combo[V], narrowing: Combo[V])
+      extends Combo[V]:
     def apply(x: V, y: V): V =
       if summon[PartialOrdering[V]].lteq(y, x) then narrowing(x, y) else widening(x, y)
     def isRight: Boolean = false
@@ -108,8 +108,8 @@ object Box:
     def isImmutable: Boolean = widening.isImmutable && narrowing.isImmutable
     def copy: Warrowing[V] = if isImmutable then this else Warrowing(widening.copy, narrowing.copy)
 
-  // we only consider the case when `delay` > 0 and either `first` or `second` is not a right box
-  private final class Cascade[V](first: Box[V], delay: Int, second: Box[V]) extends Box[V]:
+  // we only consider the case when `delay` > 0 and either `first` or `second` is not a right combo
+  private final class Cascade[V](first: Combo[V], delay: Int, second: Combo[V]) extends Combo[V]:
     var steps = 0
 
     def isRight = false
@@ -123,41 +123,41 @@ object Box:
         first(x, y)
       else second(x, y)
 
-  /** A box which always returns its right component (new contribution). */
-  def right[V]: ImmutableBox[V] = RightBox.asInstanceOf[ImmutableBox[V]]
+  /** A combo which always returns its right component (new contribution). */
+  def right[V]: ImmutableCombo[V] = RightCombo.asInstanceOf[ImmutableCombo[V]]
 
-  /** A box which always returns its left component (original value). */
-  def left[V]: ImmutableBox[V] = LeftBox.asInstanceOf[ImmutableBox[V]]
+  /** A combo which always returns its left component (original value). */
+  def left[V]: ImmutableCombo[V] = LeftCombo.asInstanceOf[ImmutableCombo[V]]
 
   /**
-   * A box built from a function `f: (V,V) => V`. The box is declared to be
+   * A combo built from a function `f: (V,V) => V`. The combo is declared to be
    * immutable, while idempotency depends from the parameter `areIdempotent`
    *
    * @param f
-   *   the function to use for the `apply` method of the new box.
+   *   the function to use for the `apply` method of the new combo.
    * @param isIdempotent
-   *   determines whether the returned box is declared to be idempotent (default
+   *   determines whether the returned combo is declared to be idempotent (default
    *   is `true`)
    */
-  def apply[V](f: (V, V) => V, isIdempotent: Boolean = true): Box[V] = FromFunction(f, isIdempotent)
+  def apply[V](f: (V, V) => V, isIdempotent: Boolean = true): Combo[V] = FromFunction(f, isIdempotent)
 
   /**
-   * A box given by the upper bound of a type `V` endowed with a directed
+   * A combo given by the upper bound of a type `V` endowed with a directed
    * partial ordering.
    */
-  def upperBound[V: Domain]: ImmutableBox[V] = FromFunction(_ upperBound _, true)
+  def upperBound[V: Domain]: ImmutableCombo[V] = FromFunction(_ upperBound _, true)
 
-  /** A box given by the magma operator on a type `V`. */
-  def magma[V: Magma]: ImmutableBox[V] = FromFunction(_ op _, true)
+  /** A combo given by the magma operator on a type `V`. */
+  def magma[V: Magma]: ImmutableCombo[V] = FromFunction(_ op _, true)
 
   /**
-   * A mutable box which behaves as `this` for the first `delay` steps and as
+   * A mutable combo which behaves as `this` for the first `delay` steps and as
    * `that` for the rest of its existence. This may be used to implement delayed
    * widenings and narrowings.
    */
-  def cascade[V](first: Box[V], delay: Int, second: Box[V]): Box[V] =
+  def cascade[V](first: Combo[V], delay: Int, second: Combo[V]): Combo[V] =
     require(delay >= 0)
-    if first.isRight && second.isRight then Box.right[V]
+    if first.isRight && second.isRight then Combo.right[V]
     else if delay == 0 then second
     else Cascade(first, delay, second)
 
@@ -173,6 +173,6 @@ object Box:
    * @param narrowing
    *   a narrowing over V
    */
-  def warrowing[V: PartialOrdering](widening: Box[V], narrowing: Box[V]): Box[V] =
+  def warrowing[V: PartialOrdering](widening: Combo[V], narrowing: Combo[V]): Combo[V] =
     if widening.isRight && narrowing.isRight then right[V]
     else Warrowing(widening, narrowing)

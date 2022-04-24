@@ -54,15 +54,15 @@ trait GraphEquationSystem[U, V, E] extends FiniteEquationSystem[U, V]:
   val ingoing: U => Iterable[E]
 
   /**
-   * Add boxes to the equation system in a localized way.
+   * Add combos to the equation system in a localized way.
    *
-   * @param boxes
-   *   new boxes to add.
+   * @param combos
+   *   new combos to add.
    * @param ordering
    *   an order on unknown used to decide which edges needs to be widened
    */
-  def withLocalizedBoxes(
-      boxes: BoxAssignment[U, V],
+  def withLocalizedCombos(
+      combos: ComboAssignment[U, V],
       ordering: Ordering[U]
   ): GraphEquationSystem[U, V, E]
 
@@ -77,8 +77,8 @@ trait GraphEquationSystem[U, V, E] extends FiniteEquationSystem[U, V]:
    *   a narrowing assignment
    */
   def withLocalizedWarrowing(
-      widenings: BoxAssignment[U, V],
-      narrowings: BoxAssignment[U, V],
+      widenings: ComboAssignment[U, V],
+      narrowings: ComboAssignment[U, V],
       ordering: Ordering[U]
   ): FiniteEquationSystem[U, V]
 
@@ -131,9 +131,9 @@ case class SimpleGraphEquationSystem[U, V, E](
   def withTracer(t: EquationSystemTracer[U, V]): GraphEquationSystem[U, V, E] =
     copy(tracer = Some(t))
 
-  def withBoxes(boxes: BoxAssignment[U, V]): FiniteEquationSystem[U, V] =
-    val newbody = bodyWithBoxAssignment(boxes)
-    val newinfl = if boxes.boxesAreIdempotent then infl else infl.withDiagonal
+  def withCombos(combos: ComboAssignment[U, V]): FiniteEquationSystem[U, V] =
+    val newbody = bodyWithComboAssignment(combos)
+    val newinfl = if combos.combosAreIdempotent then infl else infl.withDiagonal
     SimpleFiniteEquationSystem(newbody, inputUnknowns, unknowns, newinfl, tracer)
 
   def withBaseAssignment(init: PartialFunction[U, V])(using
@@ -142,28 +142,28 @@ case class SimpleGraphEquationSystem[U, V, E](
     val newbody = bodyWithBaseAssignment(init, _ op _)
     SimpleFiniteEquationSystem(newbody, inputUnknowns, unknowns, infl, tracer)
 
-  def withLocalizedBoxes(
-      boxes: BoxAssignment[U, V],
+  def withLocalizedCombos(
+      combos: ComboAssignment[U, V],
       ordering: Ordering[U]
   ): GraphEquationSystem[U, V, E] =
     val newEdgeAction =
       (rho: Assignment[U, V]) =>
         (e: E) =>
           val x = target(e)
-          if boxes.isDefinedAt(x) && sources(e).exists(ordering.lteq(x, _)) then
-            boxes(x)(rho(x), edgeAction(rho)(e))
+          if combos.isDefinedAt(x) && sources(e).exists(ordering.lteq(x, _)) then
+            combos(x)(rho(x), edgeAction(rho)(e))
           else edgeAction(rho)(e)
-    if boxes.boxesAreIdempotent then copy(edgeAction = newEdgeAction)
+    if combos.combosAreIdempotent then copy(edgeAction = newEdgeAction)
     else
       val newSources =
         (e: E) =>
           val x = target(e)
-          if boxes.isDefinedAt(x) && sources(e).exists(ordering.lteq(x, _)) then
+          if combos.isDefinedAt(x) && sources(e).exists(ordering.lteq(x, _)) then
             sources(e) ++ Iterable(x)
           else sources(e)
       val newOutgoing =
         (u: U) =>
-          if boxes.isDefinedAt(u) then
+          if combos.isDefinedAt(u) then
             val edges = ingoing(u).filter { (e: E) =>
               sources(e).exists(ordering.lteq(u, _))
             }
@@ -172,8 +172,8 @@ case class SimpleGraphEquationSystem[U, V, E](
       copy(edgeAction = newEdgeAction, sources = newSources, outgoing = newOutgoing)
 
   def withLocalizedWarrowing(
-      widenings: BoxAssignment[U, V],
-      narrowings: BoxAssignment[U, V],
+      widenings: ComboAssignment[U, V],
+      narrowings: ComboAssignment[U, V],
       ordering: Ordering[U]
   ): FiniteEquationSystem[U, V] =
     val newBody: Body[U, V] =
@@ -181,8 +181,8 @@ case class SimpleGraphEquationSystem[U, V, E](
         (x: U) =>
           val contributions = for e <- ingoing(x) yield
             val contrib = edgeAction(rho)(e)
-            val boxapply = sources(e).exists(ordering.lteq(x, _)) && !dom.lteq(contrib, rho(x))
-            (contrib, boxapply)
+            val comboapply = sources(e).exists(ordering.lteq(x, _)) && !dom.lteq(contrib, rho(x))
+            (contrib, comboapply)
           // if contribution is empty the unknown x has no right hand side... it seems
           // reasonable to return the old value.
           if contributions.isEmpty then rho(x)
@@ -194,7 +194,7 @@ case class SimpleGraphEquationSystem[U, V, E](
             else if dom.lt(result._1, rho(x)) then narrowings(x)(rho(x), result._1)
             else result._1
     val newInfl =
-      if widenings.boxesAreIdempotent && narrowings.boxesAreIdempotent then infl
+      if widenings.combosAreIdempotent && narrowings.combosAreIdempotent then infl
       else infl.withDiagonal
     SimpleFiniteEquationSystem(newBody, inputUnknowns, unknowns, newInfl)
 

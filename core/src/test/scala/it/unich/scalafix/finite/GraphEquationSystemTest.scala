@@ -86,7 +86,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
       assertResult(3)(body(rho)(3))
     }
 
-    it("correctly adds boxes") {
+    it("correctly adds combos") {
       def test(eqs: FiniteEquationSystem[Int, Int]) =
         val body = eqs.body
         assertResult(0)(body(rho)(0))
@@ -94,10 +94,10 @@ class GraphEquationSystemTest extends AnyFunSpec:
         assertResult(4)(body(rho)(2))
         assertResult(9)(body(rho)(3))
 
-      val box1 = BoxAssignment { (x: Int, y: Int) => x + (2 * y) }
-      val box2 = BoxAssignment({ (x: Int, y: Int) => x + (2 * y) }, false)
-      val eqs1 = simpleEqs.withBoxes(box1)
-      val eqs2 = simpleEqs.withBoxes(box2)
+      val combo1 = ComboAssignment { (x: Int, y: Int) => x + (2 * y) }
+      val combo2 = ComboAssignment({ (x: Int, y: Int) => x + (2 * y) }, false)
+      val eqs1 = simpleEqs.withCombos(combo1)
+      val eqs2 = simpleEqs.withCombos(combo2)
 
       test(eqs1)
       test(eqs2)
@@ -107,7 +107,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
         assert((simpleEqs.infl(x).toSet + x) === eqs2.infl(x))
     }
 
-    it("correctly adds localized idempotent boxes") {
+    it("correctly adds localized idempotent combos") {
       def test(eqs: FiniteEquationSystem[Int, Int]) =
         val body = eqs.body
         val rho2 = { (x: Int) => if x == 0 then 9 else x }
@@ -117,11 +117,11 @@ class GraphEquationSystemTest extends AnyFunSpec:
         assertResult(3)(body(rho)(3))
         assertResult(9)(body(rho2)(1))
 
-      val box1 = BoxAssignment { (x: Int, y: Int) => x + (2 * y) }
-      val box2 = BoxAssignment({ (x: Int, y: Int) => x + (2 * y) }, false)
+      val combo1 = ComboAssignment { (x: Int, y: Int) => x + (2 * y) }
+      val combo2 = ComboAssignment({ (x: Int, y: Int) => x + (2 * y) }, false)
       val ordering = DFOrdering(simpleEqs)
-      val eqs1 = simpleEqs.withLocalizedBoxes(box1, ordering)
-      val eqs2 = simpleEqs.withLocalizedBoxes(box2, ordering)
+      val eqs1 = simpleEqs.withLocalizedCombos(combo1, ordering)
+      val eqs2 = simpleEqs.withLocalizedCombos(combo2, ordering)
 
       test(eqs1)
       test(eqs2)
@@ -145,12 +145,12 @@ class GraphEquationSystemTest extends AnyFunSpec:
         "evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\n"
       )(os.toString)
       os.reset()
-      val box = BoxAssignment { (x: Int, y: Int) => x + (2 * y) }
-      val boxTracingEqs = tracingEqs.withBoxes(box)
-      boxTracingEqs.body(rho)(0)
+      val combo = ComboAssignment { (x: Int, y: Int) => x + (2 * y) }
+      val comboTracingEqs = tracingEqs.withCombos(combo)
+      comboTracingEqs.body(rho)(0)
       assertResult(
         "evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\n" +
-          "evaluated: 0, oldvalue: 0, newvalue: 0, boxed: 0\n"
+          "evaluated: 0, oldvalue: 0, newvalue: 0, comboed: 0\n"
       )(os.toString)
     }
   }

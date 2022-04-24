@@ -56,12 +56,12 @@ trait EquationSystem[U, V]:
   val inputUnknowns: U => Boolean
 
   /**
-   * Add boxes to the equation system.
+   * Add combos to the equation system.
    *
-   * @param boxes
-   *   a box assignment
+   * @param combos
+   *   a combo assignment
    */
-  def withBoxes(boxes: BoxAssignment[U, V]): EquationSystem[U, V]
+  def withCombos(combos: ComboAssignment[U, V]): EquationSystem[U, V]
 
   /**
    * Combine a base assignment with the equation system. The type `V` should be
@@ -102,20 +102,20 @@ abstract class EquationSystemBase[U, V] extends EquationSystem[U, V]:
         res
 
   /**
-   * Returns a new body with boxes added to the evaluation. If `tracer` is
-   * defined, the `boxEvaluation` callback is invoked during evaluation.
+   * Returns a new body with combos added to the evaluation. If `tracer` is
+   * defined, the `comboEvaluation` callback is invoked during evaluation.
    */
-  protected def bodyWithBoxAssignment(boxes: BoxAssignment[U, V]): Body[U, V] =
-    val realBoxes = boxes.copy
-    if realBoxes.isEmpty then body
+  protected def bodyWithComboAssignment(combos: ComboAssignment[U, V]): Body[U, V] =
+    val realCombos = combos.copy
+    if realCombos.isEmpty then body
     else
       (rho: Assignment[U, V]) =>
         (x: U) =>
           val res = body(rho)(x)
-          if realBoxes.isDefinedAt(x) then
-            val boxedRes = realBoxes(x)(rho(x), res)
-            tracer foreach (_.boxEvaluation(rho, x, res, boxedRes))
-            boxedRes
+          if realCombos.isDefinedAt(x) then
+            val comboedRes = realCombos(x)(rho(x), res)
+            tracer foreach (_.comboEvaluation(rho, x, res, comboedRes))
+            comboedRes
           else res
 
   /**
@@ -154,8 +154,8 @@ case class SimpleEquationSystem[U, V](
     inputUnknowns: U => Boolean,
     tracer: Option[EquationSystemTracer[U, V]] = None
 ) extends EquationSystemBase[U, V]:
-  def withBoxes(boxes: BoxAssignment[U, V]): EquationSystem[U, V] =
-    copy(body = bodyWithBoxAssignment(boxes))
+  def withCombos(combos: ComboAssignment[U, V]): EquationSystem[U, V] =
+    copy(body = bodyWithComboAssignment(combos))
 
   def withBaseAssignment(init: PartialFunction[U, V])(using magma: Magma[V]): EquationSystem[U, V] =
     copy(body = bodyWithBaseAssignment(init, _ op _))

@@ -36,7 +36,7 @@ class EquationSystemTest extends AnyFunSpec:
     }
   )
   private val rho: Assignment[Int, Int] = identity[Int]
-  private val box = BoxAssignment { (x: Int, y: Int) => x * y }
+  private val combo = ComboAssignment { (x: Int, y: Int) => x * y }
 
   describe("An equation system") {
     it("computes r.h.s. according to its body function") {
@@ -53,8 +53,8 @@ class EquationSystemTest extends AnyFunSpec:
       assertResult((3, Seq(3)))(simpleEqs.bodyWithDependencies(rho)(3))
     }
 
-    it("correctly adds boxes") {
-      val eqs = simpleEqs.withBoxes(box)
+    it("correctly adds combos") {
+      val eqs = simpleEqs.withCombos(combo)
       assertResult(0)(eqs.body(rho)(0))
       assertResult(2)(eqs.body(rho)(1))
       assertResult(4)(eqs.body(rho)(2))
@@ -73,11 +73,11 @@ class EquationSystemTest extends AnyFunSpec:
         "evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\n"
       )(os.toString)
       os.reset()
-      val boxTracingEqs = tracingEqs.withBoxes(box)
-      boxTracingEqs.body(rho)(0)
+      val comboTracingEqs = tracingEqs.withCombos(combo)
+      comboTracingEqs.body(rho)(0)
       assertResult(
         "evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\nevaluated: 0, " +
-          "oldvalue: 0, newvalue: 0, boxed: 0\n"
+          "oldvalue: 0, newvalue: 0, comboed: 0\n"
       )(os.toString)
     }
   }

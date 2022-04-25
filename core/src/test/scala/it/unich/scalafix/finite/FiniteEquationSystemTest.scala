@@ -51,10 +51,10 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
   }
   private val maxCombo = ComboAssignment { (x: Double, y: Double) => x max y }
   private val lastCombo = ComboAssignment { (_: Double, x2: Double) => x2 }
-  private val startRho = InputAssignment(0.0).updated(3, 10.0)
+  private val startRho = Assignment(0.0).updated(3, 10.0)
 
   private type SimpleSolver[U, V] =
-    (FiniteEquationSystem[U, V], InputAssignment[U, V]) => OutputAssignment[U, V]
+    (FiniteEquationSystem[U, V], Assignment[U, V]) => MutableAssignment[U, V]
 
   /**
    * Tests whether solving `eqs` equation system always returns a correct
@@ -67,7 +67,7 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     val startRhosList = Gen.listOfN(eqs.unknowns.size, values.arbitrary)
     val startRhos = startRhosList map { l => Map.from(eqs.unknowns.toList zip l) }
     forAll(startRhos) { start =>
-      val finalEnv = solver(eqs, InputAssignment(start))
+      val finalEnv = solver(eqs, Assignment(start))
       for x <- eqs.unknowns do assert(finalEnv(x) === eqs.body(finalEnv)(x))
     }
 

@@ -39,15 +39,15 @@ class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyCheck
   )
 
   private val maxCombo = ComboAssignment { (x: Int, y: Int) => x max y }
-  private val startRho = InputAssignment[Int, Int](0)
+  private val startRho = Assignment(0)
 
   private type SimpleSolver[U, V] =
-    (EquationSystem[U, V], InputAssignment[U, V], Seq[U]) => OutputAssignment[U, V]
+    (EquationSystem[U, V], Assignment[U, V], Seq[U]) => MutableAssignment[U, V]
 
   class EvaluationOrderListener[U, V] extends FixpointSolverTracerAdapter[U, V]:
     private val buffer = mutable.Buffer.empty[Any]
 
-    override def evaluated(rho: U => V, x: U, newval: V) =
+    override def evaluated(rho: Assignment[U, V], x: U, newval: V) =
       buffer += x
       ()
 

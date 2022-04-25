@@ -43,7 +43,7 @@ object FiniteFixpointSolver:
    */
   def CC77[U, V](
       solver: Solver.Solver,
-      start: InputAssignment[U, V],
+      start: Assignment[U, V],
       wideningComboAssn: ComboAssignment[U, V],
       narrowingComboAssn: ComboAssignment[U, V]
   ): Params[U, V] =
@@ -70,7 +70,7 @@ object FiniteFixpointSolver:
   def apply[U, V: Domain, E](
       eqs: GraphEquationSystem[U, V, E],
       params: Params[U, V]
-  ): OutputAssignment[U, V] =
+  ): MutableAssignment[U, V] =
     import params.*
 
     val startAssn = params.start
@@ -199,11 +199,11 @@ object FiniteFixpointSolver:
   private def applySolver[U, V](
       solver: Solver.Solver,
       eqs: FiniteEquationSystem[U, V],
-      start: InputAssignment[U, V],
+      start: Assignment[U, V],
       ordering: Option[Ordering[U]],
       restart: (V, V) => Boolean,
       tracer: FixpointSolverTracer[U, V]
-  ): OutputAssignment[U, V] =
+  ): MutableAssignment[U, V] =
     (solver: @unchecked) match
       case Solver.RoundRobinSolver => RoundRobinSolver(eqs)(start, tracer)
       case Solver.KleeneSolver     => KleeneSolver(eqs)(start, tracer)
@@ -242,7 +242,7 @@ object FiniteFixpointSolver:
    */
   case class Params[U, V](
       solver: Solver.Solver,
-      start: InputAssignment[U, V],
+      start: Assignment[U, V],
       combolocation: ComboLocation.ComboLocation,
       comboscope: ComboScope.ComboScope,
       combostrategy: ComboStrategy.ComboStrategy,

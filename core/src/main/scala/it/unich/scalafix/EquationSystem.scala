@@ -17,17 +17,19 @@
 
 package it.unich.scalafix
 
+import it.unich.scalafix.assignments.MapBasedMutableAssignment
 import it.unich.scalafix.lattice.Magma
 
 import scala.collection.mutable
 
 /**
- * The body of an equation system, i.e., a map from assignments to assignments.
+ * The body of an equation system, i.e., a map that, given an assignments and an
+ * unknown, returns the new value for the unknown.
  */
 type Body[U, V] = Assignment[U, V] => Assignment[U, V]
 
-/** A body which also calculates dependencies among unknowns. */
-type BodyWithDependencies[U, V] = Assignment[U, V] => Assignment[U, (V, Iterable[U])]
+/** A body which also returns the set of dependencies among unknowns. */
+type BodyWithDependencies[U, V] = Assignment[U, V] => U => (V, Iterable[U])
 
 /**
  * This is the abstract class for a generic equation system.
@@ -38,6 +40,7 @@ type BodyWithDependencies[U, V] = Assignment[U, V] => Assignment[U, (V, Iterable
  *   the type for the values assumed by the unknowns of this equation system.
  */
 trait EquationSystem[U, V]:
+
   /**
    * The body of the equation system, i.e., a map `Assignment[U,V] =>
    * Assignment[U,V]`.
@@ -54,6 +57,15 @@ trait EquationSystem[U, V]:
 
   /** The unknowns which may be considered the input to this equation system. */
   val inputUnknowns: U => Boolean
+
+  /**
+   * Returns a mutable assignment optimized for this equation system based on an
+   * initial assignment.
+   *
+   * @param rho
+   *   the initial assignment
+   */
+  def getMutableAssignment(rho: Assignment[U, V]): MutableAssignment[U, V]
 
   /**
    * Add combos to the equation system.
@@ -136,13 +148,19 @@ abstract class EquationSystemBase[U, V] extends EquationSystem[U, V]:
     (rho: Assignment[U, V]) =>
       (x: U) => {
         val queried = mutable.Buffer.empty[U]
-        val trackrho = { (y: U) =>
+        val trackrho: Assignment[U, V] = { (y: U) =>
           queried.append(y)
           rho(y)
         }
         val newval = body(trackrho)(x)
         (newval, queried)
       }
+
+  /**
+   * Returns the default mutable assignment, i.e. a [[it.unich.scalafix.assignments.MapBasedMutableAssignment]].
+   */
+  override def getMutableAssignment(rho: Assignment[U, V]) = MapBasedMutableAssignment(rho)
+
 
 /**
  * A simple standard implementation of EquationSystem. All fields must be

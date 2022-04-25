@@ -57,7 +57,7 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
   })
   private val CC77params = FiniteFixpointSolver.CC77[Int, Double](
     Solver.WorkListSolver,
-    InputAssignment(Double.NegativeInfinity).updated(0, 0.0),
+    { u => if u == 0 then 0.0 else Double.NegativeInfinity },
     doublewidening,
     doublenarrowing
   )
@@ -69,27 +69,27 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     var initialized = false
     var phase = 0
 
-    override def evaluated(rho: U => V, u: U, newval: V): Unit =
+    override def evaluated(rho: Assignment[U, V], u: U, newval: V): Unit =
       assert(initialized)
       assert(phase != 0)
       super.evaluated(rho, u, newval)
 
-    override def initialized(rho: U => V): Unit =
+    override def initialized(rho: Assignment[U, V]): Unit =
       assert(!initialized)
       assert(phase != 0)
       initialized = true
 
-    override def completed(rho: U => V): Unit =
+    override def completed(rho: Assignment[U, V]): Unit =
       initialized = false
       assert(phase != 0)
       ()
 
-    override def ascendingBegins(rho: U => V): Unit =
+    override def ascendingBegins(rho: Assignment[U, V]): Unit =
       assert(!initialized)
       assert(phase == 0)
       phase = 1
 
-    override def descendingBegins(rho: U => V): Unit =
+    override def descendingBegins(rho: Assignment[U, V]): Unit =
       assert(!initialized)
       assert(phase == 1)
       phase = -1
@@ -101,7 +101,7 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     }
 
     it("may use explicit initial assignment") {
-      val params = CC77params.copy[Int, Double](start = InputAssignment(Double.NegativeInfinity))
+      val params = CC77params.copy[Int, Double](start = Assignment(Double.NegativeInfinity) )
       assertSolution(emptysol)(FiniteFixpointSolver(simpleEqs, params))
     }
 

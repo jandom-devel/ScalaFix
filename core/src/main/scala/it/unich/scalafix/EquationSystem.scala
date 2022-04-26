@@ -157,10 +157,10 @@ abstract class EquationSystemBase[U, V] extends EquationSystem[U, V]:
       }
 
   /**
-   * Returns the default mutable assignment, i.e. a [[it.unich.scalafix.assignments.MapBasedMutableAssignment]].
+   * Returns the default mutable assignment, i.e. a
+   * [[it.unich.scalafix.assignments.MapBasedMutableAssignment]].
    */
   override def getMutableAssignment(rho: Assignment[U, V]) = MapBasedMutableAssignment(rho)
-
 
 /**
  * A simple standard implementation of EquationSystem. All fields must be

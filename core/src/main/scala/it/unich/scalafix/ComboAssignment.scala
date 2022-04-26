@@ -18,14 +18,14 @@
 package it.unich.scalafix
 
 /**
- * A ComboAssignment maps a subset of unknowns to a Combo. When `isDefinedAt(u)` is
- * false for a given unknown `u`, the corresponding `apply(u)` should be a right
- * combo.
+ * A ComboAssignment maps a subset of unknowns to a Combo. When `isDefinedAt(u)`
+ * is false for a given unknown `u`, the corresponding `apply(u)` should be a
+ * right combo.
  *
- * Like it was the case for Combo, a ComboAssignent is also a blueprint for buildind
- * equivalent ComboAssignments. Each ComboAssignmant has a copy method which should
- * produce a functionally equivalent copy of `this`. The copy method should try
- * to minimize object duplication.
+ * Like it was the case for Combo, a ComboAssignent is also a blueprint for
+ * buildind equivalent ComboAssignments. Each ComboAssignmant has a copy method
+ * which should produce a functionally equivalent copy of `this`. The copy
+ * method should try to minimize object duplication.
  */
 abstract class ComboAssignment[-U, V] extends PartialFunction[U, Combo[V]]:
   /**
@@ -44,8 +44,8 @@ abstract class ComboAssignment[-U, V] extends PartialFunction[U, Combo[V]]:
   def combosAreImmutable: Boolean
 
   /**
-   * Returns a copy of this combo assignment. An immutable combo assignment may just
-   * returns itself, but a mutable one should produce a copy of itself.
+   * Returns a copy of this combo assignment. An immutable combo assignment may
+   * just returns itself, but a mutable one should produce a copy of itself.
    */
   def copy: ComboAssignment[U, V]
 
@@ -59,7 +59,8 @@ abstract class ComboAssignment[-U, V] extends PartialFunction[U, Combo[V]]:
     else ComboAssignment.RestrictAssignment(this, domain)
 
 /**
- * The `ComboAssignment` object defines factories for building combo assignments.
+ * The `ComboAssignment` object defines factories for building combo
+ * assignments.
  */
 object ComboAssignment:
 
@@ -74,8 +75,8 @@ object ComboAssignment:
 
   /**
    * A constant combo assignment maps the same combo to all program points. Be
-   * careful because if combo has internal state, this is shared among all program
-   * points. For example, this is not suited for delayed widenings or
+   * careful because if combo has internal state, this is shared among all
+   * program points. For example, this is not suited for delayed widenings or
    * narrowings.
    *
    * @tparam V
@@ -113,8 +114,8 @@ object ComboAssignment:
     def copy: TemplateAssignment[V] = if combosAreImmutable then this else TemplateAssignment(combo)
 
   /**
-   * A combo assignment which restrict the assignment combos to the set of program
-   * points which satisfy domain.
+   * A combo assignment which restrict the assignment combos to the set of
+   * program points which satisfy domain.
    *
    * @tparam U
    *   the type for program points of the combo assignment
@@ -155,8 +156,9 @@ object ComboAssignment:
       if combosAreImmutable then this else WarrowingAssignment(widenings.copy, narrowings.copy)
 
   /**
-   * A combo assignment which returns the same combo for each program point. If combo
-   * is mutable, different copies are used for the different program points.
+   * A combo assignment which returns the same combo for each program point. If
+   * combo is mutable, different copies are used for the different program
+   * points.
    *
    * @tparam V
    *   the type of values

@@ -101,7 +101,7 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     }
 
     it("may use explicit initial assignment") {
-      val params = CC77params.copy[Int, Double](start = Assignment(Double.NegativeInfinity) )
+      val params = CC77params.copy[Int, Double](start = Assignment(Double.NegativeInfinity))
       assertSolution(emptysol)(FiniteFixpointSolver(simpleEqs, params))
     }
 

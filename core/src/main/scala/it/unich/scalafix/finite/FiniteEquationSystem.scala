@@ -33,7 +33,7 @@ trait FiniteEquationSystem[U, V] extends EquationSystem[U, V]:
   val unknowns: Iterable[U]
 
   /** The unknowns which may be considered the input to this equation system. */
-  override val inputUnknowns: Set[U]
+  val inputUnknowns: Set[U]
 
   /**
    * The static relation between an unknown x and the unknowns y it influences.

@@ -55,9 +55,6 @@ trait EquationSystem[U, V]:
    */
   val bodyWithDependencies: BodyWithDependencies[U, V]
 
-  /** The unknowns which may be considered the input to this equation system. */
-  val inputUnknowns: U => Boolean
-
   /**
    * Returns a mutable assignment optimized for this equation system based on an
    * initial assignment.

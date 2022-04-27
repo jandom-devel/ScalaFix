@@ -28,8 +28,14 @@ import scala.collection.mutable
  */
 type Body[U, V] = Assignment[U, V] => Assignment[U, V]
 
-/** A body which also returns the set of dependencies among unknowns. */
-type BodyWithDependencies[U, V] = Assignment[U, V] => U => (V, Iterable[U])
+/**
+ * A body which also returns the set of dependencies among unknowns. If `body:
+ * BodyWithDependencies[U, V]`, `rho: Assignment[U, V]` and `u: U`, then
+ * `body(rho)(u)` returns a pair `(v, deps)` where `v` is the new value for `u`
+ * and `deps` is a set of unknowns. If `rho'` differs from `rho` only for
+ * unknowns which are not in `deps`, then `body(rho)(u)==body(rho')(u)`.
+ */
+ type BodyWithDependencies[U, V] = Assignment[U, V] => U => (V, Iterable[U])
 
 /**
  * This is the abstract class for a generic equation system.
@@ -49,8 +55,8 @@ trait EquationSystem[U, V]:
 
   /**
    * Given an assignment `rho` and unknown `u`, returns the pair `(body(rho)(x),
-   * uks)`. `uks` is a set of unknowns with the property that if `rho'` differs
-   * from `rho` only for variables which are not in `uks`, then
+   * deps)`. `deps` is a set of unknowns with the property that if `rho'`
+   * differs from `rho` only for variables which are not in `deps`, then
    * `body(rho)(u)==body(rho')(u)`.
    */
   val bodyWithDependencies: BodyWithDependencies[U, V]

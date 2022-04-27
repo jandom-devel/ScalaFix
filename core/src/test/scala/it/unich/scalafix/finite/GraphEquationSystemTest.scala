@@ -20,6 +20,7 @@ package it.unich.scalafix.finite
 import java.io.{ByteArrayOutputStream, PrintStream}
 
 import it.unich.scalafix.*
+import it.unich.scalafix.graphs.*
 import it.unich.scalafix.lattice.Magma
 import it.unich.scalafix.lattice.given
 
@@ -31,7 +32,8 @@ class GraphEquationSystemTest extends AnyFunSpec:
     extension (x: Int) def op(y: Int): Int = x max y
 
   private val unknowns = Set(0, 1, 2, 3)
-  private val simpleEqs = GraphEquationSystem[Int, Int, Char](
+
+  private val graph = Graph[Int, Int, Char](
     edgeAction = { (rho: Int => Int) =>
       {
         case 'a' => rho(0)
@@ -40,10 +42,14 @@ class GraphEquationSystemTest extends AnyFunSpec:
         case 'd' => rho(3)
       }
     },
-    source = Map(('a', Seq(0)), ('b', Seq(1)), ('c', Seq(2)), ('d', Seq(3))),
+    sources = Map(('a', Seq(0)), ('b', Seq(1)), ('c', Seq(2)), ('d', Seq(3))),
     target = Map(('a', 1), ('b', 2), ('c', 3), ('d', 1)),
     outgoing = Map((0, Seq('a')), (1, Seq('b')), (2, Seq('c')), (3, Seq('d'))),
-    ingoing = Map((0, Seq()), (1, Seq('a', 'd')), (2, Seq('b')), (3, Seq('c'))),
+    ingoing = Map((0, Seq()), (1, Seq('a', 'd')), (2, Seq('b')), (3, Seq('c')))
+  )
+
+  private val simpleEqs = GraphEquationSystem[Int, Int, Char](
+    graph = graph,
     unknowns = unknowns,
     inputUnknowns = Set(0)
   )
@@ -87,7 +93,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
     }
 
     it("correctly adds combos") {
-      def test(eqs: FiniteEquationSystem[Int, Int]) =
+      def test[EQS <: FiniteEquationSystem[Int, Int, EQS]](eqs: EQS) =
         val body = eqs.body
         assertResult(0)(body(rho)(0))
         assertResult(7)(body(rho)(1))
@@ -108,7 +114,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
     }
 
     it("correctly adds localized idempotent combos") {
-      def test(eqs: FiniteEquationSystem[Int, Int]) =
+      def test[EQS <: FiniteEquationSystem[Int, Int, EQS]](eqs: EQS) =
         val body = eqs.body
         val rho2: Assignment[Int, Int] = { (x: Int) => if x == 0 then 9 else x }
         assertResult(0)(body(rho)(0))
@@ -122,7 +128,6 @@ class GraphEquationSystemTest extends AnyFunSpec:
       val ordering = DFOrdering(simpleEqs)
       val eqs1 = simpleEqs.withLocalizedCombos(combo1, ordering)
       val eqs2 = simpleEqs.withLocalizedCombos(combo2, ordering)
-
       test(eqs1)
       test(eqs2)
       for x <- unknowns do
@@ -149,8 +154,8 @@ class GraphEquationSystemTest extends AnyFunSpec:
       val comboTracingEqs = tracingEqs.withCombos(combo)
       comboTracingEqs.body(rho)(0)
       assertResult(
-        "evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\n" +
-          "evaluated: 0, oldvalue: 0, newvalue: 0, comboed: 0\n"
+        "evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0 comboed: 0\n" +
+          "evaluated: 0 oldvalue: 0 newvalue: 0\n"
       )(os.toString)
     }
   }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2015, 2016, 2017 Gianluca Amato <gianluca.amato@unich.it>
+ * Copyright 2015, 2016, 2017, 2022 Gianluca Amato <gianluca.amato@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -23,47 +23,27 @@ import it.unich.scalafix.lattice.Magma
 import scala.collection.mutable
 
 /**
- * The body of an equation system, i.e., a map that, given an assignments and an
- * unknown, returns the new value for the unknown.
- */
-type Body[U, V] = Assignment[U, V] => Assignment[U, V]
-
-/**
- * A body which also returns the set of dependencies among unknowns. If `body:
- * BodyWithDependencies[U, V]`, `rho: Assignment[U, V]` and `u: U`, then
- * `body(rho)(u)` returns a pair `(v, deps)` where `v` is the new value for `u`
- * and `deps` is a set of unknowns. If `rho'` differs from `rho` only for
- * unknowns which are not in `deps`, then `body(rho)(u)==body(rho')(u)`.
- */
- type BodyWithDependencies[U, V] = Assignment[U, V] => U => (V, Iterable[U])
-
-/**
- * This is the abstract class for a generic equation system.
+ * This is the innterface a generic equation system.
  *
  * @tparam U
  *   the type for the unknowns of this equation system.
  * @tparam V
  *   the type for the values assumed by the unknowns of this equation system.
  */
-trait EquationSystem[U, V]:
+trait EquationSystem[U, V, EQS <: EquationSystem[U, V, EQS]]:
+
+  /** Returns the body of the equation system. */
+  def body: Body[U, V]
 
   /**
-   * The body of the equation system, i.e., a map `Assignment[U,V] =>
-   * Assignment[U,V]`.
+   * Returns the body (with dependencies) of the equations system. Although this
+   * might be implemented as `body.withDependencies`, it is possible, this
+   * method allows to provide an alternative implementation.
    */
-  val body: Body[U, V]
+  def bodyWithDependencies: BodyWithDependencies[U, V]
 
   /**
-   * Given an assignment `rho` and unknown `u`, returns the pair `(body(rho)(x),
-   * deps)`. `deps` is a set of unknowns with the property that if `rho'`
-   * differs from `rho` only for variables which are not in `deps`, then
-   * `body(rho)(u)==body(rho')(u)`.
-   */
-  val bodyWithDependencies: BodyWithDependencies[U, V]
-
-  /**
-   * Returns a mutable assignment optimized for this equation system based on an
-   * initial assignment.
+   * Returns a mutable assignment based on the provided initial assignment.
    *
    * @param rho
    *   the initial assignment
@@ -71,93 +51,90 @@ trait EquationSystem[U, V]:
   def getMutableAssignment(rho: Assignment[U, V]): MutableAssignment[U, V]
 
   /**
-   * Add combos to the equation system.
+   * Returns the equation system modified with the specified combo assignment.
    *
    * @param combos
-   *   a combo assignment
+   *   the combo assignment for the equation system
    */
-  def withCombos(combos: ComboAssignment[U, V]): EquationSystem[U, V]
+  def withCombos(combos: ComboAssignment[U, V]): EQS
 
   /**
-   * Combine a base assignment with the equation system. The type `V` should be
-   * endowed with a magma.
+   * Returns the equation system modified with the specified base assignment.
+   * The `baseAssignment` is combined with the result of body evaluation trough
+   * the use of the implicit operator of the magma `V`.
+   *
+   * @param baseAssignment
+   *   the assignment for the equation system
+   */
+  def withBaseAssignment(baseAssignment: PartialFunction[U, V])(using Magma[V]): EQS =
+    withBaseAssignment(baseAssignment, _ op _)
+
+  /**
+   * Returns the same equation system modified with the specified base
+   * assignment. The `baseAssignment` is combined with the result of body
+   * evaluation trough the use of the implicit operator of the magma `V`.
    *
    * @param init
    *   the assignment to add to the equation system
+   * @param op
+   *   the operation used to combine the initial assignment and the result of
+   *   the body evaluation
    */
-  def withBaseAssignment(init: PartialFunction[U, V])(using magma: Magma[V]): EquationSystem[U, V]
+  def withBaseAssignment(init: PartialFunction[U, V], op: (V, V) => V): EQS
 
   /**
-   * Add a tracer to the equation system. The tracer contains call-backs to be
-   * invoked during body evaluation.
+   * Returns the same equation system with an additional tracer. The tracer
+   * contains call-backs to be invoked during body evaluation.
    *
    * @param t
    *   the tracer
    */
-  def withTracer(t: EquationSystemTracer[U, V]): EquationSystem[U, V]
+  def withTracer(t: EquationSystemTracer[U, V]): EQS
 
-/** This class implements common utility methods. */
-abstract class EquationSystemBase[U, V] extends EquationSystem[U, V]:
-  /** An optional tracer which should be called during body evaluation. */
-  protected val tracer: Option[EquationSystemTracer[U, V]]
+abstract class BaseEquationSystem[U, V, EQS <: BaseEquationSystem[U, V, EQS]]
+    extends EquationSystem[U, V, EQS]
+    with Cloneable:
 
-  /**
-   * Returns a new body which calls the current tracer before and after
-   * evaluation.
-   *
-   * @param t
-   *   the tracer to be called by the new body
-   */
-  protected def bodyWithTracer(t: EquationSystemTracer[U, V]): Body[U, V] =
-    (rho: Assignment[U, V]) =>
-      (x: U) =>
-        t.beforeEvaluation(rho, x)
-        val res = body(rho)(x)
-        t.afterEvaluation(rho, x, res)
-        res
+  protected def _body: Body[U, V]
+  protected var optCombos: Option[ComboAssignment[U, V]] = None
+  protected var optBaseAssignment: Option[PartialFunction[U, V]] = None
+  protected var optOp: Option[(V, V) => V] = None
+  protected var optTracer: Option[EquationSystemTracer[U, V]] = None
 
-  /**
-   * Returns a new body with combos added to the evaluation. If `tracer` is
-   * defined, the `comboEvaluation` callback is invoked during evaluation.
-   */
-  protected def bodyWithComboAssignment(combos: ComboAssignment[U, V]): Body[U, V] =
-    val realCombos = combos.copy
-    if realCombos.isEmpty then body
-    else
-      (rho: Assignment[U, V]) =>
-        (x: U) =>
-          val res = body(rho)(x)
-          if realCombos.isDefinedAt(x) then
-            val comboedRes = realCombos(x)(rho(x), res)
-            tracer foreach (_.comboEvaluation(rho, x, res, comboedRes))
-            comboedRes
-          else res
+  override def clone(): EQS =
+    super.clone().asInstanceOf[EQS]
 
-  /**
-   * Returns a new body, in which the `init` assignment is combined with the
-   * result of body evaluation trough the use of the `comb` combiner.
-   */
-  protected def bodyWithBaseAssignment(init: PartialFunction[U, V], comb: (V, V) => V): Body[U, V] =
-    (rho: Assignment[U, V]) =>
-      (x: U) =>
-        if init.isDefinedAt(x) then comb(init(x), body(rho)(x))
-        else body(rho)(x)
+  override def body: Body[U, V] =
+    val basedBody =
+      if optBaseAssignment.isDefined && optOp.isDefined
+      then _body.addBaseAssignment(optBaseAssignment.get, optOp.get)
+      else _body
+    val comboedBody =
+      if optCombos.isDefined
+      then basedBody.addCombos(optCombos.get, optTracer)
+      else basedBody
+    if optTracer.isDefined then comboedBody.addTracer(optTracer.get) else comboedBody
 
-  /**
-   * Implement the `bodyWithDependencies` method by instrumenting the source
-   * assignment in order to record access to unknowns.
-   */
-  val bodyWithDependencies: BodyWithDependencies[U, V] =
-    (rho: Assignment[U, V]) =>
-      (x: U) => {
-        val queried = mutable.Buffer.empty[U]
-        val trackrho: Assignment[U, V] = { (y: U) =>
-          queried.append(y)
-          rho(y)
-        }
-        val newval = body(trackrho)(x)
-        (newval, queried)
-      }
+  override def bodyWithDependencies = body.withDependencies
+
+  override def withCombos(combos: ComboAssignment[U, V]) =
+    val clone = this.clone()
+    clone.optCombos = Some(combos)
+    clone
+
+  override def withBaseAssignment(
+      baseAssignment: PartialFunction[U, V],
+      op: (V, V) => V
+  ) =
+    val clone = this.clone()
+    clone.optBaseAssignment = Some(baseAssignment)
+    clone.optOp = Some(op)
+    clone
+
+  override def withTracer(tracer: EquationSystemTracer[U, V]) =
+    val clone = this.clone()
+    clone.optTracer = Some(tracer)
+    clone
 
   /**
    * Returns the default mutable assignment, i.e. a
@@ -165,24 +142,9 @@ abstract class EquationSystemBase[U, V] extends EquationSystem[U, V]:
    */
   override def getMutableAssignment(rho: Assignment[U, V]) = MapBasedMutableAssignment(rho)
 
-/**
- * A simple standard implementation of EquationSystem. All fields must be
- * provided explicitly by the user with the exception of `bodyWithDependencies`
- * which is computed by `body`.
- */
-case class SimpleEquationSystem[U, V](
-    body: Body[U, V],
-    inputUnknowns: U => Boolean,
-    tracer: Option[EquationSystemTracer[U, V]] = None
-) extends EquationSystemBase[U, V]:
-  def withCombos(combos: ComboAssignment[U, V]): EquationSystem[U, V] =
-    copy(body = bodyWithComboAssignment(combos))
-
-  def withBaseAssignment(init: PartialFunction[U, V])(using magma: Magma[V]): EquationSystem[U, V] =
-    copy(body = bodyWithBaseAssignment(init, _ op _))
-
-  def withTracer(t: EquationSystemTracer[U, V]): EquationSystem[U, V] =
-    copy(body = bodyWithTracer(t), tracer = Some(t))
+class SimpleEquationSystem[U, V](
+    protected val _body: Body[U, V],
+) extends BaseEquationSystem[U, V, SimpleEquationSystem[U, V]]
 
 object EquationSystem:
   /**
@@ -190,8 +152,4 @@ object EquationSystem:
    * provided explicitly by the user with the exception of
    * `bodyWithDependencies`.
    */
-  def apply[U, V](
-      body: Body[U, V],
-      inputUnknowns: U => Boolean = { (_: U) => false }
-  ): EquationSystem[U, V] =
-    SimpleEquationSystem(body, inputUnknowns, None)
+  def apply[U, V](body: Body[U, V]): SimpleEquationSystem[U, V] = SimpleEquationSystem(body)

@@ -61,7 +61,7 @@ object DFOrdering:
     val Cross = Value
 
   /** Returns the DFOrdering for a finite equation system. */
-  def apply[N](eqs: FiniteEquationSystem[N, ?]): DFOrdering[N] =
+  def apply[N](eqs: FiniteEquationSystem[N, ?, ?]): DFOrdering[N] =
     new DFOrderingFromR[N](eqs.infl, eqs.unknowns, eqs.inputUnknowns)
 
   /**

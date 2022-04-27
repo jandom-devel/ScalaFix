@@ -28,7 +28,8 @@ import it.unich.scalafix.utils.Relation
  * `apply(rho)(x)`, the result may only depend on values of `rho(y)` for an `y`
  * such that `y infl x`.
  */
-trait FiniteEquationSystem[U, V] extends EquationSystem[U, V]:
+trait FiniteEquationSystem[U, V, EQS <: FiniteEquationSystem[U, V, EQS]] extends EquationSystem[U, V, EQS]:
+
   /** The collection of all unknowns. */
   val unknowns: Iterable[U]
 
@@ -40,41 +41,30 @@ trait FiniteEquationSystem[U, V] extends EquationSystem[U, V]:
    * If `infl(x)` does not contain `y`, it means that `eqs(rho)(y) ==
    * eqs(rho')(y)`, when `rho' = rho[x / eqs(rho)(x)]`.
    */
-  val infl: Relation[U]
+  def infl: Relation[U]
 
-  override def withCombos(combos: ComboAssignment[U, V]): FiniteEquationSystem[U, V]
+abstract class BaseFiniteEquationSystem[U, V, EQS <: BaseFiniteEquationSystem[U, V, EQS]]
+    extends BaseEquationSystem[U, V, EQS]
+    with FiniteEquationSystem[U, V, EQS]:
 
-  override def withBaseAssignment(init: PartialFunction[U, V])(using
-      magma: Magma[V]
-  ): FiniteEquationSystem[U, V]
+  protected def _infl: Relation[U]
 
-  override def withTracer(t: EquationSystemTracer[U, V]): FiniteEquationSystem[U, V]
+  override def infl =
+    if optCombos.isEmpty || optCombos.get.combosAreIdempotent
+    then _infl
+    else _infl.withDiagonal
 
 /**
  * A simple standard implementation of FiniteEquationSystem. All fields must be
  * provided explicitly by the user with the exception of `bodyWithDependencies`
  * which is computed by `body`.
  */
-case class SimpleFiniteEquationSystem[U, V](
-    body: Body[U, V],
-    inputUnknowns: Set[U],
-    unknowns: Iterable[U],
-    infl: Relation[U],
-    tracer: Option[EquationSystemTracer[U, V]] = None
-) extends EquationSystemBase[U, V]
-    with FiniteEquationSystem[U, V]:
-
-  def withCombos(combos: ComboAssignment[U, V]): FiniteEquationSystem[U, V] =
-    val newInfl = if combos.combosAreIdempotent then infl else infl.withDiagonal
-    copy(body = bodyWithComboAssignment(combos), infl = newInfl)
-
-  def withBaseAssignment(init: PartialFunction[U, V])(using
-      magma: Magma[V]
-  ): FiniteEquationSystem[U, V] =
-    copy(body = bodyWithBaseAssignment(init, _ op _))
-
-  def withTracer(t: EquationSystemTracer[U, V]): FiniteEquationSystem[U, V] =
-    copy(body = bodyWithTracer(t), tracer = Some(t))
+class SimpleFiniteEquationSystem[U, V](
+    protected val _body: Body[U, V],
+    protected val  _infl: Relation[U],
+    val inputUnknowns: Set[U],
+    val unknowns: Iterable[U]
+) extends BaseFiniteEquationSystem[U, V, SimpleFiniteEquationSystem[U, V]]
 
 object FiniteEquationSystem:
   /**
@@ -84,8 +74,8 @@ object FiniteEquationSystem:
    */
   def apply[U, V](
       body: Body[U, V],
+      infl: Relation[U],
       inputUnknowns: Set[U],
-      unknowns: Iterable[U],
-      infl: Relation[U]
-  ): FiniteEquationSystem[U, V] =
-    SimpleFiniteEquationSystem(body, inputUnknowns, unknowns, infl, None)
+      unknowns: Iterable[U]
+  ): SimpleFiniteEquationSystem[U, V] =
+    SimpleFiniteEquationSystem(body, infl, inputUnknowns, unknowns)

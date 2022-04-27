@@ -76,8 +76,8 @@ class EquationSystemTest extends AnyFunSpec:
       val comboTracingEqs = tracingEqs.withCombos(combo)
       comboTracingEqs.body(rho)(0)
       assertResult(
-        "evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0\nevaluated: 0, " +
-          "oldvalue: 0, newvalue: 0, comboed: 0\n"
+        "evaluated: 0 oldvalue: 0\nevaluated: 0 oldvalue: 0 newvalue: 0 comboed: 0\nevaluated: 0 " +
+          "oldvalue: 0 newvalue: 0\n"
       )(os.toString)
     }
   }

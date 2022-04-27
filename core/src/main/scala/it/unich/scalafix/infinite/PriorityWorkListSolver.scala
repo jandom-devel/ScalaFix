@@ -72,7 +72,7 @@ object PriorityWorkListSolver:
    * @return
    *   the solution of the equation system
    */
-  def apply[U, V](eqs: EquationSystem[U, V])(
+  def apply[U, V, EQS <: EquationSystem[U, V, EQS]](eqs: EQS)(
       start: Assignment[U, V],
       wanted: Iterable[U],
       ordering: Ordering[U] = new DynamicPriority[U],

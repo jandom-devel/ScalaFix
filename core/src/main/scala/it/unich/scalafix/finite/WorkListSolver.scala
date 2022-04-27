@@ -39,7 +39,7 @@ object WorkListSolver:
    * @return
    *   the solution of the equation system
    */
-  def apply[U, V](eqs: FiniteEquationSystem[U, V])(
+  def apply[U, V, EQS <: FiniteEquationSystem[U, V, EQS]](eqs: EQS)(
       start: Assignment[U, V],
       tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
   ): MutableAssignment[U, V] =

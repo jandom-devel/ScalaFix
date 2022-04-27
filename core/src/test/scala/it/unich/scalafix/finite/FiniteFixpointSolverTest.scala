@@ -18,6 +18,7 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.*
+import it.unich.scalafix.graphs.*
 import it.unich.scalafix.assignments.*
 import it.unich.scalafix.FixpointSolverTracer.PerformanceFixpointSolverTracer
 import it.unich.scalafix.lattice.given
@@ -29,7 +30,7 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
 
   import FixpointSolver.*
 
-  private val simpleEqs = GraphEquationSystem[Int, Double, Char](
+  private val graph = Graph[Int, Double, Char](
     edgeAction = { (rho: Int => Double) =>
       {
         case 'a' => rho(0)
@@ -38,10 +39,14 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
         case 'd' => rho(3)
       }
     },
-    source = Map(('a', Seq(0)), ('b', Seq(1)), ('c', Seq(2)), ('d', Seq(3))),
+    sources = Map(('a', Seq(0)), ('b', Seq(1)), ('c', Seq(2)), ('d', Seq(3))),
     target = Map(('a', 1), ('b', 2), ('c', 3), ('d', 1)),
     outgoing = Map((0, Seq('a')), (1, Seq('b')), (2, Seq('c')), (3, Seq('d'))),
     ingoing = Map((0, Seq()), (1, Seq('a', 'd')), (2, Seq('b')), (3, Seq('c'))),
+  )
+
+  private val simpleEqs = GraphEquationSystem[Int, Double, Char](
+    graph = graph,
     unknowns = Set(0, 1, 2, 3),
     inputUnknowns = Set(0)
   )

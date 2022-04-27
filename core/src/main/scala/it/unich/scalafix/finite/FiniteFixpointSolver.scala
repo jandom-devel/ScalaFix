@@ -18,6 +18,7 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.*
+import it.unich.scalafix.graphs.*
 import it.unich.scalafix.assignments.*
 import it.unich.scalafix.lattice.Domain
 
@@ -67,8 +68,8 @@ object FiniteFixpointSolver:
    * @param params
    *   the parameters for the solver
    */
-  def apply[U, V: Domain, E](
-      eqs: GraphEquationSystem[U, V, E],
+  def apply[U, V: Domain, E, EQS <: GraphEquationSystem[U, V, EQS]](
+      eqs: EQS,
       params: Params[U, V]
   ): MutableAssignment[U, V] =
     import params.*
@@ -165,17 +166,18 @@ object FiniteFixpointSolver:
    * @param ordering
    *   an optional ordering on unknowns to be used for localized combos.
    */
-  private def comboApply[U, V, E](
-      eqs: FiniteEquationSystem[U, V],
+  private def comboApply[U, V, E, EQS <: FiniteEquationSystem[U, V, EQS]](
+      eqs: FiniteEquationSystem[U, V, EQS],
       combos: ComboAssignment[U, V],
       scope: ComboScope.Value,
       ordering: Option[Ordering[U]]
-  ): FiniteEquationSystem[U, V] =
+  ): EQS =
     (scope: @unchecked) match
       case ComboScope.Standard => eqs.withCombos(combos)
       case ComboScope.Localized =>
         eqs match
-          case eqs: GraphEquationSystem[U, V, ?] => eqs.withLocalizedCombos(combos, ordering.get)
+          // todoss
+          case eqs: GraphEquationSystem[?, ?, ?] => eqs.withLocalizedCombos(combos, ordering.get)
           case _ => throw new DriverBadParameters("Localized combos needs a GraphEquationSystem")
 
   /**
@@ -196,9 +198,9 @@ object FiniteFixpointSolver:
    * @return
    *   an assignment with the solution of the equation system
    */
-  private def applySolver[U, V](
+  private def applySolver[U, V, EQS <: FiniteEquationSystem[U, V, EQS]](
       solver: Solver.Solver,
-      eqs: FiniteEquationSystem[U, V],
+      eqs: EQS,
       start: Assignment[U, V],
       ordering: Option[Ordering[U]],
       restart: (V, V) => Boolean,

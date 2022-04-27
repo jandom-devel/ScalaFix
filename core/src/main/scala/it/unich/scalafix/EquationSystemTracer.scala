@@ -101,7 +101,7 @@ object EquationSystemTracer:
 
     @elidable(TRACING)
     def comboEvaluation(rho: Assignment[U, V], u: U, res: V, comboed: V) =
-      ps.println(s"evaluated: $u, oldvalue: ${rho(u)}, newvalue: $res, comboed: $comboed")
+      ps.println(s"evaluated: $u oldvalue: ${rho(u)} newvalue: $res comboed: $comboed")
 
   private val emptyEquationSystemTracer = EmptyEquationSystemTracer[Any, Any]
 

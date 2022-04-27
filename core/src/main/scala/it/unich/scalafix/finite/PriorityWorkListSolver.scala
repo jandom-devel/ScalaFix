@@ -48,7 +48,7 @@ object PriorityWorkListSolver:
    * @return
    *   the solution of the equation system
    */
-  def apply[U, V](eqs: FiniteEquationSystem[U, V])(
+  def apply[U, V, EQS <: FiniteEquationSystem[U, V, EQS]](eqs: EQS)(
       start: Assignment[U, V],
       ordering: Ordering[U] = DFOrdering(eqs),
       restart: (V, V) => Boolean = { (_: V, _: V) => false },

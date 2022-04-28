@@ -46,7 +46,7 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
   )
 
   private val simpleEqs = GraphEquationSystem[Int, Double, Char](
-    graph = graph,
+    initialGraph = graph,
     unknowns = Set(0, 1, 2, 3),
     inputUnknowns = Set(0)
   )

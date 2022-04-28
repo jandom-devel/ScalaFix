@@ -49,7 +49,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
   )
 
   private val simpleEqs = GraphEquationSystem[Int, Int, Char](
-    graph = graph,
+    initialGraph = graph,
     unknowns = unknowns,
     inputUnknowns = Set(0)
   )

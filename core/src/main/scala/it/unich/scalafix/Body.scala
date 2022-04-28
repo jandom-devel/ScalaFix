@@ -20,8 +20,13 @@ package it.unich.scalafix
 import scala.collection.mutable
 
 /**
- * The body of an equation system, i.e., a map that, given an assignments and an
+ * The body of an equation system, i.e., a map that, given an assignment and an
  * unknown, returns the new value for the unknown.
+ *
+ * @tparam U
+ *   the type for the unknowns of this body.
+ * @tparam V
+ *   the type for the values assumed by the unknowns of this body.
  */
 type Body[U, V] = Assignment[U, V] => Assignment[U, V]
 
@@ -31,11 +36,16 @@ type Body[U, V] = Assignment[U, V] => Assignment[U, V]
  * `body(rho)(u)` returns a pair `(v, deps)` where `v` is the new value for `u`
  * and `deps` is a set of unknowns. If `rho'` differs from `rho` only for
  * unknowns which are not in `deps`, then `body(rho)(u)==body(rho')(u)`.
+ *
+ * @tparam U
+ *   the type for the unknowns of this body.
+ * @tparam V
+ *   the type for the values assumed by the unknowns of this body.
  */
 type BodyWithDependencies[U, V] = Assignment[U, V] => U => (V, Iterable[U])
 
 /**
- * Returns a `BodyWithDependencies` by instrumenting the source assignment in
+ * Returns a body with dependencies by instrumenting the input assignment in
  * order to log access to unknowns.
  */
 extension [U, V](body: Body[U, V])
@@ -50,12 +60,14 @@ extension [U, V](body: Body[U, V])
         (newval, queried)
 
 /**
- * Returns a new body with combos added to the evaluation.
+ * Returns a new body obtained by adding combos to the rhs. If `x` in an
+ * unknown, `rho` an assignment, and `combos(x) = Some(op)`, then the new body
+ * for the unknown `x` returns `rho(x) op body(rho)(x)`.
  *
  * @param combos
  *   the assignment of combos to unknowns.
  * @param optTracer
- *   an optional tracer to call after evaluation the combo
+ *   an optional tracer to call after evaluation of the combo.
  */
 extension [U, V](body: Body[U, V])
   def addCombos(
@@ -76,14 +88,15 @@ extension [U, V](body: Body[U, V])
           else res
 
 /**
- * Returns a new body, in which the `baseAssignment` assignment is combined with
- * the result of body evaluation trough the use of the `op` combiner.
+ * Returns a new body, in which a base ssignment is combined with the rhs trough
+ * the use of the `op` operator. If `x` in an unknown, `rho` an assignment, and
+ * `baseAssignment(x) = y`, then the new body for the unknown `x` returns
+ * `body(rho)(x) op y`.
  *
  * @param baseAssignment
- *   an assignment of values to some of the unknownns.
+ *   a partial assignment of values to unknownns.
  * @param op
- *   the operation used to combine the base assignment with the previosu r.h.s.
- *   of the body.
+ *   the operation used to combine the base assignment with the rhs of the body.
  */
 extension [U, V](body: Body[U, V])
   def addBaseAssignment(baseAssignment: PartialFunction[U, V], op: (V, V) => V): Body[U, V] =
@@ -94,11 +107,11 @@ extension [U, V](body: Body[U, V])
         else body(rho)(x)
 
 /**
- * Returns a new body which calls the current tracer before and after
- * evaluation.
+ * Returns a new body which calls the specified tracer before and after
+ * evaluation of the rhs of the body.
  *
  * @param tracer
- *   the tracer to be called by the new body
+ *   the tracer to be called by the new body.
  */
 extension [U, V](body: Body[U, V])
   def addTracer(tracer: EquationSystemTracer[U, V]): Body[U, V] =

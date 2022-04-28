@@ -26,7 +26,7 @@ import org.scalatest.funspec.AnyFunSpec
 class EquationSystemTest extends AnyFunSpec:
 
   private val simpleEqs = EquationSystem[Int, Int](
-    body = { (rho: Int => Int) =>
+    initialBody = { (rho: Int => Int) =>
       {
         case 0 => rho(0)
         case 1 => (rho(0) max rho(2)) min rho(3)

@@ -68,7 +68,7 @@ object FiniteFixpointSolver:
    * @param params
    *   the parameters for the solver
    */
-  def apply[U, V: Domain, E, EQS <: GraphEquationSystem[U, V, EQS]](
+  def apply[U, V: Domain, E, EQS <: GraphEquationSystem[U, V, E, EQS]](
       eqs: EQS,
       params: Params[U, V]
   ): MutableAssignment[U, V] =
@@ -177,7 +177,7 @@ object FiniteFixpointSolver:
       case ComboScope.Localized =>
         eqs match
           // todoss
-          case eqs: GraphEquationSystem[?, ?, ?] => eqs.withLocalizedCombos(combos, ordering.get)
+          case eqs: GraphEquationSystem[?, ?, ?, ?] => eqs.withLocalizedCombos(combos, ordering.get)
           case _ => throw new DriverBadParameters("Localized combos needs a GraphEquationSystem")
 
   /**

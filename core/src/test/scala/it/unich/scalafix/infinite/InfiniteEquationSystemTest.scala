@@ -29,7 +29,7 @@ import scala.collection.mutable
 class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
 
   private val simpleEqs = EquationSystem[Int, Int](
-    body = { (rho: Int => Int) => (x: Int) =>
+    initialBody = { (rho: Int => Int) => (x: Int) =>
       if x % 2 == 0 then rho(rho(x)) max x / 2
       else {
         val n = (x - 1) / 2

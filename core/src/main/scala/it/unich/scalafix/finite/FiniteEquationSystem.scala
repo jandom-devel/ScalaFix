@@ -23,12 +23,20 @@ import it.unich.scalafix.lattice.Magma
 import it.unich.scalafix.utils.Relation
 
 /**
- * This is the abstract class for an equation system with a finite set of
- * unknowns AND static dependencies between them. When computing
- * `apply(rho)(x)`, the result may only depend on values of `rho(y)` for an `y`
- * such that `y infl x`.
+ * An equation system with a finite set of unknowns AND static dependencies
+ * between them. When computing `apply(rho)(x)`, the result may only depend on
+ * `rho(y)` if `y` is in `inlf(x)`.
+ *
+ * @tparam U
+ *   the type for the unknowns
+ * @tparam V
+ *   the type for the values assumed by the unknowns.
+ * @tparam EQS
+ *   the type of the equation system. Operations returning a new equation system
+ *   generally return `EQS`.
  */
-trait FiniteEquationSystem[U, V, EQS <: FiniteEquationSystem[U, V, EQS]] extends EquationSystem[U, V, EQS]:
+trait FiniteEquationSystem[U, V, EQS <: FiniteEquationSystem[U, V, EQS]]
+    extends EquationSystem[U, V, EQS]:
 
   /** The collection of all unknowns. */
   val unknowns: Iterable[U]
@@ -37,40 +45,67 @@ trait FiniteEquationSystem[U, V, EQS <: FiniteEquationSystem[U, V, EQS]] extends
   val inputUnknowns: Set[U]
 
   /**
-   * The static relation between an unknown x and the unknowns y it influences.
-   * If `infl(x)` does not contain `y`, it means that `eqs(rho)(y) ==
-   * eqs(rho')(y)`, when `rho' = rho[x / eqs(rho)(x)]`.
+   * The static relation between an unknown `x` and the unknowns `y` it
+   * influences. If `infl(x)` does not contain `y`, it means that `apply(rho)(y)
+   * \== apply(rho')(y)`, when `rho' = rho[x / eqs(rho)(x)]`.
    */
   def infl: Relation[U]
 
+/**
+ * The base abstract implementation for finite equation systems.
+ *
+ * @tparam U
+ *   the type for the unknowns
+ * @tparam V
+ *   the type for the values assumed by the unknowns.
+ * @tparam EQS
+ *   the type of the equation system. Operations returning a new equation system
+ *   generally return `EQS`.
+ */
 abstract class BaseFiniteEquationSystem[U, V, EQS <: BaseFiniteEquationSystem[U, V, EQS]]
     extends BaseEquationSystem[U, V, EQS]
     with FiniteEquationSystem[U, V, EQS]:
 
-  protected def _infl: Relation[U]
+  /**
+   * The initial influence relation of the equation system. Depending of the
+   * presence of combos, the initial relaton is manipulated in order to obtain
+   * the real influence relation of the equation system.
+   */
+  protected def initialInfl: Relation[U]
 
   override def infl =
     if optCombos.isEmpty || optCombos.get.combosAreIdempotent
-    then _infl
-    else _infl.withDiagonal
+    then initialInfl
+    else initialInfl.withDiagonal
 
 /**
- * A simple standard implementation of FiniteEquationSystem. All fields must be
- * provided explicitly by the user with the exception of `bodyWithDependencies`
- * which is computed by `body`.
+ * Default implementation of the [[FiniteEquationSystem]] trait.
+ *
+ * @param initialBody
+ *   the initial body of the equation system. Depending of the presence of
+ *   combos, base assignments or tracers, the initial body is manipulated in
+ *   order to obtain the real body of the equation system.
+ * @param initialInfl
+ *   the initial influence relation of the equation system. Depending of the
+ *   presence of combos, the initial relaton is manipulated in order to obtain
+ *   the real influence relation of the equation system.
+ * @param unknowns
+ *   collection of all unknowns.
+ * @param inputUnknowns
+ *   the unknowns which may be considered the input to this equation system.
  */
 class SimpleFiniteEquationSystem[U, V](
-    protected val _body: Body[U, V],
-    protected val  _infl: Relation[U],
-    val inputUnknowns: Set[U],
-    val unknowns: Iterable[U]
+    protected val initialBody: Body[U, V],
+    protected val initialInfl: Relation[U],
+    val unknowns: Iterable[U],
+    val inputUnknowns: Set[U]
 ) extends BaseFiniteEquationSystem[U, V, SimpleFiniteEquationSystem[U, V]]
 
+/** Collection of factory methods for finite equation systems */
 object FiniteEquationSystem:
   /**
-   * Returns the standard implementation of FiniteEquationSystem. All fields
-   * must be provided explicitly by the user with the exception of
-   * `bodyWithDependencies`.
+   * Returns the standard implementation of a finite equation system.
+   * @see [[SimpleFiniteEquationSystem]]
    */
   def apply[U, V](
       body: Body[U, V],
@@ -78,4 +113,4 @@ object FiniteEquationSystem:
       inputUnknowns: Set[U],
       unknowns: Iterable[U]
   ): SimpleFiniteEquationSystem[U, V] =
-    SimpleFiniteEquationSystem(body, infl, inputUnknowns, unknowns)
+    SimpleFiniteEquationSystem(body, infl, unknowns, inputUnknowns)

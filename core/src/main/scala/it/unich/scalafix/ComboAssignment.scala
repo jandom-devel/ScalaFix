@@ -22,17 +22,10 @@ package it.unich.scalafix
  * is false for a given unknown `u`, the corresponding `apply(u)` should be a
  * right combo.
  *
-<<<<<<< HEAD
- * Like it was the case for Combo, a ComboAssignent is also a blueprint for
- * buildind equivalent ComboAssignments. Each ComboAssignmant has a copy method
- * which should produce a functionally equivalent copy of `this`. The copy
- * method should try to minimize object duplication.
-=======
  * As it was the case for Combo, a ComboAssignent is also a blueprint for buildind
  * equivalent ComboAssignments. Each ComboAssignmant has a copy method which should
  * produce a functionally equivalent copy of `this`. The copy method should try
  * to minimize object duplication.
->>>>>>> Typo.
  */
 abstract class ComboAssignment[-U, V] extends PartialFunction[U, Combo[V]]:
   /**

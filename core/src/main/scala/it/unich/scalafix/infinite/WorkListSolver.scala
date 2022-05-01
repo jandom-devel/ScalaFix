@@ -50,7 +50,9 @@ object WorkListSolver:
   ): MutableAssignment[U, V] =
     val infl = mutable.Map.empty[U, mutable.Set[U]]
     val workList = mutable.Queue.empty[U]
-    workList ++= wanted
+    for x <- wanted do
+      workList += x
+      infl(x) = mutable.Set.empty[U]
 
     val current = eqs.getMutableAssignment(start)
     tracer.initialized(current)

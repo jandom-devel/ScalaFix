@@ -24,6 +24,7 @@ import org.scalatest.funspec.AnyFunSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 import scala.collection.mutable
+import it.unich.scalafix.infinite.PriorityWorkListSolver.DynamicPriority
 
 /** Test solvers for finite equation systems. */
 class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
@@ -95,8 +96,24 @@ class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyCheck
 
   describe("The WorkListSolver") {
     testExpectedResult(WorkListSolver(_)(_, _))
+
+     it ("does not throw exceptions when the wanted unknowns are immediately updated") {
+      val eqs = EquationSystem({(rho: Assignment[Int, Int]) => (x: Int) => 1 })
+      val rho = Assignment(0)
+      val finalRho = WorkListSolver(eqs)(rho,Seq(0))
+      assertResult(Set(0))(finalRho.unknowns)
+      assertResult(1)(finalRho(0))
+    }
   }
 
   describe("The PriorityWorkListSolver") {
     testExpectedResult(PriorityWorkListSolver(_)(_, _))
+
+     it ("does not throw exceptions when the wanted unknowns are immediately updated") {
+      val eqs = EquationSystem({(rho: Assignment[Int, Int]) => (x: Int) => 1 })
+      val rho = Assignment(0)
+      val finalRho = PriorityWorkListSolver(eqs)(rho,Seq(0))
+      assertResult(Set(0))(finalRho.unknowns)
+      assertResult(1)(finalRho(0))
+    }
   }

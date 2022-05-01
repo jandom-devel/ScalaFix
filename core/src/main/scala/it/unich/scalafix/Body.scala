@@ -24,29 +24,34 @@ import scala.collection.mutable
  * unknown, returns the new value for the unknown.
  *
  * @tparam U
- *   the type for the unknowns of this body.
+ *   the type for the unknowns.
  * @tparam V
- *   the type for the values assumed by the unknowns of this body.
+ *   the type for the values assumed by the unknowns.
  */
 type Body[U, V] = Assignment[U, V] => Assignment[U, V]
 
 /**
- * A body which also returns the set of dependencies among unknowns. If `body:
- * BodyWithDependencies[U, V]`, `rho: Assignment[U, V]` and `u: U`, then
- * `body(rho)(u)` returns a pair `(v, deps)` where `v` is the new value for `u`
+ * A body which also returns the set of dependencies among unknowns. If `bd` is
+ * a body with dependencies, `rho` an assignment and `u` an unknown, then
+ * `bd(rho)(u)` returns a pair `(v, deps)` where `v` is the new value for `u`
  * and `deps` is a set of unknowns. If `rho'` differs from `rho` only for
- * unknowns which are not in `deps`, then `body(rho)(u)==body(rho')(u)`.
+ * unknowns which are not in `deps`, then `bd(rho)(u)==bd(rho')(u)`.
  *
  * @tparam U
- *   the type for the unknowns of this body.
+ *   the type for the unknowns.
  * @tparam V
- *   the type for the values assumed by the unknowns of this body.
+ *   the type for the values assumed by the unknowns.
  */
 type BodyWithDependencies[U, V] = Assignment[U, V] => U => (V, Iterable[U])
 
 /**
  * Returns a body with dependencies by instrumenting the input assignment in
  * order to log access to unknowns.
+ *
+ * @tparam U
+ *   the type for the unknowns.
+ * @tparam V
+ *   the type for the values assumed by the unknowns.
  */
 extension [U, V](body: Body[U, V])
   def withDependencies: BodyWithDependencies[U, V] =
@@ -60,14 +65,18 @@ extension [U, V](body: Body[U, V])
         (newval, queried)
 
 /**
- * Returns a new body obtained by adding combos to the rhs. If `x` in an
+ * Returns a new body obtained by adding combos to this body. If `x` in an
  * unknown, `rho` an assignment, and `combos(x) = Some(op)`, then the new body
- * for the unknown `x` returns `rho(x) op body(rho)(x)`.
+ * for the assignment `rho` and unknown `x` returns `rho(x) op body(rho)(x)`.
  *
+ * @tparam U
+ *   the type for the unknowns.
+ * @tparam V
+ *   the type for the values assumed by the unknowns.
  * @param combos
  *   the assignment of combos to unknowns.
  * @param optTracer
- *   an optional tracer to call after evaluation of the combo.
+ *   an optional tracer to call after evaluation of the combos.
  */
 extension [U, V](body: Body[U, V])
   def addCombos(
@@ -88,11 +97,15 @@ extension [U, V](body: Body[U, V])
           else res
 
 /**
- * Returns a new body, in which a base ssignment is combined with the rhs trough
- * the use of the `op` operator. If `x` in an unknown, `rho` an assignment, and
- * `baseAssignment(x) = y`, then the new body for the unknown `x` returns
- * `body(rho)(x) op y`.
+ * Returns a new body in which a base ssignment is combined with this body
+ * trough the use of the `op` operator. If `x` in an unknown, `rho` an
+ * assignment, and `baseAssignment(x) = y`, then the new body for the for the
+ * assignment `rho` and unknown `x` returns `body(rho)(x) op y`.
  *
+ * @tparam U
+ *   the type for the unknowns.
+ * @tparam V
+ *   the type for the values assumed by the unknowns.
  * @param baseAssignment
  *   a partial assignment of values to unknownns.
  * @param op
@@ -110,6 +123,10 @@ extension [U, V](body: Body[U, V])
  * Returns a new body which calls the specified tracer before and after
  * evaluation of the rhs of the body.
  *
+ * @tparam U
+ *   the type for the unknowns.
+ * @tparam V
+ *   the type for the values assumed by the unknowns.
  * @param tracer
  *   the tracer to be called by the new body.
  */

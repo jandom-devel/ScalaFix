@@ -22,13 +22,13 @@ import java.io.PrintStream
 import scala.annotation.elidable
 
 /**
- * A FixpointSolverTracer implements some methods which are called by solvers
- * when certain events occurs. They may be used for debugging, tracing, etc...
+ * Implements some methods which are called by solvers when certain events
+ * occurs. They may be used for debugging, tracing, etc...
  *
  * @tparam U
- *   the type of unknowns supported by this tracer
+ *   the type of unknowns supported by this tracer.
  * @tparam V
- *   the type of values for unknowns supported by this tracer
+ *   the type of values for unknowns supported by this tracer.
  */
 trait FixpointSolverTracer[U, V]:
   /**
@@ -36,7 +36,7 @@ trait FixpointSolverTracer[U, V]:
    * assignment.
    *
    * @param rho
-   *   the current assignment
+   *   the initial assignment.
    */
   def initialized(rho: Assignment[U, V]): Unit
 
@@ -44,7 +44,7 @@ trait FixpointSolverTracer[U, V]:
    * This method is called when the final assignment has been computed.
    *
    * @param rho
-   *   the current assignment
+   *   the final assignment.
    */
   def completed(rho: Assignment[U, V]): Unit
 
@@ -52,11 +52,11 @@ trait FixpointSolverTracer[U, V]:
    * This method is called when an unknown `u` is evaluated.
    *
    * @param rho
-   *   the current assignment
+   *   the current assignment.
    * @param u
-   *   the unknown which is evaluated
+   *   the unknown which is evaluated.
    * @param newval
-   *   the result of the evaluation
+   *   the result of the evaluation.
    */
   def evaluated(rho: Assignment[U, V], u: U, newval: V): Unit
 
@@ -64,7 +64,7 @@ trait FixpointSolverTracer[U, V]:
    * This is called when the ascending phase begins in a two phase solver.
    *
    * @param rho
-   *   the assignment at the beginning of the ascending phase
+   *   the assignment at the beginning of the ascending phase.
    */
   def ascendingBegins(rho: Assignment[U, V]): Unit
 
@@ -72,7 +72,7 @@ trait FixpointSolverTracer[U, V]:
    * This is called when the descending phase begins in a two phase solver.
    *
    * @param rho
-   *   the assignment at the beginning of the descending phase
+   *   the assignment at the beginning of the descending phase.
    */
   def descendingBegins(rho: Assignment[U, V]): Unit
 
@@ -82,83 +82,93 @@ trait FixpointSolverTracer[U, V]:
  * interested in.
  */
 abstract class FixpointSolverTracerAdapter[U, V] extends FixpointSolverTracer[U, V]:
+  /** It does nothing. */
   @elidable(TRACING)
-  def evaluated(rho: Assignment[U, V], u: U, newval: V) = {}
+  override def evaluated(rho: Assignment[U, V], u: U, newval: V) = {}
 
+  /** It does nothing. */
   @elidable(TRACING)
-  def initialized(rho: Assignment[U, V]) = {}
+  override def initialized(rho: Assignment[U, V]) = {}
 
+  /** It does nothing. */
   @elidable(TRACING)
-  def completed(rho: Assignment[U, V]) = {}
+  override def completed(rho: Assignment[U, V]) = {}
 
+  /** It does nothing. */
   @elidable(TRACING)
-  def ascendingBegins(rho: Assignment[U, V]) = {}
+  override def ascendingBegins(rho: Assignment[U, V]) = {}
 
+  /** It does nothing. */
   @elidable(TRACING)
-  def descendingBegins(rho: Assignment[U, V]) = {}
+  override def descendingBegins(rho: Assignment[U, V]) = {}
 
+/** A tracer which keeps track of performance measures. */
+class PerformanceFixpointSolverTracer[U, V] extends FixpointSolverTracerAdapter[U, V]:
+
+  private var numeval: Int = 0
+
+  /** Number of evaluations of body performed so far. */
+  def evaluations: Int = numeval
+
+  /**
+   * Increments the number of performed evaluations returned by the
+   * `evaluations` method.
+   */
+  @elidable(TRACING)
+  override def evaluated(rho: Assignment[U, V], u: U, newval: V) =
+    numeval += 1
+
+/** Collection of factory methods for fixpoint solver tracers. */
 object FixpointSolverTracer {
 
   /** An empty tracer which does nothing. */
-  class EmptyFixpointSolverTracer[U, V] extends FixpointSolverTracerAdapter[U, V]
+  private final class EmptyFixpointSolverTracer[U, V] extends FixpointSolverTracerAdapter[U, V]
 
-  /** A tracer which prints all the informations on a PrintStream. */
-  class DebugFixpointSolverTracer[U, V](ps: PrintStream) extends FixpointSolverTracer[U, V]:
+  /** A tracer which prints many debug information to a PrintStream. */
+  private final class DebugFixpointSolverTracer[U, V](ps: PrintStream)
+      extends FixpointSolverTracer[U, V]:
     @elidable(TRACING)
-    def evaluated(rho: Assignment[U, V], u: U, newval: V) =
+    override def evaluated(rho: Assignment[U, V], u: U, newval: V) =
       ps.println(s"evaluated: $u oldvalue: ${rho(u)} newvalue: $newval")
 
     @elidable(TRACING)
-    def completed(rho: Assignment[U, V]) =
+    override def completed(rho: Assignment[U, V]) =
       ps.println(s"completed with assignment $rho")
 
     @elidable(TRACING)
-    def initialized(rho: Assignment[U, V]) =
+    override def initialized(rho: Assignment[U, V]) =
       ps.println(s"initialized with assignment $rho")
 
-    def ascendingBegins(rho: Assignment[U, V]) =
+    @elidable(TRACING)
+    override def ascendingBegins(rho: Assignment[U, V]) =
       ps.println(s"ascending chain begins with assignment $rho")
 
     @elidable(TRACING)
-    def descendingBegins(rho: Assignment[U, V]) =
+    override def descendingBegins(rho: Assignment[U, V]) =
       ps.println(s"descending chain begins with assignment $rho")
 
-  /** A tracer which keeps track of performance measures. */
-  class PerformanceFixpointSolverTracer[U, V] extends FixpointSolverTracerAdapter[U, V]:
-
-    private var numeval: Int = 0
-
-    /** Number of evaluations of r.h.s. performed so far. */
-    def evaluations: Int = numeval
-
-    @elidable(TRACING)
-    override def evaluated(rho: Assignment[U, V], u: U, newval: V) =
-      numeval += 1
-
+  /** Instance of an tracer which does nothing. */
   private val emptyFixpointSolverTracer = new EmptyFixpointSolverTracer[Any, Any]
 
+  /**
+   * Instance of tracer which prints many debug information to standard output.
+   */
   private val debugFixpointSolverTracer = new DebugFixpointSolverTracer[Any, Any](System.out)
 
-  private val performanceFixpointSolverTracer = new PerformanceFixpointSolverTracer[Any, Any]
-
-  /** Returns a fixpoint solver tracer which does nothing. */
-  def empty[U, V]: EmptyFixpointSolverTracer[U, V] =
+  /** Returns a tracer which does nothing. */
+  def empty[U, V]: FixpointSolverTracer[U, V] =
     emptyFixpointSolverTracer.asInstanceOf[EmptyFixpointSolverTracer[U, V]]
 
-  /**
-   * Returns a debug fixpoint solver tracer which prints debugging information
-   * to standard output.
-   */
-  def debug[U, V]: DebugFixpointSolverTracer[U, V] =
+  /** Returns a tracer which prints many information to standard output. */
+  def debug[U, V]: FixpointSolverTracer[U, V] =
     debugFixpointSolverTracer.asInstanceOf[DebugFixpointSolverTracer[U, V]]
 
   /**
-   * Returns a debug fixpoint solver tracer which prints debugging information
-   * to the specified PrintStream.
+   * Returns a tracer which prints debug debugging information to a PrintStream.
    */
-  def debug[U, V](ps: PrintStream) = new DebugFixpointSolverTracer[U, V](ps)
+  def debug[U, V](ps: PrintStream): FixpointSolverTracer[U, V] =
+    DebugFixpointSolverTracer(ps)
 
-  /** Returns a performance fixpoint solver tracer. */
-  def performance[U, V]: PerformanceFixpointSolverTracer[U, V] =
-    performanceFixpointSolverTracer.asInstanceOf[PerformanceFixpointSolverTracer[U, V]]
+  /** Returns a tracer which keeps track of performance measures. */
+  def performance[U, V] = PerformanceFixpointSolverTracer()
 }

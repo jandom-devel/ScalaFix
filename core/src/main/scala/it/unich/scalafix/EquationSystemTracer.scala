@@ -22,9 +22,8 @@ import java.io.PrintStream
 import scala.annotation.elidable
 
 /**
- * An EquationSystemTracer implements some methods which are called by equation
- * systems when certain events occurs. They may be used for debugging, tracing,
- * etc...
+ * Implements some methods which are called by equation systems when certain
+ * events occurs. They may be used for debugging, tracing, etc...
  *
  * @tparam U
  *   the type of unknowns supported by this tracer
@@ -36,9 +35,9 @@ trait EquationSystemTracer[U, V]:
    * This method is called immediately before an unknown `u` is evaluated.
    *
    * @param rho
-   *   the current assignment
+   *   the current assignment.
    * @param u
-   *   the unknown which is evaluated
+   *   the unknown which is evaluated.
    */
   def beforeEvaluation(rho: Assignment[U, V], u: U): Unit
 
@@ -46,11 +45,11 @@ trait EquationSystemTracer[U, V]:
    * This method is called immediately after an unknown `u` is evaluated.
    *
    * @param rho
-   *   the current assignment
+   *   the current assignment.
    * @param u
-   *   the unknown which is evaluated
+   *   the unknown which is evaluated.
    * @param res
-   *   the result of the evaluation
+   *   the result of the evaluation.
    */
   def afterEvaluation(rho: Assignment[U, V], u: U, res: V): Unit
 
@@ -58,14 +57,14 @@ trait EquationSystemTracer[U, V]:
    * This method is called when a combo is evaluated.
    *
    * @param rho
-   *   the input assignment of the body
+   *   the input assignment of the body.
    * @param u
-   *   the unknown to be evaluated
+   *   the unknown to be evaluated.
    * @param res
-   *   result of the evaluation of the original body
+   *   result of the evaluation of the original body.
    * @param comboed
    *   result of the evaluation of the original body, comboed with the original
-   *   value
+   *   value.
    */
   def comboEvaluation(rho: Assignment[U, V], u: U, res: V, comboed: V): Unit
 
@@ -74,43 +73,57 @@ trait EquationSystemTracer[U, V]:
  * sub-classed in order to override only the methods we are interested in.
  */
 abstract class EquationSystemTracerAdapter[U, V] extends EquationSystemTracer[U, V]:
+  /** It does nothing. */
   @elidable(TRACING)
-  def beforeEvaluation(rho: Assignment[U, V], u: U): Unit = {}
+  override def beforeEvaluation(rho: Assignment[U, V], u: U): Unit = {}
 
+  /** It does nothing. */
   @elidable(TRACING)
-  def afterEvaluation(rho: Assignment[U, V], u: U, res: V): Unit = {}
+  override def afterEvaluation(rho: Assignment[U, V], u: U, res: V): Unit = {}
 
+  /** It does nothing. */
   @elidable(TRACING)
-  def comboEvaluation(rho: Assignment[U, V], u: U, res: V, comboed: V): Unit = {}
+  override def comboEvaluation(rho: Assignment[U, V], u: U, res: V, comboed: V): Unit = {}
 
+/** Collection of factory methods for equations system tracers. */
 object EquationSystemTracer:
 
-  /** An empty listener which does nothing. */
+  /** An empty tracer which does nothing. */
   private final class EmptyEquationSystemTracer[U, V] extends EquationSystemTracerAdapter[U, V]
 
-  /** A tracer which prints many debug informations on a PrintStream. */
+  /** A tracer which prints many debug information to a PrintStream. */
   private final class DebugEquationSystemTracer[U, V](ps: PrintStream)
       extends EquationSystemTracer[U, V]:
     @elidable(TRACING)
-    def beforeEvaluation(rho: Assignment[U, V], u: U) =
+    override def beforeEvaluation(rho: Assignment[U, V], u: U) =
       ps.println(s"evaluated: $u oldvalue: ${rho(u)}")
 
     @elidable(TRACING)
-    def afterEvaluation(rho: Assignment[U, V], u: U, res: V) =
+    override def afterEvaluation(rho: Assignment[U, V], u: U, res: V) =
       ps.println(s"evaluated: $u oldvalue: ${rho(u)} newvalue: $res")
 
     @elidable(TRACING)
-    def comboEvaluation(rho: Assignment[U, V], u: U, res: V, comboed: V) =
+    override def comboEvaluation(rho: Assignment[U, V], u: U, res: V, comboed: V) =
       ps.println(s"evaluated: $u oldvalue: ${rho(u)} newvalue: $res comboed: $comboed")
 
+  /** Instance of an empty tracer. */
   private val emptyEquationSystemTracer = EmptyEquationSystemTracer[Any, Any]
 
+  /** Instance of a debug tracer which prints to standard output. */
   private val debugEquationSystemTracer = DebugEquationSystemTracer[Any, Any](System.out)
 
+  /** Retuns a tracer which does nothing. */
   def empty[U, V]: EquationSystemTracer[U, V] =
     emptyEquationSystemTracer.asInstanceOf[EmptyEquationSystemTracer[U, V]]
 
+  /** Retuns a tracer which prints many information to standard output. */
   def debug[U, V]: EquationSystemTracer[U, V] =
     debugEquationSystemTracer.asInstanceOf[DebugEquationSystemTracer[U, V]]
 
+  /**
+   * Retuns a tracer which prints many debug information to a PrintStream.
+   *
+   * @param ps
+   *   the stream where to send the output.
+   */
   def debug[U, V](ps: PrintStream): EquationSystemTracer[U, V] = DebugEquationSystemTracer[U, V](ps)

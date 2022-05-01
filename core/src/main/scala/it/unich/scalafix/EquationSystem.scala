@@ -100,7 +100,7 @@ trait EquationSystem[U, V, EQS <: EquationSystem[U, V, EQS]]:
   def withTracer(tracer: EquationSystemTracer[U, V]): EQS
 
 /**
- * The base abstract implementation for equation systems.
+ * The base abstract implementation of an equation systems.
  *
  * @tparam U
  *   the type for the unknowns
@@ -121,7 +121,7 @@ abstract class BaseEquationSystem[U, V, EQS <: BaseEquationSystem[U, V, EQS]]
    */
   protected def initialBody: Body[U, V]
 
-  /** An optional assignment of vombos to the unknowns. */
+  /** An optional assignment of combos to the unknowns. */
   protected var optCombos: Option[ComboAssignment[U, V]] = None
 
   /**
@@ -148,7 +148,7 @@ abstract class BaseEquationSystem[U, V, EQS <: BaseEquationSystem[U, V, EQS]]
 
   /**
    * A type-aware clone operation. An equation system is immutable as long as
-   * the public interfaces is concerned, but cloning is used to simplify
+   * the public interface is concerned, but cloning is used to simplify
    * implementation.
    */
   override protected def clone(): EQS =
@@ -202,7 +202,7 @@ abstract class BaseEquationSystem[U, V, EQS <: BaseEquationSystem[U, V, EQS]]
     clone
 
   /**
-   * @inheritdoc
+   * Returns a mutable assignment based on the provided initial assignment.
    *
    * @note
    *   Returns the default mutable assignment
@@ -211,7 +211,7 @@ abstract class BaseEquationSystem[U, V, EQS <: BaseEquationSystem[U, V, EQS]]
   override def getMutableAssignment(rho: Assignment[U, V]) = MapBasedMutableAssignment(rho)
 
 /**
- * Default implementation of an [[EquationSystem]] trait.
+ * Default implementation of an equation system.
  *
  * @param initialBody
  *   the initial body of the equation system. Depending of the presence of
@@ -222,10 +222,11 @@ class SimpleEquationSystem[U, V](
     protected val initialBody: Body[U, V]
 ) extends BaseEquationSystem[U, V, SimpleEquationSystem[U, V]]
 
-/** Collection of factory methods for equation systems */
+/** Collection of factory methods for equation systems. */
 object EquationSystem:
   /**
    * Returns the standard implementation of an EquationSystem.
+   *
    * @param initialBody
    *   the initial body of the equation system. Depending of the presence of
    *   combos, base assignments or tracers, the initial body is manipulated in

@@ -229,7 +229,7 @@ abstract class BaseGraphEquationSystem[U, V: Domain, E, EQS <: BaseGraphEquation
     clone
 
 /**
- * Default implementation of the [[GraphEquationSystem]] trait.
+ * Default implementation of a graph-based equation system.
  *
  * @param initialGraph
  *   the initial graph of the equation system. Depending on the presence of
@@ -246,12 +246,12 @@ class SimpleGraphEquationSystem[U, V: Domain, E](
     val inputUnknowns: Set[U]
 ) extends BaseGraphEquationSystem[U, V, E, SimpleGraphEquationSystem[U, V, E]]
 
-/** Collection of factory methods for graph-based equation systems */
+/** Collection of factory methods for graph-based equation systems. */
 object GraphEquationSystem:
   /**
    * Returns the standard implementation of a finite equation system.
    * @see
-   *   [[SimpleGraphEquationSystem]]
+   *   [[SimpleGraphEquationSystem]] for the meaning of all the parameters.
    */
   def apply[U, V: Domain, E](
       initialGraph: Graph[U, V, E],

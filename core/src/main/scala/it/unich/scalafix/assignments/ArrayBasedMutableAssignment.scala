@@ -23,10 +23,10 @@ import it.unich.scalafix.MutableAssignment
 import scala.reflect.ClassTag
 
 /**
- * A mutable assignment backed by an array and a plain assignment.
+ * A mutable assignment backed by an array.
  *
  * @param rho
- *   the initial assignmet.
+ *   the initial value of this assignment.
  * @param size
  *   the size of the array. This assignment may only be used for unknowns in the
  *   range from `0` to `size-1`.
@@ -39,16 +39,26 @@ class ArrayBasedMutableAssignment[V: ClassTag](
   private val a = new Array[V](size)
   private val changed = Array.fill(size)(false)
 
+  /** @inheritdoc */
   override def update(i: Int, v: V) =
     a.update(i, v)
     changed.update(i, true)
 
+  /** Returns the value assigned to the unknown `i`. */
   override def apply(i: Int) =
     a(i)
     if changed(i) then a(i) else rho(i)
 
+  /** @inheritdoc */
   override def isDefinedAt(i: Int) = changed(i)
 
+  /** @inheritdoc */
   override def unknowns = (0 until size).filter(changed(_))
 
+  /**
+   * @inheritdoc
+   *
+   * The string representation is human-readable, and shows both the updated
+   * bindings of the assignment and the initial assignment.
+   */
   override def toString: String = s"${a.mkString("[ ", ", ", " ]")} over $rho"

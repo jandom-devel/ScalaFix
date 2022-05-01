@@ -30,9 +30,9 @@ import it.unich.scalafix.assignments.*
 type Assignment[-U, +V] = (U => V)
 
 /**
- * A mutable assignment is an asisgnmetn used internally and retuned by fixpoint
- * solvers. Every mutable assignment is built over an initial plain assignment,
- * and keeps track of the unknowns which are explicitly modified after creation.
+ * A mutable assignment is an assignment used internally and retuned by fixpoint
+ * solvers. Mutable assignment keep track of the unknowns which are explicitly
+ * modified after creation.
  *
  * @tparam U
  *   type for unknowns
@@ -41,14 +41,14 @@ type Assignment[-U, +V] = (U => V)
  */
 trait MutableAssignment[U, V] extends Assignment[U, V]:
   /**
-   * An iterable of the unknowns which have been explicitly modified w.r.t. the
-   * initial assignment.
+   * An iterable of the unknowns which have been explicitly modified after
+   * creation.
    */
   def unknowns: Iterable[U]
 
   /**
-   * Determines whether the unknown `u` has been explicitly modified w.r.t. the
-   * initial assignment.
+   * Determines whether the unknown `u` has been explicitly modified after
+   * creation.
    */
   def isDefinedAt(u: U): Boolean
 
@@ -56,8 +56,8 @@ trait MutableAssignment[U, V] extends Assignment[U, V]:
   def update(u: U, v: V): Unit
 
 /**
- * Collection of factory methods for generating assignments with a
- * human-readable `toString` method.
+ * Collection of factory methods for generating assignments with human-readable
+ * `toString` results.
  */
 object Assignment:
 
@@ -83,8 +83,8 @@ object Assignment:
    * @param f
    *   the function holding the assignment.
    * @param str
-   *   the optional output of the `toString` method. If `None`, the standard
-   *   `toString` for functions is used.
+   *   the optional result of the `toString` method. If `None`, the standard
+   *   `toString` method for functions is used.
    */
   def apply[U, V](f: U => V, str: Option[String]): StandardAssignment[U, V] =
     FunctionBasedAssignment(f, str)

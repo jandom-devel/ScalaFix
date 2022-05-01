@@ -20,7 +20,6 @@ package it.unich.scalafix.finite
 import it.unich.scalafix.*
 import it.unich.scalafix.graphs.*
 import it.unich.scalafix.assignments.*
-import it.unich.scalafix.FixpointSolverTracer.PerformanceFixpointSolverTracer
 import it.unich.scalafix.lattice.given
 
 import org.scalatest.funspec.AnyFunSpec

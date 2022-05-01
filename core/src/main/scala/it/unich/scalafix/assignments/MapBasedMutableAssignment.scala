@@ -27,7 +27,7 @@ import scala.collection.mutable
  * A mutable assignment backed by a mutable map.
  *
  * @param rho
- *   the initial assignment.
+ *   the initial value of this assignment.
  * @param factory
  *   a factory for maps. Changing this parameter it is possible to choose which
  *   implementation of mutable maps we want to use.
@@ -41,4 +41,10 @@ class MapBasedMutableAssignment[U, V](
 
   export m.{apply, update, isDefinedAt, keys as unknowns}
 
+  /**
+   * @inheritdoc
+   *
+   * The string representation is human-readable, and shows both the updated
+   * binding of the assignment and the initial assignment.
+   */
   override def toString: String = s"${m.mkString("[ ", ", ", " ]")} over $rho"

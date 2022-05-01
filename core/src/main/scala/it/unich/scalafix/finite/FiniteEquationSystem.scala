@@ -73,13 +73,14 @@ abstract class BaseFiniteEquationSystem[U, V, EQS <: BaseFiniteEquationSystem[U,
    */
   protected def initialInfl: Relation[U]
 
+  /** @inheritdoc */
   override def infl =
     if optCombos.isEmpty || optCombos.get.combosAreIdempotent
     then initialInfl
     else initialInfl.withDiagonal
 
 /**
- * Default implementation of the [[FiniteEquationSystem]] trait.
+ * Default implementation of a finite equation system.
  *
  * @param initialBody
  *   the initial body of the equation system. Depending of the presence of
@@ -101,16 +102,17 @@ class SimpleFiniteEquationSystem[U, V](
     val inputUnknowns: Set[U]
 ) extends BaseFiniteEquationSystem[U, V, SimpleFiniteEquationSystem[U, V]]
 
-/** Collection of factory methods for finite equation systems */
+/** Collection of factory methods for finite equation systems. */
 object FiniteEquationSystem:
   /**
    * Returns the standard implementation of a finite equation system.
-   * @see [[SimpleFiniteEquationSystem]]
+   *
+   * @see [[SimpleFiniteEquationSystem]] for the meaning of all the parameters.
    */
   def apply[U, V](
       body: Body[U, V],
       infl: Relation[U],
-      inputUnknowns: Set[U],
-      unknowns: Iterable[U]
+      unknowns: Iterable[U],
+      inputUnknowns: Set[U]
   ): SimpleFiniteEquationSystem[U, V] =
     SimpleFiniteEquationSystem(body, infl, unknowns, inputUnknowns)

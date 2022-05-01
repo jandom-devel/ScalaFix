@@ -19,8 +19,8 @@ package it.unich.scalafix.assignments
 
 import it.unich.scalafix.Assignment
 
-/** An assignment with human readable results for the `toString` method. */
-sealed abstract class StandardAssignment[-U, +V] extends Assignment[U, V]:
+/** An assignment with an human-readable result for the `toString` method. */
+abstract class StandardAssignment[-U, +V] extends Assignment[U, V]:
   /**
    * Returns an updated assignment which maps the unknown `u` to the value `v`.
    */

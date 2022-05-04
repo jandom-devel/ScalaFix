@@ -107,12 +107,13 @@ object FiniteEquationSystem:
   /**
    * Returns the standard implementation of a finite equation system.
    *
-   * @see [[SimpleFiniteEquationSystem]] for the meaning of all the parameters.
+   * @see
+   *   [[SimpleFiniteEquationSystem]] for the meaning of all the parameters.
    */
   def apply[U, V](
-      body: Body[U, V],
-      infl: Relation[U],
+      initialBody: Body[U, V],
+      initialInfl: Relation[U],
       unknowns: Iterable[U],
       inputUnknowns: Set[U]
   ): SimpleFiniteEquationSystem[U, V] =
-    SimpleFiniteEquationSystem(body, infl, unknowns, inputUnknowns)
+    SimpleFiniteEquationSystem(initialBody, initialInfl, unknowns, inputUnknowns)

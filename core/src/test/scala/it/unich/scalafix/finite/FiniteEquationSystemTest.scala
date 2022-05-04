@@ -30,8 +30,8 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
 
   import HierarchicalOrdering.*
 
-  private val simpleEqs: SimpleFiniteEquationSystem[Int, Double] = FiniteEquationSystem(
-    body = { (rho: Int => Double) =>
+  private val simpleEqs = FiniteEquationSystem[Int, Double](
+    initialBody = { (rho: Int => Double) =>
       {
         case 0 => rho(0)
         case 1 => (rho(0) max rho(2)) min rho(3)
@@ -39,9 +39,9 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
         case 3 => rho(3)
       }
     },
-    inputUnknowns = Set(0, 1, 2, 3),
-    unknowns = Set(0, 1, 2, 3),
-    infl = Relation(Map(0 -> Set(0, 1, 2), 1 -> Set(2), 2 -> Set(1), 3 -> Set(1, 3)))
+    initialInfl = Relation(Map(0 -> Set(0, 1, 2), 1 -> Set(2), 2 -> Set(1), 3 -> Set(1, 3))),
+    unknowns = 0 to 3,
+    inputUnknowns = Set(0)
   )
 
   private val simpleEqsStrategy =

@@ -43,7 +43,7 @@ object HierarchicalOrderingSolver:
    * @return
    *   the solution of the equation system
    */
-  def apply[U, V, EQS <: FiniteEquationSystem[U, V, EQS]](eqs: EQS)(
+  def apply[U, V](eqs: FiniteEquationSystem[U, V, ?])(
       start: Assignment[U, V],
       ordering: HierarchicalOrdering[U] = HierarchicalOrdering(DFOrdering(eqs)),
       tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]

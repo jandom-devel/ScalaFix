@@ -93,7 +93,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
     }
 
     it("correctly adds combos") {
-      def test[EQS <: FiniteEquationSystem[Int, Int, EQS]](eqs: EQS) =
+      def test(eqs: FiniteEquationSystem[Int, Int, ?]) =
         val body = eqs.body
         assertResult(0)(body(rho)(0))
         assertResult(7)(body(rho)(1))
@@ -114,7 +114,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
     }
 
     it("correctly adds localized idempotent combos") {
-      def test[EQS <: FiniteEquationSystem[Int, Int, EQS]](eqs: EQS) =
+      def test(eqs: FiniteEquationSystem[Int, Int, ?]) =
         val body = eqs.body
         val rho2: Assignment[Int, Int] = { (x: Int) => if x == 0 then 9 else x }
         assertResult(0)(body(rho)(0))

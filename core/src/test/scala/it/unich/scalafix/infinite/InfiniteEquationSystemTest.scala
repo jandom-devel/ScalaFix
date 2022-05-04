@@ -43,7 +43,7 @@ class InfiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyCheck
   private val startRho = Assignment(0)
 
   private type SimpleSolver[U, V] =
-    (SimpleEquationSystem[U, V], Assignment[U, V], Seq[U]) => MutableAssignment[U, V]
+    (EquationSystem[U, V, ?], Assignment[U, V], Seq[U]) => MutableAssignment[U, V]
 
   class EvaluationOrderListener[U, V] extends FixpointSolverTracerAdapter[U, V]:
     private val buffer = mutable.Buffer.empty[Any]

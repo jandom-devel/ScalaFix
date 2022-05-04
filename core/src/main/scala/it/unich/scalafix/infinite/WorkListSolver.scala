@@ -43,7 +43,7 @@ object WorkListSolver:
    * @return
    *   the solution of the equation system
    */
-  def apply[U, V, EQS <: EquationSystem[U, V, EQS]](eqs: EQS)(
+  def apply[U, V](eqs: EquationSystem[U, V, ?])(
       start: Assignment[U, V],
       wanted: Iterable[U],
       tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]

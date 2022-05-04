@@ -53,17 +53,17 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
   private val lastCombo = ComboAssignment { (_: Double, x2: Double) => x2 }
   private val startRho = Assignment(0.0).updated(3, 10.0)
 
-  private type SimpleSolver[U, V, EQS <: FiniteEquationSystem[U, V, EQS]] =
-    (EQS, Assignment[U, V]) => MutableAssignment[U, V]
+  private type SimpleSolver[U, V] =
+    (FiniteEquationSystem[U, V, ?], Assignment[U, V]) => MutableAssignment[U, V]
 
   /**
    * Tests whether solving `eqs` equation system always returns a correct
    * result. Should be used only for solvers which are guaranteed to terminate
    * with the given equation system.
    */
-  def testCorrectness[U, V, EQS <: FiniteEquationSystem[U, V, EQS]](
-      eqs: EQS,
-      solver: SimpleSolver[U, V, EQS]
+  def testCorrectness[U, V](
+      eqs: FiniteEquationSystem[U, V, ?],
+      solver: SimpleSolver[U, V]
   )(using
       values: Arbitrary[V]
   ) =
@@ -78,7 +78,7 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
    * Test solvers for the `simpleEqs` equation system when starting from the
    * initial assignment `startRho`.
    */
-  def testExpectedResult(solver: SimpleSolver[Int, Double, SimpleFiniteEquationSystem[Int, Double]]) =
+  def testExpectedResult(solver: SimpleSolver[Int, Double]) =
     it("gives the expected result starting from startRho with last") {
       val finalRho = solver(simpleEqs.withCombos(lastCombo), startRho)
       assert(finalRho(0) === 0.0)

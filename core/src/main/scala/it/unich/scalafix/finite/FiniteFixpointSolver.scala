@@ -167,7 +167,7 @@ object FiniteFixpointSolver:
    *   an optional ordering on unknowns to be used for localized combos.
    */
   private def comboApply[U, V, E, EQS <: FiniteEquationSystem[U, V, EQS]](
-      eqs: FiniteEquationSystem[U, V, EQS],
+      eqs: EQS,
       combos: ComboAssignment[U, V],
       scope: ComboScope.Value,
       ordering: Option[Ordering[U]]
@@ -177,7 +177,8 @@ object FiniteFixpointSolver:
       case ComboScope.Localized =>
         eqs match
           // todoss
-          case eqs: GraphEquationSystem[?, ?, ?, ?] => eqs.withLocalizedCombos(combos, ordering.get)
+          case eqs: GraphEquationSystem[U, V, E, EQS] @unchecked =>
+            eqs.withLocalizedCombos(combos, ordering.get)
           case _ => throw new DriverBadParameters("Localized combos needs a GraphEquationSystem")
 
   /**

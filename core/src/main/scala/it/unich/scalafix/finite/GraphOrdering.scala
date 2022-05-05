@@ -45,7 +45,7 @@ abstract class GraphOrdering[N] extends Ordering[N]:
    * elements in the correct order. Head elements are marked with parenthesis.
    */
   override def toString: String =
-    stringPrefix + (toSeq map { x => if isHead(x) then x.toString else "(" + x.toString + ")" })
+    stringPrefix + (toSeq map { x => if isHead(x) then s"($x)" else x })
       .mkString("( ", " ", " )")
 
 object GraphOrdering:

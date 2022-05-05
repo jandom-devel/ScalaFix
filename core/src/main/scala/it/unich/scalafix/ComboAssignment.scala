@@ -22,10 +22,10 @@ package it.unich.scalafix
  * is false for a given unknown `u`, the corresponding `apply(u)` should be a
  * right combo.
  *
- * As it was the case for Combo, a ComboAssignent is also a blueprint for buildind
- * equivalent ComboAssignments. Each ComboAssignmant has a copy method which should
- * produce a functionally equivalent copy of `this`. The copy method should try
- * to minimize object duplication.
+ * As it was the case for Combo, a ComboAssignent is also a blueprint for
+ * buildind equivalent ComboAssignments. Each ComboAssignmant has a copy method
+ * which should produce a functionally equivalent copy of `this`. The copy
+ * method should try to minimize object duplication.
  */
 abstract class ComboAssignment[-U, V] extends PartialFunction[U, Combo[V]]:
   /**
@@ -181,9 +181,17 @@ object ComboAssignment:
 
   /**
    * A warrowing assignment obtained by combining the given widenings and
-   * narrowings, as defined in the paper: Amato, Scozzari, Seidl, Apinis,
-   * Vodjani "Efficiently intertwining widenings and narrowings". Science of
-   * Computer Programming
+   * narrowings.
+   * 
+   * Warrowing is defined in the paper:
+   *
+   *   - Amato, G., Scozzari, F., Seidl, H., Apinis, K., Vojdani, V. Efficiently
+   *     intertwining widening and narrowing Science of Computer Programming,
+   *     120, pp. 1-24. 2016
+   *
+   * While the [[Combo.warrowing]] method builds a single warrowing from a
+   * widening and a narrowing, this method allows to simultaneous build
+   * different warrowings for different program points.
    *
    * @tparam U
    *   the type of program points of the assignment

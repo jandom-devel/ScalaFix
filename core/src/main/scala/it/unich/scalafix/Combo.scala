@@ -175,8 +175,9 @@ object Combo:
     else Cascade(first, delay, second)
 
   /**
-   * A warrowing obtained by combining the given widenings and narrowings, as
-   * defined in the paper:
+   * A warrowing obtained by combining the given widenings and narrowings.
+   * 
+   * Warrowing is defined in the paper:
    *   - Amato, G., Scozzari, F., Seidl, H., Apinis, K., Vojdani, V. Efficiently
    *     intertwining widening and narrowing Science of Computer Programming,
    *     120, pp. 1-24. 2016

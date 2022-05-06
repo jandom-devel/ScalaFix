@@ -17,7 +17,7 @@
 
 package it.unich.scalafix
 
-import it.unich.scalafix.finite.GraphOrdering
+import it.unich.scalafix.finite.UnknownOrdering
 
 /**
  * A ComboAssignment maps a subset of unknowns to a Combo. When `isDefinedAt(u)`
@@ -65,7 +65,7 @@ abstract class ComboAssignment[-U, V] extends PartialFunction[U, Combo[V]]:
    * intersection of the old domain and the set of head nodes according to the
    * provided graph ordering.
    */
-  def restrict[U1 <: U](ordering: GraphOrdering[U1]): ComboAssignment[U1, V] =
+  def restrict[U1 <: U](ordering: UnknownOrdering[U1]): ComboAssignment[U1, V] =
     restrict(ordering.isHead)
 
 /**

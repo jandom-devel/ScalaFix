@@ -21,26 +21,28 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 
 /**
- * This class represents a depth-first ordering of a graph, as it appears in the
- * Aho, Sehti, Ullman book on compilers. It extends the concept of graph
- * ordering distinguishing between Advancing, Retreating and Cross edges.
+ * This class represents a depth-first ordering of a set of unknowns, as it
+ * appears in the Aho, Sethi, Ullman book on compilers. It extends the concept
+ * of unknown ordering, since it allows to classify an hypothetical influence
+ * between unknowns in one of the three categories denoted as Advancing,
+ * Retreating and Cross influence.
  *
- * @tparam N
- *   the type of the nodes of the graph
+ * @tparam U
+ *   the type for the unknowns
  */
-abstract class DFOrdering[N] extends GraphOrdering[N]:
+abstract class DFOrdering[U] extends UnknownOrdering[U]:
 
-  import DFOrdering.EdgeType.*
+  import DFOrdering.InfluenceType
 
   /**
-   * It returns the type of an edge u -> v.
+   * It returns the type of an influence u -> v.
    *
    * @param u
    *   source node
    * @param v
    *   target node
    */
-  def edgeType(u: N, v: N): EdgeType
+  def influenceType(u: U, v: U): InfluenceType
 
 /**
  * The companion class for a DFOrdering defines the required enumerations and
@@ -49,59 +51,67 @@ abstract class DFOrdering[N] extends GraphOrdering[N]:
 object DFOrdering:
 
   /**
-   * Every edge may be of three different kinds: Advancing, Retreating and
+   * Influences may be of three different types: Advancing, Retreating and
    * Cross.
    */
-  object EdgeType extends Enumeration:
-    type EdgeType = Value
-    val Advancing = Value
-    val Retreating = Value
-    val Cross = Value
+  enum InfluenceType:
+    case Advancing, Retreating, Cross
 
   /** Returns the DFOrdering for a finite equation system. */
-  def apply[N](eqs: FiniteEquationSystem[N, ?, ?]): DFOrdering[N] =
-    new DFOrderingFromR[N](eqs.infl, eqs.unknowns, eqs.inputUnknowns)
+  def apply[U](eqs: FiniteEquationSystem[U, ?, ?]): DFOrdering[U] =
+    DFOrderingFromInfl[U](eqs.infl, eqs.unknowns, eqs.inputUnknowns)
 
   /**
-   * Returns a DFOrdering for the graph encoded by the adjacency relation `r`,
-   * set of nodes in `nodes` and set of initial nodes in `entries`.
+   * Returns the DFOrdering for the graph of unknowns encoded by the influence
+   * relation `infl`, the set of unknowns in `unknowns` and set of initial
+   * unknowns in `inputUnknowns`.
    */
-  def apply[N](r: InfluenceRelation[N], nodes: Iterable[N], entries: Iterable[N]): DFOrdering[N] =
-    new DFOrderingFromR[N](r, nodes, entries)
+  def apply[N](
+      infl: InfluenceRelation[N],
+      unknowns: Iterable[N],
+      inputUnknowns: Iterable[N]
+  ): DFOrdering[N] =
+    DFOrderingFromInfl[N](infl, unknowns, inputUnknowns)
 
   /**
-   * This class is a depth-first ordering for the influence relation `relation`.
+   * The DFOrdering for the graph of unknowns encoded by the influence relation
+   * `infl`, the set of unknowns in `unknowns` and set of initial unknowns in
+   * `inputUnknowns`.
    *
-   * @param r
-   *   the adjacency relation from which we compute the DFOrdering.
-   * @param nodes
-   *   the set of all initial nodes
+   * @param infl
+   *   the influence relation between unknowns
+   * @param the
+   *   set of all unknowns
    * @param entries
    *   nodes from which to start the visit.
    */
-  private final class DFOrderingFromR[N](r: InfluenceRelation[N], nodes: Iterable[N], entries: Iterable[N])
-      extends DFOrdering[N]:
+  private final class DFOrderingFromInfl[U](
+      infl: InfluenceRelation[U],
+      unknowns: Iterable[U],
+      inputUnknowns: Iterable[U]
+  ) extends DFOrdering[U]:
 
-    import DFOrdering.EdgeType.*
+    import DFOrdering.InfluenceType.*
 
-    val stringPrefix = "GraphOrdering"
-
-    private val dfn = mutable.HashMap.empty[N, Int]
     // Internal computation
-    private val dfst = mutable.Set.empty[(N, N)]
+    private val dfn = mutable.HashMap.empty[U, Int]
+
     // Depth-First spanning tree
-    private val heads = mutable.Set.empty[N] // Set of heads
+    private val dfst = mutable.Set.empty[(U, U)]
+
+    // Set of heads
+    private val heads = mutable.Set.empty[U]
     initDFO()
 
     def initDFO() =
-      val visited = mutable.LinkedHashSet.empty[N]
+      val visited = mutable.LinkedHashSet.empty[U]
       var c = 0
-      for x <- entries do if !(visited contains x) then dfsVisit(x)
-      for x <- nodes do if !(visited contains x) then dfsVisit(x)
+      for x <- inputUnknowns do if !(visited contains x) then dfsVisit(x)
+      for x <- unknowns do if !(visited contains x) then dfsVisit(x)
 
-      def dfsVisit(u: N): Unit =
+      def dfsVisit(u: U): Unit =
         visited += u
-        for v <- r(u) do
+        for v <- infl(u) do
           if !(visited contains v) then
             dfst += (u -> v)
             dfsVisit(v)
@@ -109,20 +119,20 @@ object DFOrdering:
         dfn += u -> c
         c -= 1
 
-    lazy val toSeq: Seq[N] = nodes.toSeq.sorted(this)
+    lazy val toSeq: Seq[U] = unknowns.toSeq.sorted(this)
 
-    def compare(x: N, y: N): Int = scala.math.signum(dfn(x) - dfn(y))
+    def compare(x: U, y: U): Int = scala.math.signum(dfn(x) - dfn(y))
 
     /** Returns whether y is a child of x in the depth-first spanning tree. */
-    @tailrec private def connected(x: N, y: N): Boolean =
+    @tailrec private def connected(x: U, y: U): Boolean =
       val z = dfst.find(_._2 == y)
       if z.isEmpty then false
       else if z.get._1 == x then true
       else connected(x, z.get._1)
 
-    def edgeType(x: N, y: N): EdgeType =
+    def influenceType(x: U, y: U): InfluenceType =
       if y <= x then Retreating
       else if connected(x, y) then Advancing
       else Cross
 
-    def isHead(u: N): Boolean = heads contains u
+    def isHead(u: U): Boolean = heads contains u

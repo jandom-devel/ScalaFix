@@ -37,7 +37,8 @@ trait InfluenceRelation[U] extends (U => Set[U]):
   def withDiagonal: InfluenceRelation[U] = InfluenceRelation.InfluenceWithDiagonal(this)
 
 /**
- * The `Relation` object contains factory methods and concrete implementations.
+ * Collection of private classes and factory methods for influence relations
+ * among unknowns.
  */
 object InfluenceRelation:
 
@@ -51,22 +52,20 @@ object InfluenceRelation:
       extends InfluenceRelation[U]:
     def apply(x: U) = hash.getOrElse(x, Set.empty[U])
 
-  /**
-   * Returns an influence relation given a function `A => Set[A]`.
-   */
+  /** Returns an influence relation given by a function `A => Set[A]`. */
   def apply[U](f: U => Set[U]): InfluenceRelation[U] = f.apply
 
   /**
-   * Returns an influence relation given a map `hash`. For elements which are
-   * not in the keyset of `hash`, it returns the empty set.
+   * Returns an influence relation given by a map `hash`. For elements which are
+   * not in the keyset of `hash`, the influence relation returns the empty set.
    */
   def apply[U](hash: collection.Map[U, Set[U]]): InfluenceRelation[U] =
     InfluenceRelationFromHash(hash)
 
   /**
    * Returns a relation given an iterable of pairs `u -> v`, each meaning that
-   * `u` is in relation with `v`. When iterating over the image of `u`, elements
-   * are guaranteed to be returned in the order in which they appear in graph.
+   * `u` influences `v`. When iterating over the image of `u`, elements are
+   * guaranteed to be returned in the order in which they appear in graph.
    */
   def apply[U](graph: Iterable[(U, U)]): InfluenceRelation[U] =
     val hash = mutable.HashMap.empty[U, Set[U]]
@@ -75,9 +74,8 @@ object InfluenceRelation:
 
   /**
    * Returns a relation from the specified pairs `u -> v`, each meaning that `u`
-   * is in relation with s to `v`. When iterating over the image of `u`,
-   * elements are guaranteed to be returned in the order in which they appear in
-   * graph.
+   * influences `v`. When iterating over the image of `u`, elements are guaranteed
+   * to be returned in the order in which they appear in graph.
    */
   def apply[U](graph: (U, U)*): InfluenceRelation[U] =
     apply(graph)

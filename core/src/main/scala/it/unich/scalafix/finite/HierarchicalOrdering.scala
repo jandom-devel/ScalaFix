@@ -20,18 +20,21 @@ package it.unich.scalafix.finite
 import scala.collection.mutable
 
 /**
- * Hierarchical ordering as defined in Bourdoncle's paper "Efficient chaotic
- * iteration strategies with widenings", FMPA'93.
+ * Hierarchical ordering of unknowns, as defined in Bourdoncle's paper
+ * "Efficient chaotic iteration strategies with widenings", FMPA'93.
+ *
+ * @tparam U
+ *   the type for the unknowns
  */
-abstract class HierarchicalOrdering[N] extends GraphOrdering[N]:
-
-  import HierarchicalOrdering.*
+trait HierarchicalOrdering[U] extends UnknownOrdering[U]:
 
   /**
-   * A sequence of elements and parenthesis representing the hierarchical
-   * ordering.
+   * Returns a sequence of elements and parenthesis representing the
+   * hierarchical ordering.
    */
-  def toSeqWithParenthesis: Seq[HOElement[N]]
+  def toSeqWithParenthesis: Seq[HierarchicalOrdering.HOElement[U]]
+
+  override protected def stringPrefix = "HierarchicalOrdering"
 
   /**
    * Converts a hierarchical ordering into a string on the basis of its
@@ -41,16 +44,16 @@ abstract class HierarchicalOrdering[N] extends GraphOrdering[N]:
 
 /**
  * The companion class for a hierarchical ordering contains the definition of
- * the `Element` class and some factory methods.
+ * the `HOElement` class and some factory methods.
  */
 object HierarchicalOrdering:
 
   /**
-   * An HOElement[N] is either `Left` (left parenthesis), `Right` (right
-   * parenthesis) or `Val(x)` where `x` is a value of type `N`. A sequence of
+   * An HOElement[U] is either `Left` (left parenthesis), `Right` (right
+   * parenthesis) or `Val(x)` where `x` is a value of type `U`. A sequence of
    * HOElements is the standard representation of a hierarchical ordering.
    */
-  sealed abstract class HOElement[+N]
+  sealed abstract class HOElement[+U]
 
   case object Left extends HOElement[Nothing]:
     override def toString = "("
@@ -58,19 +61,19 @@ object HierarchicalOrdering:
   case object Right extends HOElement[Nothing]:
     override def toString = ")"
 
-  case class Val[N](u: N) extends HOElement[N]:
+  case class Val[U](u: U) extends HOElement[U]:
     override def toString: String = u.toString
 
   /**
-   * Check if `seq` is a correct parenthesized sequence of elements.
+   * Check if `els` is a correct parenthesized sequence of elements.
    *
-   * @param seq
+   * @param els
    *   a sequence of HOElements.
    */
-  private def validateSeqWithParenthesis[N](seq: IterableOnce[HOElement[N]]): Boolean =
+  private def validateSeqWithParenthesis[U](els: IterableOnce[HOElement[U]]): Boolean =
     var opened = 0
     var lastopened = false
-    val it = seq.iterator
+    val it = els.iterator
     while it.hasNext do
       val s = it.next()
       if lastopened && !s.isInstanceOf[Val[?]] then return false
@@ -85,60 +88,60 @@ object HierarchicalOrdering:
     opened == 0
 
   /** Builds a hierarchical ordering from a sequence of HOElements. */
-  def apply[N](els: HOElement[N]*): HierarchicalOrdering[N] = new SequenceBasedHierarchicalOrdering(
-    els.toIndexedSeq
-  )
+  def apply[U](els: HOElement[U]*): HierarchicalOrdering[U] =
+    SequenceBasedHierarchicalOrdering(els.toIndexedSeq)
 
   /**
-   * Builds a hierarchical ordering from a graph ordering. Components are opened
-   * for each head, and they are all closed at the end. If `o` is the DFO for a
-   * graph, the result is a weak-topological ordering for the same graph.
+   * Builds a hierarchical ordering from an unknown ordering. Components are
+   * opened for each head, and they are all closed after the last unknown. If
+   * `o` is the DFO for a graph, the result is a weak-topological ordering for
+   * the same graph.
    */
-  def apply[N](o: GraphOrdering[N]): HierarchicalOrdering[N] = new GraphOrderingBasedHO(o)
+  def apply[U](o: UnknownOrdering[U]): HierarchicalOrdering[U] =
+    UnknownOrderingBasedHO(o)
 
   /** A hierarchical ordering defined by a sequence of HOElements. */
-  private final class SequenceBasedHierarchicalOrdering[N](seq: IndexedSeq[HOElement[N]])
-      extends HierarchicalOrdering[N]:
-    require(validateSeqWithParenthesis(seq), "Invalid sequence of elements and parenthesis")
-
-    val stringPrefix = "HierarchicalOrdering"
+  private final class SequenceBasedHierarchicalOrdering[U](els: IndexedSeq[HOElement[U]])
+      extends HierarchicalOrdering[U]:
+    require(validateSeqWithParenthesis(els), "Invalid sequence of elements and parenthesis")
 
     // TODO: check if this may be done faster
-    private lazy val orderingIndex: Map[N, Int] =
-      val seqIndex: Seq[(N, Int)] = for
-        (x, i) <- seq.zipWithIndex
+    private lazy val orderingIndex: Map[U, Int] =
+      val seqIndex: Seq[(U, Int)] = for
+        (x, i) <- els.zipWithIndex
         if x.isInstanceOf[Val[?]]
-        Val(u) = x.asInstanceOf[Val[N]]
+        Val(u) = x.asInstanceOf[Val[U]]
       yield u -> i
       seqIndex.toMap
 
-    def toSeq: Seq[N] = for
-      x <- seq
+    override def toSeq: Seq[U] = for
+      x <- els
       if x.isInstanceOf[Val[?]]
-      Val(u) = x.asInstanceOf[Val[N]]
+      Val(u) = x.asInstanceOf[Val[U]]
     yield u
 
-    def toSeqWithParenthesis: Seq[HOElement[N]] = seq
+    override def toSeqWithParenthesis: Seq[HOElement[U]] = els
 
-    def isHead(x: N): Boolean = seq.indices exists { i => seq(i) == Left && seq(i + 1) == Val(x) }
+    override def isHead(x: U): Boolean = els.indices exists { i => els(i) == Left && els(i + 1) == Val(x) }
 
-    def compare(x: N, y: N): Int = orderingIndex(x) - orderingIndex(y)
+    override def compare(x: U, y: U): Int = orderingIndex(x) - orderingIndex(y)
 
   /**
-   * A hierarchical ordering specified by a GraphOrdering. Components are opened
-   * for each head, and they are all closed at the end. If the `o` is the DFO
-   * for a graph, the result is a weak-topological ordering for the same graph.
+   * A hierarchical ordering specified by an unknown ordering. Components are
+   * opened for each head, and they are all closed at the end. If the `o` is the
+   * DFO for a graph, the result is a weak-topological ordering for the same
+   * graph.
    */
-  private final class GraphOrderingBasedHO[N](o: GraphOrdering[N]) extends HierarchicalOrdering[N]:
-    val stringPrefix = "HierarchicalOrdering"
+  private final class UnknownOrderingBasedHO[N](o: UnknownOrdering[N])
+      extends HierarchicalOrdering[N]:
 
-    def toSeq: Seq[N] = o.toSeq
+    override def toSeq: Seq[N] = o.toSeq
 
-    def isHead(x: N): Boolean = o.isHead(x)
+    override def isHead(x: N): Boolean = o.isHead(x)
 
-    def compare(x: N, y: N): Int = o.compare(x, y)
+    override def compare(x: N, y: N): Int = o.compare(x, y)
 
-    lazy val toSeqWithParenthesis: Seq[HOElement[N]] =
+    override lazy val toSeqWithParenthesis: Seq[HOElement[N]] =
       val buffer = mutable.Buffer.empty[HOElement[N]]
       var open = 0
       for x <- o.toSeq do

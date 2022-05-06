@@ -27,7 +27,7 @@ class GraphOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     it("returns the original sequence") {
       forAll { (s: Set[Int]) =>
         val seq = s.toSeq
-        val o = GraphOrdering(seq*)
+        val o = UnknownOrdering(seq*)
         assertResult(seq)(o.toSeq)
       }
     }
@@ -35,7 +35,7 @@ class GraphOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks:
       forAll { (s: Set[Int]) =>
         whenever(s.nonEmpty) {
           val seq = s.toSeq
-          val o = GraphOrdering(seq*)
+          val o = UnknownOrdering(seq*)
           val g = Gen.choose(0, s.size - 1)
           forAll(g, g) { (x: Int, y: Int) =>
             assertResult(scala.math.signum(x compare y))(
@@ -48,7 +48,7 @@ class GraphOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     it("has only head elements") {
       forAll { (s: Set[Int]) =>
         val seq = s.toSeq
-        val o = GraphOrdering(seq*)
+        val o = UnknownOrdering(seq*)
         for x <- s do assertResult(true)(o.isHead(x))
       }
     }

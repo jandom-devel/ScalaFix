@@ -22,7 +22,7 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 class DFOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks {
 
-  import DFOrdering.EdgeType.*
+  import DFOrdering.InfluenceType.*
 
   // This example comes from "Aho, Sethi, Ullman - Compilers: Principles, Techniques and Tool - Addison Wesley"
   private val graph = InfluenceRelation(
@@ -82,11 +82,11 @@ class DFOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks {
     it("has the correct heads") {
       for x <- sequence do assertResult(heads contains x)(o.isHead(x))
     }
-    it("has the correct edge types") {
-      for (u, v) <- advancing do assertResult(Advancing, s"($u,$v)")(o.edgeType(u, v))
+    it("has the correct influence types") {
+      for (u, v) <- advancing do assertResult(Advancing, s"($u,$v)")(o.influenceType(u, v))
     }
-    for (u, v) <- retreating do assertResult(Retreating)(o.edgeType(u, v))
-    for (u, v) <- cross do assertResult(Cross)(o.edgeType(u, v))
+    for (u, v) <- retreating do assertResult(Retreating)(o.influenceType(u, v))
+    for (u, v) <- cross do assertResult(Cross)(o.influenceType(u, v))
 
     it("implements the correct ordering") {
       for x <- sequence; y <- sequence do

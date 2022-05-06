@@ -76,7 +76,7 @@ object FiniteFixpointSolver:
 
     val startAssn = params.start
 
-    val ordering1: Option[GraphOrdering[U]] = (solver, comboscope) match
+    val ordering1: Option[UnknownOrdering[U]] = (solver, comboscope) match
       case (Solver.HierarchicalOrderingSolver, _) =>
         Some(HierarchicalOrdering(DFOrdering(eqs)))
       case (Solver.PriorityWorkListSolver, _) | (_, ComboScope.Localized) =>
@@ -84,7 +84,7 @@ object FiniteFixpointSolver:
       case _ =>
         None
 
-    val ordering: Option[GraphOrdering[U]] = (combolocation: @unchecked) match
+    val ordering: Option[UnknownOrdering[U]] = (combolocation: @unchecked) match
       case ComboLocation.None | ComboLocation.All =>
         None
       case ComboLocation.Loop =>
@@ -145,7 +145,7 @@ object FiniteFixpointSolver:
   private def comboFilter[U, V](
       comboAssn: ComboAssignment[U, V],
       location: ComboLocation.Value,
-      ordering: Option[GraphOrdering[U]]
+      ordering: Option[UnknownOrdering[U]]
   ): ComboAssignment[U, V] =
     (location: @unchecked) match
       case ComboLocation.None => ComboAssignment.empty

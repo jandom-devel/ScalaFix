@@ -20,8 +20,6 @@ package it.unich.scalafix.finite
 import scala.annotation.tailrec
 import scala.collection.mutable
 
-import it.unich.scalafix.utils.Relation
-
 /**
  * This class represents a depth-first ordering of a graph, as it appears in the
  * Aho, Sehti, Ullman book on compilers. It extends the concept of graph
@@ -68,7 +66,7 @@ object DFOrdering:
    * Returns a DFOrdering for the graph encoded by the adjacency relation `r`,
    * set of nodes in `nodes` and set of initial nodes in `entries`.
    */
-  def apply[N](r: Relation[N], nodes: Iterable[N], entries: Iterable[N]): DFOrdering[N] =
+  def apply[N](r: InfluenceRelation[N], nodes: Iterable[N], entries: Iterable[N]): DFOrdering[N] =
     new DFOrderingFromR[N](r, nodes, entries)
 
   /**
@@ -81,7 +79,7 @@ object DFOrdering:
    * @param entries
    *   nodes from which to start the visit.
    */
-  private final class DFOrderingFromR[N](r: Relation[N], nodes: Iterable[N], entries: Iterable[N])
+  private final class DFOrderingFromR[N](r: InfluenceRelation[N], nodes: Iterable[N], entries: Iterable[N])
       extends DFOrdering[N]:
 
     import DFOrdering.EdgeType.*

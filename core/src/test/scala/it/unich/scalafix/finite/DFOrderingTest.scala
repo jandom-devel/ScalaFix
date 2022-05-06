@@ -17,7 +17,6 @@
 
 package it.unich.scalafix.finite
 
-import it.unich.scalafix.utils.Relation
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
@@ -26,26 +25,24 @@ class DFOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks {
   import DFOrdering.EdgeType.*
 
   // This example comes from "Aho, Sethi, Ullman - Compilers: Principles, Techniques and Tool - Addison Wesley"
-  private val graph = Relation(
-    Seq(
-      1 -> 3,
-      1 -> 2,
-      2 -> 3,
-      3 -> 4,
-      4 -> 6,
-      4 -> 5,
-      4 -> 8,
-      5 -> 7,
-      6 -> 7,
-      7 -> 4,
-      7 -> 8,
-      8 -> 4,
-      8 -> 3,
-      8 -> 10,
-      8 -> 9,
-      9 -> 1,
-      10 -> 7
-    )
+  private val graph = InfluenceRelation(
+    1 -> 3,
+    1 -> 2,
+    2 -> 3,
+    3 -> 4,
+    4 -> 6,
+    4 -> 5,
+    4 -> 8,
+    5 -> 7,
+    6 -> 7,
+    7 -> 4,
+    7 -> 8,
+    8 -> 4,
+    8 -> 3,
+    8 -> 10,
+    8 -> 9,
+    9 -> 1,
+    10 -> 7
   )
   private val heads = Set(1, 3, 4, 7)
   private val sequence = 1 to 10
@@ -54,8 +51,7 @@ class DFOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks {
   private val retreating = Set(10 -> 7, 9 -> 1, 8 -> 3, 7 -> 4, 4 -> 3)
   private val cross = Set(2 -> 3, 5 -> 7)
 
-  private val graph2 = Relation(
-    Seq(
+  private val graph2 = InfluenceRelation(
       1 -> 2,
       1 -> 3,
       2 -> 3,
@@ -73,7 +69,6 @@ class DFOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks {
       8 -> 10,
       9 -> 1,
       10 -> 7
-    )
   )
   private val sequence2 = (1 to 8).toList :+ 10 :+ 9
 

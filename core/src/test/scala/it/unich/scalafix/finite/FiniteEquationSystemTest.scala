@@ -19,7 +19,6 @@ package it.unich.scalafix.finite
 
 import it.unich.scalafix.*
 import it.unich.scalafix.assignments.*
-import it.unich.scalafix.utils.Relation
 
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.funspec.AnyFunSpec
@@ -39,7 +38,7 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
         case 3 => rho(3)
       }
     },
-    initialInfl = Relation(Map(0 -> Set(0, 1, 2), 1 -> Set(2), 2 -> Set(1), 3 -> Set(1, 3))),
+    initialInfl = InfluenceRelation(Map(0 -> Set(0, 1, 2), 1 -> Set(2), 2 -> Set(1), 3 -> Set(1, 3))),
     unknowns = 0 to 3,
     inputUnknowns = Set(0)
   )

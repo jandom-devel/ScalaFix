@@ -20,7 +20,6 @@ package it.unich.scalafix.finite
 import it.unich.scalafix.*
 import it.unich.scalafix.assignments.MapBasedMutableAssignment
 import it.unich.scalafix.lattice.Magma
-import it.unich.scalafix.utils.Relation
 
 /**
  * An equation system with a finite set of unknowns AND static dependencies
@@ -49,7 +48,7 @@ trait FiniteEquationSystem[U, V, EQS <: FiniteEquationSystem[U, V, EQS]]
    * influences. If `infl(x)` does not contain `y`, it means that `apply(rho)(y)
    * \== apply(rho')(y)`, when `rho' = rho[x / eqs(rho)(x)]`.
    */
-  def infl: Relation[U]
+  def infl: InfluenceRelation[U]
 
 /**
  * The base abstract implementation for finite equation systems.
@@ -71,7 +70,7 @@ abstract class BaseFiniteEquationSystem[U, V, EQS <: BaseFiniteEquationSystem[U,
    * presence of combos, the initial relaton is manipulated in order to obtain
    * the real influence relation of the equation system.
    */
-  protected def initialInfl: Relation[U]
+  protected def initialInfl: InfluenceRelation[U]
 
   /** @inheritdoc */
   override def infl =
@@ -97,7 +96,7 @@ abstract class BaseFiniteEquationSystem[U, V, EQS <: BaseFiniteEquationSystem[U,
  */
 class SimpleFiniteEquationSystem[U, V](
     protected val initialBody: Body[U, V],
-    protected val initialInfl: Relation[U],
+    protected val initialInfl: InfluenceRelation[U],
     val unknowns: Iterable[U],
     val inputUnknowns: Set[U]
 ) extends BaseFiniteEquationSystem[U, V, SimpleFiniteEquationSystem[U, V]]
@@ -112,7 +111,7 @@ object FiniteEquationSystem:
    */
   def apply[U, V](
       initialBody: Body[U, V],
-      initialInfl: Relation[U],
+      initialInfl: InfluenceRelation[U],
       unknowns: Iterable[U],
       inputUnknowns: Set[U]
   ): SimpleFiniteEquationSystem[U, V] =

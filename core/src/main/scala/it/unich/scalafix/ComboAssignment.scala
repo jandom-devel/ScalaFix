@@ -17,6 +17,8 @@
 
 package it.unich.scalafix
 
+import it.unich.scalafix.finite.GraphOrdering
+
 /**
  * A ComboAssignment maps a subset of unknowns to a Combo. When `isDefinedAt(u)`
  * is false for a given unknown `u`, the corresponding `apply(u)` should be a
@@ -52,11 +54,19 @@ abstract class ComboAssignment[-U, V] extends PartialFunction[U, Combo[V]]:
   /**
    * Restrict the domain of this combo assignment. The new domain is the
    * intersection of the old domain and the set whose characteristic function is
-   * `domain`
+   * `domain`.
    */
   def restrict[U1 <: U](domain: U1 => Boolean): ComboAssignment[U1, V] =
     if isEmpty then this
     else ComboAssignment.RestrictAssignment(this, domain)
+
+  /**
+   * Restrict the domain of this combo assignment. The new domain is the
+   * intersection of the old domain and the set of head nodes according to the
+   * provided graph ordering.
+   */
+  def restrict[U1 <: U](ordering: GraphOrdering[U1]): ComboAssignment[U1, V] =
+    restrict(ordering.isHead)
 
 /**
  * The `ComboAssignment` object defines factories for building combo
@@ -182,7 +192,7 @@ object ComboAssignment:
   /**
    * A warrowing assignment obtained by combining the given widenings and
    * narrowings.
-   * 
+   *
    * Warrowing is defined in the paper:
    *
    *   - Amato, G., Scozzari, F., Seidl, H., Apinis, K., Vojdani, V. Efficiently

@@ -122,8 +122,9 @@ object DFOrdering:
       else if z.get._1 == x then true
       else connected(x, z.get._1)
 
-    def edgeType(x: N, y: N): EdgeType = if y <= x then Retreating
-    else if connected(x, y) then Advancing
-    else Cross
+    def edgeType(x: N, y: N): EdgeType =
+      if y <= x then Retreating
+      else if connected(x, y) then Advancing
+      else Cross
 
     def isHead(u: N): Boolean = heads contains u

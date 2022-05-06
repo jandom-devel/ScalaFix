@@ -7,7 +7,8 @@ ThisBuild / scalacOptions ++= Seq(
   "-feature",
   "-unchecked",
   "-Xfatal-warnings",
-  "-source", "future",
+  "-source",
+  "future",
   "-language:adhocExtensions",
   "-new-syntax"
 )
@@ -23,11 +24,11 @@ lazy val scalafix = project
 lazy val core = project
   .settings(publishSettings)
   .settings(
-     libraryDependencies ++= Seq(
-       "org.scalatest" %% "scalatest-funspec" % "3.2.11" % Test,
-       "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
-       "org.scalacheck" %% "scalacheck" % "1.15.4" % Test,
-      )
+    libraryDependencies ++= Seq(
+      "org.scalatest" %% "scalatest-funspec" % "3.2.11" % Test,
+      "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
+      "org.scalacheck" %% "scalacheck" % "1.15.4" % Test
+    )
   )
 
 lazy val bench = project
@@ -49,7 +50,8 @@ val publishSettings = Seq(
   developers := List(
     Developer(
       "amato",
-      "Gianluca Amato", "gianluca.amato.74@gmail.com",
+      "Gianluca Amato",
+      "gianluca.amato.74@gmail.com",
       url("http://www.sci.unich.it/~amato/")
     )
   ),

@@ -39,7 +39,7 @@ trait GraphEquationSystem[U, V, E, EQS <: GraphEquationSystem[U, V, E, EQS]]
     extends FiniteEquationSystem[U, V, EQS]:
 
   /** Returns the graph of this equation system. */
-  def graph: Graph[U, V, E]
+  def graph: GraphBody[U, V, E]
 
   /**
    * Returns the equation system modified with the specified localized combo
@@ -51,7 +51,7 @@ trait GraphEquationSystem[U, V, E, EQS <: GraphEquationSystem[U, V, E, EQS]]
    *   an ordering on unknowns used to decide the edges where combos need to be
    *   applied.
    * @see
-   *   [[Graph.addLocalizedCombos]]
+   *   [[GraphBody.addLocalizedCombos]]
    */
   def withLocalizedCombos(
       combos: ComboAssignment[U, V],
@@ -69,7 +69,7 @@ trait GraphEquationSystem[U, V, E, EQS <: GraphEquationSystem[U, V, E, EQS]]
    *   an ordering on unknowns used to decide the edges where combos need to be
    *   applied.
    * @see
-   *   [[Graph.addLocalizedWarrowing]]
+   *   [[GraphBody.addLocalizedWarrowing]]
    */
   def withLocalizedWarrowing(
       widenings: ComboAssignment[U, V],
@@ -105,7 +105,7 @@ abstract class BaseGraphEquationSystem[U, V: Domain, E, EQS <: BaseGraphEquation
    * localized combos, the initial graph is manipulated in order to obtain the
    * real graph.
    */
-  protected val initialGraph: Graph[U, V, E]
+  protected val initialGraph: GraphBody[U, V, E]
 
   /**
    * An optional assignment of localized combos to the unknowns.
@@ -156,7 +156,7 @@ abstract class BaseGraphEquationSystem[U, V: Domain, E, EQS <: BaseGraphEquation
    *   The graph is generated starting from the initial graph of the equation
    *   system, eventually adding localized combos as requested by the user.
    */
-  override def graph: Graph[U, V, E] =
+  override def graph: GraphBody[U, V, E] =
     if (optLocalizedCombos.isDefined && optLocalizedOrdering.isDefined)
     then initialGraph.addLocalizedCombos(optLocalizedCombos.get, optLocalizedOrdering.get)
     else initialGraph
@@ -240,7 +240,7 @@ abstract class BaseGraphEquationSystem[U, V: Domain, E, EQS <: BaseGraphEquation
  *   the unknowns which may be considered the input to this equation system.
  */
 class SimpleGraphEquationSystem[U, V: Domain, E](
-    protected val initialGraph: Graph[U, V, E],
+    protected val initialGraph: GraphBody[U, V, E],
     val unknowns: Iterable[U],
     val inputUnknowns: Set[U]
 ) extends BaseGraphEquationSystem[U, V, E, SimpleGraphEquationSystem[U, V, E]]
@@ -253,7 +253,7 @@ object GraphEquationSystem:
    *   [[SimpleGraphEquationSystem]] for the meaning of all the parameters.
    */
   def apply[U, V: Domain, E](
-      initialGraph: Graph[U, V, E],
+      initialGraph: GraphBody[U, V, E],
       unknowns: Iterable[U],
       inputUnknowns: Set[U]
   ): SimpleGraphEquationSystem[U, V, E] =

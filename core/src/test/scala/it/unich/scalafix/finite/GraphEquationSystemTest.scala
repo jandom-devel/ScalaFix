@@ -33,7 +33,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
 
   private val unknowns = Set(0, 1, 2, 3)
 
-  private val graph = Graph[Int, Int, Char](
+  private val graph = GraphBody[Int, Int, Char](
     edgeAction = { (rho: Int => Int) =>
       {
         case 'a' => rho(0)

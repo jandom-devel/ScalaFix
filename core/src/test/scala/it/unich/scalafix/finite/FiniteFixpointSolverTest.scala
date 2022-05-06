@@ -29,7 +29,7 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
 
   import FixpointSolver.*
 
-  private val graph = Graph[Int, Double, Char](
+  private val graph = GraphBody[Int, Double, Char](
     edgeAction = { (rho: Int => Double) =>
       {
         case 'a' => rho(0)

@@ -52,9 +52,9 @@ object Relation:
    * image of `a`, elements are guaranteed to be returned in the order in which
    * they appear in graph.
    */
-  def apply[A, B](graph: Iterable[(A, B)]): Relation[A, B] =
+  def apply[A, B](graph: IterableOnce[(A, B)]): Relation[A, B] =
     val hash = mutable.HashMap.empty[A, Set[B]]
-    for (u, v) <- graph do hash(u) = hash.getOrElse(u, Set.empty[B]) + v
+    for (u, v) <- graph.iterator do hash(u) = hash.getOrElse(u, Set.empty[B]) + v
     FromHash(hash)
 
   /**

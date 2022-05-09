@@ -17,6 +17,8 @@
 
 package it.unich.scalafix.finite
 
+import it.unich.scalafix.utils.Relation
+
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
@@ -25,7 +27,7 @@ class DFOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks {
   import DFOrdering.InfluenceType.*
 
   // This example comes from "Aho, Sethi, Ullman - Compilers: Principles, Techniques and Tool - Addison Wesley"
-  private val graph = InfluenceRelation(
+  private val graph = Relation(
     1 -> 3,
     1 -> 2,
     2 -> 3,
@@ -51,7 +53,7 @@ class DFOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks {
   private val retreating = Set(10 -> 7, 9 -> 1, 8 -> 3, 7 -> 4, 4 -> 3)
   private val cross = Set(2 -> 3, 5 -> 7)
 
-  private val graph2 = InfluenceRelation(
+  private val graph2 = Relation(
       1 -> 2,
       1 -> 3,
       2 -> 3,

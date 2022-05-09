@@ -17,6 +17,8 @@
 
 package it.unich.scalafix.finite
 
+import it.unich.scalafix.utils.Relation
+
 import scala.annotation.tailrec
 import scala.collection.mutable
 
@@ -67,7 +69,7 @@ object DFOrdering:
    * unknowns in `inputUnknowns`.
    */
   def apply[N](
-      infl: InfluenceRelation[N],
+      infl: Relation[N, N],
       unknowns: Iterable[N],
       inputUnknowns: Iterable[N]
   ): DFOrdering[N] =
@@ -86,7 +88,7 @@ object DFOrdering:
    *   nodes from which to start the visit.
    */
   private final class DFOrderingFromInfl[U](
-      infl: InfluenceRelation[U],
+      infl: Relation[U, U],
       unknowns: Iterable[U],
       inputUnknowns: Iterable[U]
   ) extends DFOrdering[U]:

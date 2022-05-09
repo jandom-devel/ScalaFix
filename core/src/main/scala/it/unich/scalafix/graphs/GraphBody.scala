@@ -19,6 +19,7 @@ package it.unich.scalafix.graphs
 
 import it.unich.scalafix.*
 import it.unich.scalafix.lattice.Domain
+import it.unich.scalafix.utils.Relation
 
 /**
  * The effect of an edge `e` of a graph over an assignment `rho`.
@@ -53,16 +54,16 @@ type EdgeAction[U, V, E] = Assignment[U, V] => E => V
 trait GraphBody[U, V: Domain, E] extends Body[U, V]:
 
   /** Map each edge to its source nodes */
-  def sources: E => Iterable[U]
+  def sources: Relation[E, U]
 
   /** Map each edge to its target node. */
   def target: E => U
 
   /** Map each unknown to its outgoing edges. */
-  def outgoing: U => Iterable[E]
+  def outgoing: Relation[U, E]
 
   /** Map each unknown to its ingoing edges. */
-  def ingoing: U => Iterable[E]
+  def ingoing: Relation[U, E]
 
   /** Returns the edge action of the graph. */
   def edgeAction: EdgeAction[U, V, E]
@@ -118,10 +119,10 @@ trait GraphBody[U, V: Domain, E] extends Body[U, V]:
  *   the action of and edge over an assignment.
  */
 case class SimpleGraphBody[U, V, E](
-    sources: E => Iterable[U],
+    sources: Relation[E, U],
     target: E => U,
-    outgoing: U => Iterable[E],
-    ingoing: U => Iterable[E],
+    outgoing: Relation[U, E],
+    ingoing: Relation[U, E],
     edgeAction: EdgeAction[U, V, E]
 )(using dom: Domain[V])
     extends GraphBody[U, V, E]:
@@ -160,7 +161,7 @@ case class SimpleGraphBody[U, V, E](
             }
             outgoing(u) ++ edges
           else outgoing(u)
-      copy(edgeAction = newEdgeAction, sources = newSources, outgoing = newOutgoing)
+      copy(edgeAction = newEdgeAction, sources = Relation(newSources), outgoing = Relation(newOutgoing))
 
   /**
    * Returns a new graph obtained by adding warrowings to this graph in a
@@ -201,10 +202,10 @@ case class SimpleGraphBody[U, V, E](
 /** Collection of factory methods for graph-based bodies. */
 object GraphBody:
   def apply[U, V: Domain, E](
-      sources: E => Iterable[U],
+      sources: Relation[E, U],
       target: E => U,
-      outgoing: U => Iterable[E],
-      ingoing: U => Iterable[E],
+      outgoing: Relation[U, E],
+      ingoing: Relation[U, E],
       edgeAction: EdgeAction[U, V, E]
   ): GraphBody[U, V, E] =
     SimpleGraphBody(sources, target, outgoing, ingoing, edgeAction)

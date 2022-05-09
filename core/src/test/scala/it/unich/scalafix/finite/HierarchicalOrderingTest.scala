@@ -18,6 +18,7 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.finite.HierarchicalOrdering.*
+import it.unich.scalafix.utils.Relation
 
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.prop.TableDrivenPropertyChecks
@@ -55,7 +56,7 @@ class HierarchicalOrderingTest extends AnyFunSpec with TableDrivenPropertyChecks
     9 -> 1,
     10 -> 7
   )
-  private val r = InfluenceRelation(graph)
+  private val r = Relation(graph)
   private val dfo = DFOrdering(r, 1 to 10, List(1))
   private val o3 = HierarchicalOrdering(dfo)
   private val seq3 = dfo.toSeq

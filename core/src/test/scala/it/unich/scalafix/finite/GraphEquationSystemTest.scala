@@ -46,7 +46,8 @@ class GraphEquationSystemTest extends AnyFunSpec:
     sources = Relation('a' -> 0, 'b' -> 1, 'c' -> 2, 'd' -> 3),
     target = Map('a' -> 1, 'b' -> 2, 'c' -> 3, 'd' -> 1),
     outgoing = Relation(0 -> 'a', 1 -> 'b', 2 -> 'c', 3 -> 'd'),
-    ingoing = Relation(1 -> 'a', 1 -> 'd', 2-> 'b', 3 -> 'c')
+    ingoing = Relation(1 -> 'a', 1 -> 'd', 2-> 'b', 3 -> 'c'),
+    combiner = scala.math.max
   )
 
   private val simpleEqs = GraphEquationSystem[Int, Int, Char](

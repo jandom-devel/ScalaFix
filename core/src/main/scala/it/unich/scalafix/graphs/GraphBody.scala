@@ -18,7 +18,7 @@
 package it.unich.scalafix.graphs
 
 import it.unich.scalafix.*
-import it.unich.scalafix.lattice.Domain
+import it.unich.scalafix.lattice.*
 import it.unich.scalafix.utils.Relation
 
 /**
@@ -42,6 +42,10 @@ type EdgeAction[U, V, E] = Assignment[U, V] => E => V
  * It is required that if `edgeAction(rho)(e)` depends on `rho(x)`, then `x`
  * shoud be in the sources of edge `e`. There are obvious coherence conditions
  * among `sources`, `target`, `ingoing` and `outgoing`.
+ *
+ * An unknown `x` which has no incoming edges corresponds to an equation `x=x`,
+ * with no influence from `x` to itself. This is useful for having an unknown
+ * which keeps its value fixed to that specificied in the initial assignment.
  *
  * @tparam U
  *   the type for the unknowns, which are also the nodes of the graph.
@@ -69,18 +73,24 @@ trait GraphBody[U, V, E] extends Body[U, V]:
   def edgeAction: EdgeAction[U, V, E]
 
   /**
+   * Returns the operation used from combining the contributions of different
+   * edges.
+   */
+  def combiner: (V, V) => V
+
+  /**
    * Returns a new graph-based body obtained by adding combos to this graph in a
    * localized way.
    *
    * @param combos
    *   the assignment of combos to unknowns.
-   * @param ordering
+   * @param unknownOrdering
    *   an ordering on unknowns used to decide the edges where combos need to be
    *   applied.
    */
   def addLocalizedCombos(
       combos: ComboAssignment[U, V],
-      ordering: Ordering[U]
+      unknownOrdering: Ordering[U]
   ): GraphBody[U, V, E]
 
   /**
@@ -93,15 +103,18 @@ trait GraphBody[U, V, E] extends Body[U, V]:
    *   the assignment of widenings to unknowns.
    * @param narrowings
    *   the assignment of narrowings to unknowns.
-   * @param ordering
-   *   an ordering on unknowns used to decide the edges where combos need to be
+   * @param unknownOrdering
+   *   an ordering on unknowns, used to decide the edges where combos need to be
    *   applied.
+   * @param valuesParialOrdering
+   *   a partial ordering on values, used to decide whether widening or
+   *   narrowing should be applied.
    */
   def addLocalizedWarrowing(
       widenings: ComboAssignment[U, V],
       narrowings: ComboAssignment[U, V],
-      ordering: Ordering[U]
-  ): Body[U, V]
+      unknownOrdering: Ordering[U]
+  )(using valuesParialOrdering: PartialOrdering[V]): Body[U, V]
 
 /**
  * Standard implementation of a `GraphBody` where all the data about the graph
@@ -117,94 +130,128 @@ trait GraphBody[U, V, E] extends Body[U, V]:
  *   maps each unknown to the collection of edges arriving on it.
  * @param edgeAction
  *   the action of and edge over an assignment.
+ * @param combiner
+ *   rhe operation used from combining the contributions of different edges.
  */
 case class SimpleGraphBody[U, V, E](
     sources: Relation[E, U],
     target: E => U,
     outgoing: Relation[U, E],
     ingoing: Relation[U, E],
-    edgeAction: EdgeAction[U, V, E]
-)(using dom: Domain[V])
-    extends GraphBody[U, V, E]:
+    edgeAction: EdgeAction[U, V, E],
+    combiner: (V, V) => V
+) extends GraphBody[U, V, E]:
 
   override def apply(rho: Assignment[U, V]) = (x: U) =>
-    val contributions = for e <- ingoing(x) yield edgeAction(rho)(e)
-    // if contribution is empty the unknown x has no right hand side... it seems
-    // reasonable to return the old value.
-    if contributions.isEmpty then rho(x) else contributions reduce (_ upperBound _)
+    val in = ingoing(x)
+    if in.isEmpty
+    then rho(x)
+    else
+      val contributions = for e <- in yield edgeAction(rho)(e)
+      contributions reduce combiner
 
   override def addLocalizedCombos(
       combos: ComboAssignment[U, V],
-      ordering: Ordering[U]
+      unknownOrdering: Ordering[U]
   ): GraphBody[U, V, E] =
     val newEdgeAction =
       (rho: Assignment[U, V]) =>
         (e: E) =>
           val x = target(e)
-          if combos.isDefinedAt(x) && sources(e).exists(ordering.lteq(x, _)) then
-            combos(x)(rho(x), edgeAction(rho)(e))
+          if combos.isDefinedAt(x) && sources(e).exists(unknownOrdering.lteq(x, _))
+          then combos(x)(rho(x), edgeAction(rho)(e))
           else edgeAction(rho)(e)
     if combos.combosAreIdempotent
     then copy(edgeAction = newEdgeAction)
     else
       val newSources = (e: E) =>
         val x = target(e)
-        if combos.isDefinedAt(x) && sources(e).exists(ordering.lteq(x, _))
+        if combos.isDefinedAt(x) && sources(e).exists(unknownOrdering.lteq(x, _))
         then sources(e) + x
         else sources(e)
       val newOutgoing = (u: U) =>
         if combos.isDefinedAt(u)
         then
-          val edges = ingoing(u).filter {
-            (e: E) => sources(e).exists(ordering.lteq(u, _))
-          }
+          val edges = ingoing(u).filter(e => sources(e).exists(unknownOrdering.lteq(u, _)))
           outgoing(u) ++ edges
         else outgoing(u)
-      copy(edgeAction = newEdgeAction, sources = Relation(newSources), outgoing = Relation(newOutgoing))
+      copy(
+        edgeAction = newEdgeAction,
+        sources = Relation(newSources),
+        outgoing = Relation(newOutgoing)
+      )
 
-  /**
-   * Returns a new graph obtained by adding warrowings to this graph in a
-   * localized way. Localized warrowings require a different procedure than
-   * standard localized widenings or narrowings. Moreover, it is not entirely
-   * clear whether this works as intended or not.
-   *
-   * @param widenings
-   *   the assignment of widenings to unknowns.
-   * @param narrowings
-   *   the assignment of narrowings to unknowns.
-   * @param ordering
-   *   an ordering on unknowns used to decide the edges where combos need to be
-   *   applied.
-   */
   override def addLocalizedWarrowing(
       widenings: ComboAssignment[U, V],
       narrowings: ComboAssignment[U, V],
-      ordering: Ordering[U]
-  ): Body[U, V] =
+      unknownOrdering: Ordering[U]
+  )(using valuesParialOrdering: PartialOrdering[V]): Body[U, V] =
     (rho: Assignment[U, V]) =>
       (x: U) =>
-        val contributions = for e <- ingoing(x) yield
-          val contrib = edgeAction(rho)(e)
-          val comboapply = sources(e).exists(ordering.lteq(x, _)) && !dom.lteq(contrib, rho(x))
-          (contrib, comboapply)
-        // if contribution is empty the unknown x has no right hand side... it seems
-        // reasonable to return the old value.
-        if contributions.isEmpty then rho(x)
+        val in = ingoing(x)
+        if in.isEmpty then rho(x)
         else
-          val result = contributions reduce { (x: (V, Boolean), y: (V, Boolean)) =>
-            (x._1 upperBound y._1, x._2 || y._2)
-          }
+          val contributions = for e <- in yield
+            val contrib = edgeAction(rho)(e)
+            val comboapply = sources(e)
+              .exists(unknownOrdering.lteq(x, _)) && !valuesParialOrdering.lteq(contrib, rho(x))
+            (contrib, comboapply)
+          val result = contributions reduce ((x: (V, Boolean), y: (V, Boolean)) =>
+            (combiner(x._1, y._1), x._2 || y._2)
+          )
           if result._2 then widenings(x)(rho(x), result._1)
-          else if dom.lt(result._1, rho(x)) then narrowings(x)(rho(x), result._1)
+          else if valuesParialOrdering.lt(result._1, rho(x)) then narrowings(x)(rho(x), result._1)
           else result._1
 
 /** Collection of factory methods for graph-based bodies. */
 object GraphBody:
-  def apply[U, V: Domain, E](
+  /**
+   * Standard implementation of a `GraphBody` where all the data about the graph
+   * is provided explicitly.
+   *
+   * @see
+   *   [[SimpleGraphBody]] for the meaning of all the parameters.
+   */
+  def apply[U, V, E](
       sources: Relation[E, U],
       target: E => U,
       outgoing: Relation[U, E],
       ingoing: Relation[U, E],
-      edgeAction: EdgeAction[U, V, E]
+      edgeAction: EdgeAction[U, V, E],
+      combiner: (V, V) => V
   ): GraphBody[U, V, E] =
-    SimpleGraphBody(sources, target, outgoing, ingoing, edgeAction)
+    SimpleGraphBody(sources, target, outgoing, ingoing, edgeAction, combiner)
+
+/**
+ * Standard implementation of a `GraphBody` where all the data about the graph
+ * is provided explicitly. The `combiner` parameter is given by the operation of
+ * the magma `V`.
+ *
+ * @see
+ *   [[SimpleGraphBody]] for the meaning of all the parameters.
+ */
+def apply[U, V: Magma, E](
+    sources: Relation[E, U],
+    target: E => U,
+    outgoing: Relation[U, E],
+    ingoing: Relation[U, E],
+    edgeAction: EdgeAction[U, V, E]
+): GraphBody[U, V, E] =
+  SimpleGraphBody(sources, target, outgoing, ingoing, edgeAction, _ op _)
+
+/**
+ * Standard implementation of a `GraphBody` where all the data about the graph
+ * is provided explicitly. The `combiner` parameter is given by the upper bound
+ * of the domain `V`.
+ *
+ * @see
+ *   [[SimpleGraphBody]] for the meaning of all the parameters.
+ */
+def apply[U, V: Domain, E](
+    sources: Relation[E, U],
+    target: E => U,
+    outgoing: Relation[U, E],
+    ingoing: Relation[U, E],
+    edgeAction: EdgeAction[U, V, E]
+): GraphBody[U, V, E] =
+  SimpleGraphBody(sources, target, outgoing, ingoing, edgeAction, _ upperBound _)

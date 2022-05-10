@@ -20,8 +20,7 @@ package it.unich.scalafix.graphs
 import it.unich.scalafix.*
 import it.unich.scalafix.assignments.MapBasedMutableAssignment
 import it.unich.scalafix.finite.*
-import it.unich.scalafix.lattice.Domain
-import it.unich.scalafix.lattice.Magma
+import it.unich.scalafix.lattice.*
 import it.unich.scalafix.utils.Relation
 
 /**
@@ -77,7 +76,7 @@ trait GraphEquationSystem[U, V, E, EQS <: GraphEquationSystem[U, V, E, EQS]]
       widenings: ComboAssignment[U, V],
       narrowings: ComboAssignment[U, V],
       ordering: Ordering[U]
-  ): EQS
+  )(using valuesParialOrdering: PartialOrdering[V]): EQS
 
 /**
  * The base abstract implementation for graph-based equation systems.
@@ -93,7 +92,7 @@ trait GraphEquationSystem[U, V, E, EQS <: GraphEquationSystem[U, V, E, EQS]]
  *   the type of the equation system. Operations returning a new equation system
  *   generally return `EQS`.
  */
-abstract class BaseGraphEquationSystem[U, V: Domain, E, EQS <: BaseGraphEquationSystem[
+abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[
   U,
   V,
   E,
@@ -152,6 +151,17 @@ abstract class BaseGraphEquationSystem[U, V: Domain, E, EQS <: BaseGraphEquation
   protected var optLocalizedOrdering: Option[Ordering[U]] = None
 
   /**
+   * An optional assignment of an ordering to unknowns, to be used for localized
+   * combos and localized warrowings.
+   *
+   * @note
+   *   It is expected that `optLocalizedOrdering` is defined if an only if
+   *   either `optLocalizedCombos` or both `optLocalizedWidenings` and
+   *   `optLocalizedNarrowings` are defined.
+   */
+  protected var optLocalizedValuePartialOrdering: Option[PartialOrdering[V]] = None
+
+  /**
    * @inheritdoc
    *
    * @note
@@ -175,7 +185,7 @@ abstract class BaseGraphEquationSystem[U, V: Domain, E, EQS <: BaseGraphEquation
         optLocalizedWidenings.get,
         optLocalizedNarrowings.get,
         optLocalizedOrdering.get
-      )
+      )(using optLocalizedValuePartialOrdering.get)
     else graph
 
   /** Returns the body with dependencies of the equations system. */
@@ -198,7 +208,7 @@ abstract class BaseGraphEquationSystem[U, V: Domain, E, EQS <: BaseGraphEquation
    */
   override def initialInfl: Relation[U, U] =
     // whey are we using the graph here and not the initial graph ?
-    val base = Relation( (u: U) => graph.outgoing(u).view.map(graph.target).toSet )
+    val base = Relation((u: U) => graph.outgoing(u).view.map(graph.target).toSet)
     if optLocalizedWidenings.isEmpty || optLocalizedWidenings.isEmpty || optLocalizedOrdering.isEmpty ||
       (optLocalizedWidenings.get.combosAreIdempotent && optLocalizedNarrowings.get.combosAreIdempotent)
     then base
@@ -221,11 +231,12 @@ abstract class BaseGraphEquationSystem[U, V: Domain, E, EQS <: BaseGraphEquation
       widenings: ComboAssignment[U, V],
       narrowings: ComboAssignment[U, V],
       ordering: Ordering[U]
-  ): EQS =
+  )(using valuesParialOrdering: PartialOrdering[V]): EQS =
     val clone = this.clone()
     clone.optLocalizedWidenings = Some(widenings)
     clone.optLocalizedNarrowings = Some(narrowings)
     clone.optLocalizedOrdering = Some(ordering)
+    clone.optLocalizedValuePartialOrdering = Some(valuesParialOrdering)
     clone.optLocalizedCombos = None
     clone
 
@@ -241,7 +252,7 @@ abstract class BaseGraphEquationSystem[U, V: Domain, E, EQS <: BaseGraphEquation
  * @param inputUnknowns
  *   the unknowns which may be considered the input to this equation system.
  */
-class SimpleGraphEquationSystem[U, V: Domain, E](
+class SimpleGraphEquationSystem[U, V, E](
     protected val initialGraph: GraphBody[U, V, E],
     val unknowns: Iterable[U],
     val inputUnknowns: Set[U]
@@ -254,7 +265,7 @@ object GraphEquationSystem:
    * @see
    *   [[SimpleGraphEquationSystem]] for the meaning of all the parameters.
    */
-  def apply[U, V: Domain, E](
+  def apply[U, V, E](
       initialGraph: GraphBody[U, V, E],
       unknowns: Iterable[U],
       inputUnknowns: Set[U]

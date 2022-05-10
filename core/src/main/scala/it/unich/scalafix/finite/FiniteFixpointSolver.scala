@@ -1,5 +1,5 @@
 /**
- * Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
+ * Copyright 2015, 2016, 2022 Gianluca Amato <gianluca.amato@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -24,9 +24,10 @@ import it.unich.scalafix.assignments.*
 import it.unich.scalafix.lattice.Domain
 
 /**
- * This solver is a commodity interface for the other finite fixpoint solvers.
- * It takes some parameters as inputs and plans a sequence of actions in order
- * to obtain the desired solutions as the output.
+ * This solver is a commodity interface for the other fixpoint solvers for
+ * finite and graph-based equation systems. It takes some parameters as inputs
+ * and plans a sequence of actions in order to obtain the desired solutions as
+ * the output.
  */
 object FiniteFixpointSolver:
 
@@ -37,17 +38,17 @@ object FiniteFixpointSolver:
    * approach
    *
    * @param solver
-   *   the real solver to use
-   * @param wideningComboAssn
-   *   a combo used for widenings
-   * @param narrowingComboAssn
-   *   a combo used for narrowings
+   *   the solver to use
+   * @param widenins
+   *   an assignment of widenings to unknowns
+   * @param narrowings
+   *   an assignment of narrowings to unknowns
    */
   def CC77[U, V](
       solver: Solver,
       start: Assignment[U, V],
-      wideningComboAssn: ComboAssignment[U, V],
-      narrowingComboAssn: ComboAssignment[U, V]
+      widenings: ComboAssignment[U, V],
+      narrowings: ComboAssignment[U, V]
   ): Params[U, V] =
     Params[U, V](
       solver,
@@ -56,18 +57,18 @@ object FiniteFixpointSolver:
       ComboScope.Standard,
       ComboStrategy.TwoPhases,
       RestartStrategy.None,
-      wideningComboAssn,
-      narrowingComboAssn,
-      FixpointSolverTracer.empty[U, V]
+      widenings,
+      narrowings,
+      FixpointSolverTracer.empty
     )
 
   /**
-   * Solves the equation system using the parameters specified in p.
+   * Solves the equation system using the parameters specified in `params`.
    *
    * @param eqs
-   *   the equation system to solve
+   *   the equation system to solve.
    * @param params
-   *   the parameters for the solver
+   *   the parameters for the solver.
    */
   def apply[U, V: Domain, E, EQS <: GraphEquationSystem[U, V, E, EQS]](
       eqs: EQS,
@@ -75,9 +76,9 @@ object FiniteFixpointSolver:
   ): MutableAssignment[U, V] =
     import params.*
 
-    val startAssn = params.start
+    val startAssn = start
 
-    val ordering1: Option[UnknownOrdering[U]] = (solver, comboscope) match
+    val ordering1: Option[UnknownOrdering[U]] = (solver, comboScope) match
       case (Solver.HierarchicalOrderingSolver, _) =>
         Some(HierarchicalOrdering(DFOrdering(eqs)))
       case (Solver.PriorityWorkListSolver, _) | (_, ComboScope.Localized) =>
@@ -85,73 +86,71 @@ object FiniteFixpointSolver:
       case _ =>
         None
 
-    val ordering: Option[UnknownOrdering[U]] = (combolocation: @unchecked) match
+    val ordering: Option[UnknownOrdering[U]] = comboLocation match
       case ComboLocation.None | ComboLocation.All =>
         None
       case ComboLocation.Loop =>
         ordering1 orElse Some(DFOrdering(eqs))
 
     val restart: (V, V) => Boolean =
-      if restartstrategy == RestartStrategy.Restart then { (x, y) => summon[Domain[V]].lt(x, y) }
+      if restartStrategy == RestartStrategy.Restart
+      then { summon[Domain[V]].lt }
       else { (_, _) => false }
 
-    (combostrategy: @unchecked) match
+    comboStrategy match
       case ComboStrategy.OnlyWidening =>
-        val widening = comboFilter[U, V](wideningComboAssn, combolocation, ordering)
-        val withWidening = comboApply(eqs, widening, comboscope, ordering)
+        val widening = comboFilter[U, V](widenings, comboLocation, ordering)
+        val withWidening = comboApply(eqs, widening, comboScope, ordering)
         applySolver(solver, withWidening, startAssn, ordering, restart, tracer)
       case ComboStrategy.TwoPhases =>
-        val widening = comboFilter[U, V](wideningComboAssn, combolocation, ordering)
-        val withWidening = comboApply(eqs, widening, comboscope, ordering)
+        val widening = comboFilter[U, V](widenings, comboLocation, ordering)
+        val withWidening = comboApply(eqs, widening, comboScope, ordering)
         tracer.ascendingBegins(startAssn)
         val ascendingAssignment =
           applySolver(solver, withWidening, startAssn, ordering, restart, tracer)
-        val narrowing = comboFilter[U, V](narrowingComboAssn, combolocation, ordering)
+        val narrowing = comboFilter[U, V](narrowings, comboLocation, ordering)
         // localizing narrowings does not seem useful
         val withNarrowing = comboApply(eqs, narrowing, ComboScope.Standard, ordering)
         tracer.descendingBegins(ascendingAssignment)
         applySolver(solver, withNarrowing, ascendingAssignment, ordering, restart, tracer)
       case ComboStrategy.Warrowing =>
-        if comboscope == ComboScope.Localized then
-          val widening = comboFilter[U, V](wideningComboAssn, combolocation, ordering)
-          val narrowing = comboFilter[U, V](narrowingComboAssn, combolocation, ordering)
+        if comboScope == ComboScope.Localized then
+          val widening = comboFilter[U, V](widenings, comboLocation, ordering)
+          val narrowing = comboFilter[U, V](narrowings, comboLocation, ordering)
           val withUpdate =
-            if widening.isEmpty && narrowing.isEmpty then eqs
+            if widening.isEmpty && narrowing.isEmpty
+            then eqs
             else eqs.withLocalizedWarrowing(widening, narrowing, ordering.get)
           applySolver(solver, withUpdate, startAssn, ordering, restart, tracer)
         else
           val warrowingAssignment = comboFilter[U, V](
-            ComboAssignment.warrowing(wideningComboAssn, narrowingComboAssn),
-            combolocation,
+            ComboAssignment.warrowing(widenings, narrowings),
+            comboLocation,
             ordering
           )
-          val eqsWithWarrowing = comboApply(eqs, warrowingAssignment, comboscope, ordering)
+          val eqsWithWarrowing = comboApply(eqs, warrowingAssignment, comboScope, ordering)
           applySolver(solver, eqsWithWarrowing, startAssn, ordering, restart, tracer)
 
   /**
-   * Given an equation system and a combo assignment, filter the assignment
-   * according to what specified in the parameter location and the graph
-   * ordering.
+   * Filter a combo assignment according to what specified in the parameters
+   * comboLocation and the unknown ordering.
    *
-   * @param eqs
-   *   an equation system
-   * @param comboAssn
-   *   a combo assignment
-   * @param location
-   *   input parameter which drives the filtering by specifying where to put
-   *   combos
-   * @param ordering
-   *   a GraphOrdering used when we need to detect heads
+   * @param combos
+   *   a combo assignment.
+   * @param comboLocation
+   *   pecifying where to put combos.
+   * @param unknownOrdering
+   *   an optional ordering used when we need to detect loop heads.
    */
   private def comboFilter[U, V](
-      comboAssn: ComboAssignment[U, V],
-      location: ComboLocation,
-      ordering: Option[UnknownOrdering[U]]
+      combos: ComboAssignment[U, V],
+      comboLocation: ComboLocation,
+      unknownOrdering: Option[UnknownOrdering[U]]
   ): ComboAssignment[U, V] =
-    (location: @unchecked) match
+    comboLocation match
       case ComboLocation.None => ComboAssignment.empty
-      case ComboLocation.All  => comboAssn
-      case ComboLocation.Loop => comboAssn.restrict(ordering.get.isHead)
+      case ComboLocation.All  => combos
+      case ComboLocation.Loop => combos.restrict(unknownOrdering.get.isHead)
 
   /**
    * Apply a given combo assignment to an equation system, generating a new
@@ -161,44 +160,44 @@ object FiniteFixpointSolver:
    *   the equation system
    * @param combos
    *   a combo assignment
-   * @param scope
+   * @param comboScope
    *   an input parameters which determines how we want to apply combos (such as
    *   localized or standard)
-   * @param ordering
+   * @param unknownOrdering
    *   an optional ordering on unknowns to be used for localized combos.
    */
   private def comboApply[U, V, E, EQS <: FiniteEquationSystem[U, V, EQS]](
       eqs: EQS,
       combos: ComboAssignment[U, V],
-      scope: ComboScope,
-      ordering: Option[Ordering[U]]
+      comboScope: ComboScope,
+      unknownOrdering: Option[Ordering[U]]
   ): EQS =
-    (scope: @unchecked) match
+    comboScope match
       case ComboScope.Standard => eqs.withCombos(combos)
       case ComboScope.Localized =>
         eqs match
           // todoss
-          case eqs: GraphEquationSystem[U, V, E, EQS] @unchecked =>
-            eqs.withLocalizedCombos(combos, ordering.get)
+          case eqs: GraphEquationSystem[?, ?, ?, ?] =>
+            eqs.withLocalizedCombos(combos, unknownOrdering.get)
           case _ => throw new DriverBadParameters("Localized combos needs a GraphEquationSystem")
 
   /**
    * Apply a fixpoint solver given standard parameters
    *
    * @param solver
-   *   the solver to apply
+   *   the solver to apply.
    * @param eqs
-   *   the equation system
+   *   the equation system.
    * @param start
-   *   the initial assignment
+   *   the initial assignment.
    * @param ordering
-   *   an optional ordering on unknowns
+   *   an optional ordering on unknowns.
    * @param restart
-   *   a restart strategy
+   *   a restart strategy.
    * @param tracer
-   *   a fixpoint solver tracer
+   *   a fixpoint solver tracer.
    * @return
-   *   an assignment with the solution of the equation system
+   *   an assignment with the solution of the equation system.
    */
   private def applySolver[U, V, EQS <: FiniteEquationSystem[U, V, EQS]](
       solver: Solver,
@@ -208,7 +207,7 @@ object FiniteFixpointSolver:
       restart: (V, V) => Boolean,
       tracer: FixpointSolverTracer[U, V]
   ): MutableAssignment[U, V] =
-    (solver: @unchecked) match
+    solver match
       case Solver.RoundRobinSolver => RoundRobinSolver(eqs)(start, tracer)
       case Solver.KleeneSolver     => KleeneSolver(eqs)(start, tracer)
       case Solver.WorkListSolver   => WorkListSolver(eqs)(start, tracer)
@@ -223,35 +222,35 @@ object FiniteFixpointSolver:
             )
 
   /**
-   * Parameters for this driver
+   * Parameters for this convenience solver.
    *
    * @param solver
-   *   the real solver to use
+   *   the real solver to use.
    * @param start
-   *   an optional initial assignment
-   * @param combolocation
-   *   where to put combos
-   * @param comboscope
-   *   how to apply combos (standard, localized, etc...)
-   * @param combostrategy
-   *   single phase, two phase, warrowing
-   * @param restartstrategy
-   *   restart strategy to apply in supported solvers
-   * @param wideningComboAssn
-   *   a combo used for widenings
+   *   an initial assignment.
+   * @param comboLocation
+   *   where to put widenings and narrowings.
+   * @param comboScope
+   *   how to apply widenings and narrowings (standard, localized, etc...).
+   * @param comboStrategy
+   *   strategies for applying widening and arrowings.
+   * @param restartStrategy
+   *   restart strategy to apply in supported solvers.
+   * @param widenings
+   *   an assignment of widenings to unknowns
    * @param narrowingComboAssn
-   *   a combo used for narrowings
+   *   an assignment of narrowings to unknowns
    * @param tracer
-   *   a fixpoint solver tracer
+   *   a fixpoint solver tracer.
    */
   case class Params[U, V](
       solver: Solver,
       start: Assignment[U, V],
-      combolocation: ComboLocation,
-      comboscope: ComboScope,
-      combostrategy: ComboStrategy,
-      restartstrategy: RestartStrategy,
-      wideningComboAssn: ComboAssignment[U, V],
-      narrowingComboAssn: ComboAssignment[U, V],
+      comboLocation: ComboLocation,
+      comboScope: ComboScope,
+      comboStrategy: ComboStrategy,
+      restartStrategy: RestartStrategy,
+      widenings: ComboAssignment[U, V],
+      narrowings: ComboAssignment[U, V],
       tracer: FixpointSolverTracer[U, V]
   )

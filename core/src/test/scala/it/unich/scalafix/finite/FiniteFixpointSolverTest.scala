@@ -123,7 +123,7 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     }
 
     it("may avoid the descending chain") {
-      val params = CC77params.copy(combostrategy = ComboStrategy.OnlyWidening)
+      val params = CC77params.copy(comboStrategy = ComboStrategy.OnlyWidening)
       assertSolution(onlyWideningSol)(FiniteFixpointSolver(simpleEqs, params))
     }
 

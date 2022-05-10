@@ -51,7 +51,7 @@ type EdgeAction[U, V, E] = Assignment[U, V] => E => V
  * @tparam E
  *   type of edges.
  */
-trait GraphBody[U, V: Domain, E] extends Body[U, V]:
+trait GraphBody[U, V, E] extends Body[U, V]:
 
   /** Map each edge to its source nodes */
   def sources: Relation[E, U]
@@ -147,20 +147,19 @@ case class SimpleGraphBody[U, V, E](
     if combos.combosAreIdempotent
     then copy(edgeAction = newEdgeAction)
     else
-      val newSources =
-        (e: E) =>
-          val x = target(e)
-          if combos.isDefinedAt(x) && sources(e).exists(ordering.lteq(x, _)) then
-            sources(e) ++ Iterable(x)
-          else sources(e)
-      val newOutgoing =
-        (u: U) =>
-          if combos.isDefinedAt(u) then
-            val edges = ingoing(u).filter { (e: E) =>
-              sources(e).exists(ordering.lteq(u, _))
-            }
-            outgoing(u) ++ edges
-          else outgoing(u)
+      val newSources = (e: E) =>
+        val x = target(e)
+        if combos.isDefinedAt(x) && sources(e).exists(ordering.lteq(x, _))
+        then sources(e) + x
+        else sources(e)
+      val newOutgoing = (u: U) =>
+        if combos.isDefinedAt(u)
+        then
+          val edges = ingoing(u).filter {
+            (e: E) => sources(e).exists(ordering.lteq(u, _))
+          }
+          outgoing(u) ++ edges
+        else outgoing(u)
       copy(edgeAction = newEdgeAction, sources = Relation(newSources), outgoing = Relation(newOutgoing))
 
   /**

@@ -18,6 +18,7 @@
 package it.unich.scalafix.finite
 
 import it.unich.scalafix.*
+import it.unich.scalafix.FixpointSolver.*
 import it.unich.scalafix.graphs.*
 import it.unich.scalafix.assignments.*
 import it.unich.scalafix.lattice.Domain
@@ -43,7 +44,7 @@ object FiniteFixpointSolver:
    *   a combo used for narrowings
    */
   def CC77[U, V](
-      solver: Solver.Solver,
+      solver: Solver,
       start: Assignment[U, V],
       wideningComboAssn: ComboAssignment[U, V],
       narrowingComboAssn: ComboAssignment[U, V]
@@ -144,7 +145,7 @@ object FiniteFixpointSolver:
    */
   private def comboFilter[U, V](
       comboAssn: ComboAssignment[U, V],
-      location: ComboLocation.Value,
+      location: ComboLocation,
       ordering: Option[UnknownOrdering[U]]
   ): ComboAssignment[U, V] =
     (location: @unchecked) match
@@ -169,7 +170,7 @@ object FiniteFixpointSolver:
   private def comboApply[U, V, E, EQS <: FiniteEquationSystem[U, V, EQS]](
       eqs: EQS,
       combos: ComboAssignment[U, V],
-      scope: ComboScope.Value,
+      scope: ComboScope,
       ordering: Option[Ordering[U]]
   ): EQS =
     (scope: @unchecked) match
@@ -200,7 +201,7 @@ object FiniteFixpointSolver:
    *   an assignment with the solution of the equation system
    */
   private def applySolver[U, V, EQS <: FiniteEquationSystem[U, V, EQS]](
-      solver: Solver.Solver,
+      solver: Solver,
       eqs: EQS,
       start: Assignment[U, V],
       ordering: Option[Ordering[U]],
@@ -244,12 +245,12 @@ object FiniteFixpointSolver:
    *   a fixpoint solver tracer
    */
   case class Params[U, V](
-      solver: Solver.Solver,
+      solver: Solver,
       start: Assignment[U, V],
-      combolocation: ComboLocation.ComboLocation,
-      comboscope: ComboScope.ComboScope,
-      combostrategy: ComboStrategy.ComboStrategy,
-      restartstrategy: RestartStrategy.RestartStrategy,
+      combolocation: ComboLocation,
+      comboscope: ComboScope,
+      combostrategy: ComboStrategy,
+      restartstrategy: RestartStrategy,
       wideningComboAssn: ComboAssignment[U, V],
       narrowingComboAssn: ComboAssignment[U, V],
       tracer: FixpointSolverTracer[U, V]

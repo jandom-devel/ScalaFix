@@ -18,8 +18,8 @@
 package it.unich.scalafix
 
 /**
- * The `FixpointSolver` object contains many enumerations and auxiliary classes
- * which are used by other fixpoint solvers.
+ * This object cntains many enumerations and auxiliary classes which are used by
+ * other fixpoint solvers.
  */
 object FixpointSolver:
 
@@ -29,54 +29,47 @@ object FixpointSolver:
    */
   class DriverBadParameters(msg: String) extends Exception(msg)
 
-  /** An enumeration with the solvers supported by this driver. */
-  object Solver extends Enumeration:
-    type Solver = Value
+  /** The solvers supported by this driver. */
+  enum Solver:
+    case KleeneSolver, RoundRobinSolver, PriorityWorkListSolver, WorkListSolver,
+      HierarchicalOrderingSolver
 
-    val KleeneSolver = Value
-    val RoundRobinSolver = Value
-    val PriorityWorkListSolver = Value
-    val WorkListSolver = Value
-    val HierarchicalOrderingSolver = Value
-
-  object ComboStrategy extends Enumeration:
-    type ComboStrategy = Value
-
+  /** The startegies for applying widening and arrowings. */
+  enum ComboStrategy:
     /** Only apply widenings. */
-    val OnlyWidening = Value
+    case OnlyWidening
 
     /** Standard two pass widenings/narrowings iteration. */
-    val TwoPhases = Value
+    case TwoPhases
 
     /** Single pass with a warrowing. */
-    val Warrowing = Value
+    case Warrowing
 
-  object ComboScope extends Enumeration:
-    type ComboScope = Value
+  /** The way in which widening should be applied at the chosen unknowns. */
+  enum ComboScope:
+    /** Standard widening usage. */
+    case Standard
 
-    /** Use standard widenings. */
-    val Standard = Value
+    /** Localized widening. */
+    case Localized
 
-    /** Use localized widenings. */
-    val Localized = Value
+  /** Locations where to put widenings and narrowings. */
+  enum ComboLocation:
 
-  object ComboLocation extends Enumeration:
-    type ComboLocation = Value
+    /** Put widenings/narrowings nowhere. */
+    case None
 
-    /** Put widenings/narrowings points nowhere */
-    val None = Value
+    /** Put widenings/narrowings at each unknown. */
+    case All
 
-    /** Put widenings/narrowings points at each unknown. */
-    val All = Value
+    /** Put widenings/narrowings at each loop head. */
+    case Loop
 
-    /** Put widenings/narrowings points at each loop head. */
-    val Loop = Value
+  /** Restarting strategy to adopt. */
+  enum RestartStrategy:
 
-  object RestartStrategy extends Enumeration:
-    type RestartStrategy = Value
+    /** Do not apply a restart strategy. */
+    case None
 
-    /** Do not apply a restart strategy */
-    val None = Value
-
-    /** Apply a restart strategy */
-    val Restart = Value
+    /** Apply a restart strategy. */
+    case Restart

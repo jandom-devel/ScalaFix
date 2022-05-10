@@ -20,6 +20,7 @@ package it.unich.scalafix.finite
 import it.unich.scalafix.*
 import it.unich.scalafix.graphs.*
 import it.unich.scalafix.assignments.*
+import it.unich.scalafix.FixpointSolver.*
 import it.unich.scalafix.utils.Relation
 import it.unich.scalafix.lattice.given
 

@@ -1,6 +1,7 @@
+import ReleaseTransformations._
+
 ThisBuild / scalaVersion := "3.1.2"
 ThisBuild / organization := "it.unich.scalafix"
-
 ThisBuild / scalacOptions ++= Seq(
   "-deprecation",
   "-feature",
@@ -65,6 +66,20 @@ val publishSettings = Seq(
     if (isSnapshot.value)
       Some(Opts.resolver.sonatypeSnapshots)
     else
-      Some(Opts.resolver.sonatypeStaging)
-  }
+      sonatypePublishToBundle.value
+  },
+  releaseProcess := Seq[ReleaseStep](
+    checkSnapshotDependencies,
+    inquireVersions,
+    runClean,
+    runTest,
+    setReleaseVersion,
+    commitReleaseVersion,
+    tagRelease,
+    releaseStepCommandAndRemaining("publishSigned"),
+    releaseStepCommand("sonatypeBundleRelease"),
+    setNextVersion,
+    commitNextVersion,
+    pushChanges
+  )
 )

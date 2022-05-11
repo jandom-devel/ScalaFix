@@ -20,7 +20,6 @@ package it.unich.scalafix.finite
 import it.unich.scalafix.*
 import it.unich.scalafix.assignments.MapBasedMutableAssignment
 import it.unich.scalafix.utils.Relation
-import it.unich.scalafix.utils.Relation.*
 
 /**
  * An equation system with a finite set of unknowns AND static dependencies

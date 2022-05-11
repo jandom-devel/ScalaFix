@@ -1,5 +1,5 @@
 /**
- * Copyright 2015, 2016, 2017 Gianluca Amato <gianluca.amato@unich.it>
+ * Copyright 2015, 2016, 2017, 2022 Gianluca Amato <gianluca.amato@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -20,6 +20,7 @@ package it.unich.scalafix.graphs
 import it.unich.scalafix.*
 import it.unich.scalafix.assignments.MapBasedMutableAssignment
 import it.unich.scalafix.finite.*
+import it.unich.scalafix.utils.Domain
 import it.unich.scalafix.utils.Relation
 
 /**
@@ -75,7 +76,7 @@ trait GraphEquationSystem[U, V, E, EQS <: GraphEquationSystem[U, V, E, EQS]]
       widenings: ComboAssignment[U, V],
       narrowings: ComboAssignment[U, V],
       ordering: Ordering[U]
-  )(using valuesParialOrdering: PartialOrdering[V]): EQS
+  )(using Domain[V]): EQS
 
 /**
  * The base abstract implementation for graph-based equation systems.
@@ -158,7 +159,7 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[
    *   either `optLocalizedCombos` or both `optLocalizedWidenings` and
    *   `optLocalizedNarrowings` are defined.
    */
-  protected var optLocalizedValuePartialOrdering: Option[PartialOrdering[V]] = None
+  protected var optDomain: Option[Domain[V]] = None
 
   /**
    * @inheritdoc
@@ -184,7 +185,7 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[
         optLocalizedWidenings.get,
         optLocalizedNarrowings.get,
         optLocalizedOrdering.get
-      )(using optLocalizedValuePartialOrdering.get)
+      )(using optDomain.get)
     else graph
 
   /** Returns the body with dependencies of the equations system. */
@@ -230,12 +231,12 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[
       widenings: ComboAssignment[U, V],
       narrowings: ComboAssignment[U, V],
       ordering: Ordering[U]
-  )(using valuesParialOrdering: PartialOrdering[V]): EQS =
+  )(using dom: Domain[V]): EQS =
     val clone = this.clone()
     clone.optLocalizedWidenings = Some(widenings)
     clone.optLocalizedNarrowings = Some(narrowings)
     clone.optLocalizedOrdering = Some(ordering)
-    clone.optLocalizedValuePartialOrdering = Some(valuesParialOrdering)
+    clone.optDomain = Some(dom)
     clone.optLocalizedCombos = None
     clone
 

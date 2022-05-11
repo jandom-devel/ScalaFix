@@ -114,7 +114,7 @@ trait GraphBody[U, V, E] extends Body[U, V]:
       widenings: ComboAssignment[U, V],
       narrowings: ComboAssignment[U, V],
       unknownOrdering: Ordering[U]
-  )(using valuesParialOrdering: PartialOrdering[V]): Body[U, V]
+  )(using Domain[V]): Body[U, V]
 
 /**
  * Standard implementation of a `GraphBody` where all the data about the graph
@@ -185,7 +185,7 @@ case class SimpleGraphBody[U, V, E](
       widenings: ComboAssignment[U, V],
       narrowings: ComboAssignment[U, V],
       unknownOrdering: Ordering[U]
-  )(using valuesParialOrdering: PartialOrdering[V]): Body[U, V] =
+  )(using Domain[V]): Body[U, V] =
     (rho: Assignment[U, V]) =>
       (x: U) =>
         val in = ingoing(x)
@@ -194,13 +194,13 @@ case class SimpleGraphBody[U, V, E](
           val contributions = for e <- in yield
             val contrib = edgeAction(rho)(e)
             val comboapply = sources(e)
-              .exists(unknownOrdering.lteq(x, _)) && !valuesParialOrdering.lteq(contrib, rho(x))
+              .exists(unknownOrdering.lteq(x, _)) && !(contrib <= rho(x))
             (contrib, comboapply)
           val result = contributions reduce ((x: (V, Boolean), y: (V, Boolean)) =>
             (combiner(x._1, y._1), x._2 || y._2)
           )
           if result._2 then widenings(x)(rho(x), result._1)
-          else if valuesParialOrdering.lt(result._1, rho(x)) then narrowings(x)(rho(x), result._1)
+          else if result._1 < rho(x) then narrowings(x)(rho(x), result._1)
           else result._1
 
 /** Collection of factory methods for graph-based bodies. */
@@ -237,4 +237,4 @@ def apply[U, V: Domain, E](
     ingoing: Relation[U, E],
     edgeAction: EdgeAction[U, V, E]
 ): GraphBody[U, V, E] =
-  SimpleGraphBody(sources, target, outgoing, ingoing, edgeAction, _ upperBound _)
+  SimpleGraphBody(sources, target, outgoing, ingoing, edgeAction, summon[Domain[V]].upperBound)

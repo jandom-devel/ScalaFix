@@ -18,26 +18,51 @@
 package it.unich.scalafix.utils
 
 /**
- * A `Domain` is a `PartialOrdering` where elements are endowed with an upper
- * bound operator. However, not all pairs of elements have an upper bound.
- * Generally, elements in a domain are partitioned in fibers, and an upper bound
- * only exists for elements on the same fiber. This is not modeled by the
- * current definition of `Domain`.
+ * A `Domain` is a partial ordering with the additional contract that `equiv(x,
+ * y)` iff `x == y`. This is probably not a brilliant idea, since it makes the
+ * `Domain[V]` type-class too much dependent on the equality iin `V`. We will
+ * revaluate this choice in a future version of ScalaFix.
+ *
+ * The trait also introduces a method for computing the upper bound. Not all
+ * pairs of elements have an upper bound. Generally, elements in a domain are
+ * partitioned in fibers, and an upper bound only exists for elements on the
+ * same fiber. This is not modeled by the current definition of `Domain`.
  */
 trait Domain[A] extends PartialOrdering[A]:
 
+  /** Returns the upper bound of `x` and `y`. */
+  def upperBound(x: A, y: A): A
+
+  /** Extension methods for the type `A`. */
   extension (x: A)
-    /** It returns an upper bound of `x` and `y`. */
-    infix def upperBound(y: A): A
+
+    /** Uperrbound between `x` and `y`. */
+    inline infix def \/(y: A): A = upperBound(x, y)
+
+    inline infix def <=(y: A): Boolean = lteq(x, y)
+
+    inline infix def <(y: A): Boolean = lt(x, y)
+
+    inline infix def >=(y: A): Boolean = lteq(y, x)
+
+    inline infix def >(y: A): Boolean = lt(y, x)
 
 object Domain:
   /**
-   * A domain obtained by an ordering, taking the max to be the upper bound
-   * operator.
+   * A domain obtained by a linear ordering, taking the max to be the upper
+   * bound operator. Here we assume that if `lteq(x, y) == true` and `lteq(y, x)
+   * \== true` then `x == y`, which is ensured by the contract of the
+   * [[Ordering]] trait.
    */
   given orderingIsDomain[A](using o: Ordering[A]): Domain[A] with
-    override def lteq(x: A, y: A): Boolean = o.lteq(x, y)
+    export o.{lteq, tryCompare}
 
-    override def tryCompare(x: A, y: A): Some[Int] = o.tryCompare(x, y)
+    override def lt(x: A, y: A): Boolean = o.lt(x, y)
 
-    extension (x: A) def upperBound(y: A): A = if o.compare(x, y) <= 0 then y else x
+    override def gteq(x: A, y: A): Boolean = o.gteq(x, y)
+
+    override def gt(x: A, y: A): Boolean = o.gt(x, y)
+
+    override def equiv(x: A, y: A): Boolean = o.equiv(x, y)
+
+    override def upperBound(x: A, y: A): A = if o.lt(x, y) then y else x

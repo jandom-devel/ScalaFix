@@ -18,6 +18,7 @@
 package it.unich.scalafix
 
 import it.unich.scalafix.finite.UnknownOrdering
+import it.unich.scalafix.utils.Domain
 
 /**
  * A ComboAssignment maps a subset of unknowns to a Combo. When `isDefinedAt(u)`
@@ -152,7 +153,7 @@ object ComboAssignment:
     def copy: RestrictAssignment[U, V, U1] =
       if combosAreImmutable then this else RestrictAssignment(combos.copy, domain)
 
-  private final class WarrowingAssignment[U, V: PartialOrdering](
+  private final class WarrowingAssignment[U, V: Domain](
       widenings: ComboAssignment[U, V],
       narrowings: ComboAssignment[U, V]
   ) extends ComboAssignment[U, V]:
@@ -212,7 +213,7 @@ object ComboAssignment:
    * @param narrowings
    *   narrowing assignment over U and V
    */
-  def warrowing[U, V: PartialOrdering](
+  def warrowing[U, V: Domain](
       widenings: ComboAssignment[U, V],
       narrowings: ComboAssignment[U, V]
   ): ComboAssignment[U, V] =

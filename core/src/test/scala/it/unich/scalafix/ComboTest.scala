@@ -161,7 +161,6 @@ class ComboTest extends AnyFunSpec with ScalaCheckPropertyChecks:
       it("behaves as a max combo later on") {
         assertResult(3)(combo(3, 2))
         assertResult(3)(combo(3, 2))
-
       }
       testIsNotRight(combo)
       testMutable(combo)

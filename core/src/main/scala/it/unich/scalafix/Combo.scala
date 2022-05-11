@@ -111,10 +111,10 @@ object Combo:
     def isRight = false
 
   // we only consider the case when either `first` or `second` is not a right combo
-  private final class Warrowing[V: PartialOrdering](widening: Combo[V], narrowing: Combo[V])
+  private final class Warrowing[V: Domain](widening: Combo[V], narrowing: Combo[V])
       extends Combo[V]:
     def apply(x: V, y: V): V =
-      if summon[PartialOrdering[V]].lteq(y, x) then narrowing(x, y) else widening(x, y)
+      if y <= x then narrowing(x, y) else widening(x, y)
     def isRight: Boolean = false
     def isIdempotent: Boolean = false
     def isImmutable: Boolean = widening.isImmutable && narrowing.isImmutable
@@ -158,7 +158,7 @@ object Combo:
    * A combo given by the upper bound of a type `V` endowed with a directed
    * partial ordering.
    */
-  def upperBound[V: Domain]: ImmutableCombo[V] = FromFunction(_ upperBound _, true)
+  def upperBound[V: Domain]: ImmutableCombo[V] = FromFunction(summon[Domain[V]].upperBound, true)
 
   /**
    * A mutable combo which behaves as `first` for the initial `delay` steps and
@@ -186,6 +186,6 @@ object Combo:
    * @param narrowing
    *   a narrowing over V
    */
-  def warrowing[V: PartialOrdering](widening: Combo[V], narrowing: Combo[V]): Combo[V] =
+  def warrowing[V: Domain](widening: Combo[V], narrowing: Combo[V]): Combo[V] =
     if widening.isRight && narrowing.isRight then right[V]
     else Warrowing(widening, narrowing)

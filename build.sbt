@@ -1,4 +1,3 @@
-ThisBuild / version := "0.9.0-SNAPSHOT"
 ThisBuild / scalaVersion := "3.1.2"
 ThisBuild / organization := "it.unich.scalafix"
 

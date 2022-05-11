@@ -15,23 +15,22 @@
  * ScalaFix. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.unich.scalafix.finite
+package it.unich.scalafix.highlevel
 
 import it.unich.scalafix.*
-import it.unich.scalafix.FixpointSolver.*
+import it.unich.scalafix.finite.*
 import it.unich.scalafix.graphs.*
 import it.unich.scalafix.assignments.*
 import it.unich.scalafix.lattice.Domain
 
 /**
- * This solver is a commodity interface for the other fixpoint solvers for
- * finite and graph-based equation systems. It takes some parameters as inputs
- * and plans a sequence of actions in order to obtain the desired solutions as
- * the output.
+ * This solver is a commodity interface for solving finite and graph-based
+ * equation systems. It takes some parameters as input and plans a sequence of
+ * actions in order to obtain the desired solutions as the output.
  */
 object FiniteFixpointSolver:
 
-  import FixpointSolver.*
+  import Parameters.*
 
   /**
    * Returns parameters for solving an equation system with the standard CC77
@@ -179,7 +178,8 @@ object FiniteFixpointSolver:
           // todoss
           case eqs: GraphEquationSystem[?, ?, ?, ?] =>
             eqs.withLocalizedCombos(combos, unknownOrdering.get)
-          case _ => throw new DriverBadParameters("Localized combos needs a GraphEquationSystem")
+          case _ =>
+            throw IllegalArgumentException("Localized combos needs a GraphEquationSystem")
 
   /**
    * Apply a fixpoint solver given standard parameters
@@ -217,7 +217,7 @@ object FiniteFixpointSolver:
         ordering.get match
           case ho: HierarchicalOrdering[U] => HierarchicalOrderingSolver(eqs)(start, ho, tracer)
           case _ =>
-            throw new DriverBadParameters(
+            throw IllegalArgumentException(
               "Ordering must be hierarchical for the HierarchicalOrderingSolver to work"
             )
 

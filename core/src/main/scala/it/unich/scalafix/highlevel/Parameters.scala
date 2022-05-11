@@ -1,5 +1,5 @@
 /**
- * Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
+ * Copyright 2015, 2016, 2022 Gianluca Amato <gianluca.amato@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -15,26 +15,20 @@
  * ScalaFix. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.unich.scalafix
+package it.unich.scalafix.highlevel
 
 /**
- * This object cntains many enumerations and auxiliary classes which are used by
- * other fixpoint solvers.
- */
-object FixpointSolver:
-
-  /**
-   * This exception is thrown when the parameters provided to the `Driver` are
-   * not correct.
-   */
-  class DriverBadParameters(msg: String) extends Exception(msg)
+* This object cntains many enumerations and auxiliary classes which are used by
+* the high-level fixpoint solver.
+*/
+object Parameters:
 
   /** The solvers supported by this driver. */
   enum Solver:
     case KleeneSolver, RoundRobinSolver, PriorityWorkListSolver, WorkListSolver,
       HierarchicalOrderingSolver
 
-  /** The startegies for applying widening and arrowings. */
+  /** The strategies for applying widening and arrowings. */
   enum ComboStrategy:
     /** Only apply widenings. */
     case OnlyWidening

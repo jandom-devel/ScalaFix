@@ -15,12 +15,12 @@
  * ScalaFix. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.unich.scalafix.finite
+package it.unich.scalafix.highlevel
 
 import it.unich.scalafix.*
+import it.unich.scalafix.finite.*
 import it.unich.scalafix.graphs.*
 import it.unich.scalafix.assignments.*
-import it.unich.scalafix.FixpointSolver.*
 import it.unich.scalafix.utils.Relation
 import it.unich.scalafix.lattice.given
 
@@ -29,7 +29,7 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
 
-  import FixpointSolver.*
+  import Parameters.*
 
   private val graph = GraphBody[Int, Double, Char](
     edgeAction = { (rho: Int => Double) =>

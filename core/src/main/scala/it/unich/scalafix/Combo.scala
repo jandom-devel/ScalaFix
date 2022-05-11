@@ -18,7 +18,7 @@
 
 package it.unich.scalafix
 
-import it.unich.scalafix.lattice.{Domain, Magma}
+import it.unich.scalafix.lattice.Domain
 
 /**
  * A Combo is a way to combine two values into a new one. It is a specialization
@@ -160,9 +160,6 @@ object Combo:
    */
   def upperBound[V: Domain]: ImmutableCombo[V] = FromFunction(_ upperBound _, true)
 
-  /** A combo given by the magma operator on a type `V`. */
-  def magma[V: Magma]: ImmutableCombo[V] = FromFunction(_ op _, true)
-
   /**
    * A mutable combo which behaves as `first` for the initial `delay` steps and
    * as `second` for the rest of its existence. This may be used to implement
@@ -176,7 +173,7 @@ object Combo:
 
   /**
    * A warrowing obtained by combining the given widenings and narrowings.
-   * 
+   *
    * Warrowing is defined in the paper:
    *   - Amato, G., Scozzari, F., Seidl, H., Apinis, K., Vojdani, V. Efficiently
    *     intertwining widening and narrowing Science of Computer Programming,

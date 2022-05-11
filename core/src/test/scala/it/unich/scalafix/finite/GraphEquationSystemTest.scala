@@ -21,16 +21,11 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 
 import it.unich.scalafix.*
 import it.unich.scalafix.graphs.*
-import it.unich.scalafix.lattice.Magma
-import it.unich.scalafix.lattice.given
 import it.unich.scalafix.utils.Relation
 
 import org.scalatest.funspec.AnyFunSpec
 
 class GraphEquationSystemTest extends AnyFunSpec:
-
-  private given Magma[Int] with
-    extension (x: Int) def op(y: Int): Int = x max y
 
   private val unknowns = Set(0, 1, 2, 3)
 
@@ -86,7 +81,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
       val input: PartialFunction[Int, Int] = { case _ =>
         2
       }
-      val eqs = simpleEqs.withBaseAssignment(input)
+      val eqs = simpleEqs.withBaseAssignment(input,_ max _)
       val body = eqs.body
       assertResult(2)(body(rho)(0))
       assertResult(3)(body(rho)(1))

@@ -19,7 +19,6 @@ package it.unich.scalafix.finite
 
 import it.unich.scalafix.*
 import it.unich.scalafix.assignments.MapBasedMutableAssignment
-import it.unich.scalafix.lattice.Magma
 import it.unich.scalafix.utils.Relation
 import it.unich.scalafix.utils.Relation.*
 

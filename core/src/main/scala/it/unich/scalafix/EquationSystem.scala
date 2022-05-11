@@ -18,7 +18,6 @@
 package it.unich.scalafix
 
 import it.unich.scalafix.assignments.MapBasedMutableAssignment
-import it.unich.scalafix.lattice.Magma
 
 import scala.collection.mutable
 
@@ -64,18 +63,6 @@ trait EquationSystem[U, V, EQS <: EquationSystem[U, V, EQS]]:
    *   [[scalafix#addCombos]]
    */
   def withCombos(combos: ComboAssignment[U, V]): EQS
-
-  /**
-   * Returns the equation system modified with the specified base assignment.
-   * Similar to the other [[withBaseAssignment]] method, but the operation for
-   * combining the base assignment and the body is taken from the Magma
-   * typeclass.
-   *
-   * @param baseAssignment
-   *   a partial assignment of values to unknowns.
-   */
-  def withBaseAssignment(baseAssignment: PartialFunction[U, V])(using Magma[V]): EQS =
-    withBaseAssignment(baseAssignment, _ op _)
 
   /**
    * Returns the equation system modified with the specified base assignment.

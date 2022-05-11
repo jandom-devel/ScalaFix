@@ -224,23 +224,6 @@ object GraphBody:
 
 /**
  * Standard implementation of a `GraphBody` where all the data about the graph
- * is provided explicitly. The `combiner` parameter is given by the operation of
- * the magma `V`.
- *
- * @see
- *   [[SimpleGraphBody]] for the meaning of all the parameters.
- */
-def apply[U, V: Magma, E](
-    sources: Relation[E, U],
-    target: E => U,
-    outgoing: Relation[U, E],
-    ingoing: Relation[U, E],
-    edgeAction: EdgeAction[U, V, E]
-): GraphBody[U, V, E] =
-  SimpleGraphBody(sources, target, outgoing, ingoing, edgeAction, _ op _)
-
-/**
- * Standard implementation of a `GraphBody` where all the data about the graph
  * is provided explicitly. The `combiner` parameter is given by the upper bound
  * of the domain `V`.
  *

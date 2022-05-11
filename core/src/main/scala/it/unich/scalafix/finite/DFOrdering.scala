@@ -127,10 +127,9 @@ object DFOrdering:
 
     /** Returns whether y is a child of x in the depth-first spanning tree. */
     @tailrec private def connected(x: U, y: U): Boolean =
-      val z = dfst.find(_._2 == y)
-      if z.isEmpty then false
-      else if z.get._1 == x then true
-      else connected(x, z.get._1)
+      dfst.find(_._2 == y) match
+        case None => false
+        case Some(z) => if z._1 == x then true else connected(x, z._1)
 
     def influenceType(x: U, y: U): InfluenceType =
       if y <= x then Retreating

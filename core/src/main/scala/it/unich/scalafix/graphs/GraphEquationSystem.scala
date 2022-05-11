@@ -109,57 +109,17 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[
   protected val initialGraph: GraphBody[U, V, E]
 
   /**
-   * An optional assignment of localized combos to the unknowns.
-   *
-   * @note
-   *   It is expected that `optLocalizedCombos` is defined only if
-   *   `optLocalizedOrdering` is defined.
+   * An optional specification of the localized combos we want to apply to the
+   * equation system.
    */
-  protected var optLocalizedCombos: Option[ComboAssignment[U, V]] = None
+  protected var optLocalizedCombos: Option[(ComboAssignment[U, V], Ordering[U])] = None
 
   /**
-   * An optional assignment of localized widenings to the unknowns for the
-   * purpose of generating localized warrowings.
-   *
-   * @note
-   *   It is expected that `optLocalizedWidenings` is defined only if
-   *   `optLocalizedNarrowings` is defined and only if `optLocalizedOrdering` is
-   *   defined.
+   * An optional specification of localized warrowing we want to apply to the
+   * equation system.
    */
-  protected var optLocalizedWidenings: Option[ComboAssignment[U, V]] = None
-
-  /**
-   * An optional assignment of localized narrowings to the unknowns for the
-   * purpose of generating localized warrowings.
-   *
-   * @note
-   *   It is expected that `optLocalizedNarrowings` is defined only if
-   *   `optLocalizedWidenings` is defined and only if `optLocalizedOrdering` is
-   *   defined.
-   */
-  protected var optLocalizedNarrowings: Option[ComboAssignment[U, V]] = None
-
-  /**
-   * An optional assignment of an ordering to unknowns, to be used for localized
-   * combos and localized warrowings.
-   *
-   * @note
-   *   It is expected that `optLocalizedOrdering` is defined if an only if
-   *   either `optLocalizedCombos` or both `optLocalizedWidenings` and
-   *   `optLocalizedNarrowings` are defined.
-   */
-  protected var optLocalizedOrdering: Option[Ordering[U]] = None
-
-  /**
-   * An optional assignment of an ordering to unknowns, to be used for localized
-   * combos and localized warrowings.
-   *
-   * @note
-   *   It is expected that `optLocalizedOrdering` is defined if an only if
-   *   either `optLocalizedCombos` or both `optLocalizedWidenings` and
-   *   `optLocalizedNarrowings` are defined.
-   */
-  protected var optDomain: Option[Domain[V]] = None
+  protected var optLocalizedWarrowings
+      : Option[(ComboAssignment[U, V], ComboAssignment[U, V], Ordering[U], Domain[V])] = None
 
   /**
    * @inheritdoc
@@ -169,9 +129,10 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[
    *   system, eventually adding localized combos as requested by the user.
    */
   override def graph: GraphBody[U, V, E] =
-    if (optLocalizedCombos.isDefined && optLocalizedOrdering.isDefined)
-    then initialGraph.addLocalizedCombos(optLocalizedCombos.get, optLocalizedOrdering.get)
-    else initialGraph
+    optLocalizedCombos match
+      case Some((localizedCombos, unknownOrdering)) =>
+        initialGraph.addLocalizedCombos(localizedCombos, unknownOrdering)
+      case _ => initialGraph
 
   /**
    * @inheritdoc
@@ -179,14 +140,12 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[
    * For graph-based equation system, the initial body is computed by the graph.
    */
   override protected def initialBody: Body[U, V] =
-    if optLocalizedWidenings.isDefined && optLocalizedNarrowings.isDefined && optLocalizedOrdering.isDefined
-    then
-      graph.addLocalizedWarrowing(
-        optLocalizedWidenings.get,
-        optLocalizedNarrowings.get,
-        optLocalizedOrdering.get
-      )(using optDomain.get)
-    else graph
+    optLocalizedWarrowings match
+      case Some((localizedWidenings, localizedNarrowings, unknownOrdering, dom)) =>
+        graph.addLocalizedWarrowing(localizedWidenings, localizedNarrowings, unknownOrdering)(using
+          dom
+        )
+      case _ => graph
 
   /** Returns the body with dependencies of the equations system. */
   override def bodyWithDependencies: BodyWithDependencies[U, V] =
@@ -209,10 +168,11 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[
   override def initialInfl: Relation[U, U] =
     // whey are we using the graph here and not the initial graph ?
     val base = Relation((u: U) => graph.outgoing(u).view.map(graph.target).toSet)
-    if optLocalizedWidenings.isEmpty || optLocalizedWidenings.isEmpty || optLocalizedOrdering.isEmpty ||
-      (optLocalizedWidenings.get.combosAreIdempotent && optLocalizedNarrowings.get.combosAreIdempotent)
-    then base
-    else base.withDiagonal
+    optLocalizedWarrowings match
+      case Some((localizedWidenings, localizedNarrowings, unknownOrdering, dom))
+          if !localizedWidenings.combosAreIdempotent || !localizedNarrowings.combosAreIdempotent =>
+        base.withDiagonal
+      case _ => base
 
   /** @inheritdoc */
   override def withLocalizedCombos(
@@ -220,10 +180,8 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[
       ordering: Ordering[U]
   ): EQS =
     val clone = this.clone()
-    clone.optLocalizedCombos = Some(combos)
-    clone.optLocalizedOrdering = Some(ordering)
-    clone.optLocalizedWidenings = None
-    clone.optLocalizedNarrowings = None
+    clone.optLocalizedCombos = Some(combos, ordering)
+    clone.optLocalizedWarrowings = None
     clone
 
   /** @inheritdoc */
@@ -233,10 +191,7 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[
       ordering: Ordering[U]
   )(using dom: Domain[V]): EQS =
     val clone = this.clone()
-    clone.optLocalizedWidenings = Some(widenings)
-    clone.optLocalizedNarrowings = Some(narrowings)
-    clone.optLocalizedOrdering = Some(ordering)
-    clone.optDomain = Some(dom)
+    clone.optLocalizedWarrowings = Some(widenings, narrowings, ordering, dom)
     clone.optLocalizedCombos = None
     clone
 

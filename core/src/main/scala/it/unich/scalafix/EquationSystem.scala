@@ -112,23 +112,8 @@ abstract class BaseEquationSystem[U, V, EQS <: BaseEquationSystem[U, V, EQS]]
   protected var optCombos: Option[ComboAssignment[U, V]] = None
 
   /**
-   * An optional base assignment of values to the unknowns.
-   *
-   * @note
-   *   It is expected that `optBaseAssignment` is defined iff `optOp` is
-   *   defined.
-   */
-  protected var optBaseAssignment: Option[PartialFunction[U, V]] = None
-
-  /**
-   * An optional operation used to combine the base assignment with the initial
-   * body.
-   *
-   * @note
-   *   It is expected that `optOp` is defined iff `optBaseAssignment` is
-   *   defined.
-   */
-  protected var optOp: Option[(V, V) => V] = None
+   * An optional specification for a base assignment we want to add to the equation system. */
+  protected var optBaseAssignment: Option[(PartialFunction[U, V], (V, V) => V)] = None
 
   /** An optional tracer for monitoring the execution of the body. */
   protected var optTracer: Option[EquationSystemTracer[U, V]] = None
@@ -150,15 +135,15 @@ abstract class BaseEquationSystem[U, V, EQS <: BaseEquationSystem[U, V, EQS]]
    *   requests of the user.
    */
   override def body: Body[U, V] =
-    val basedBody =
-      if optBaseAssignment.isDefined && optOp.isDefined
-      then initialBody.addBaseAssignment(optBaseAssignment.get, optOp.get)
-      else initialBody
-    val comboedBody =
-      if optCombos.isDefined
-      then basedBody.addCombos(optCombos.get, optTracer)
-      else basedBody
-    if optTracer.isDefined then comboedBody.addTracer(optTracer.get) else comboedBody
+    val basedBody = optBaseAssignment match
+      case Some(baseAssignment, op) => initialBody.addBaseAssignment(baseAssignment, op)
+      case None => initialBody
+    val comboedBody = optCombos match
+      case Some(combos) => basedBody.addCombos(combos, optTracer)
+      case None => basedBody
+    optTracer match
+      case Some(tracer) => comboedBody.addTracer(tracer)
+      case None => comboedBody
 
   /**
    * Returns the body with dependencies of the equations system. It is
@@ -178,8 +163,7 @@ abstract class BaseEquationSystem[U, V, EQS <: BaseEquationSystem[U, V, EQS]]
       op: (V, V) => V
   ) =
     val clone = this.clone()
-    clone.optBaseAssignment = Some(baseAssignment)
-    clone.optOp = Some(op)
+    clone.optBaseAssignment = Some(baseAssignment, op)
     clone
 
   /** @inheritdoc */

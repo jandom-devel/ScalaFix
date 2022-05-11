@@ -73,11 +73,9 @@ abstract class BaseFiniteEquationSystem[U, V, EQS <: BaseFiniteEquationSystem[U,
   protected def initialInfl: Relation[U, U]
 
   /** @inheritdoc */
-  override def infl =
-    if optCombos.isEmpty || optCombos.get.combosAreIdempotent
-    then initialInfl
-    else initialInfl.withDiagonal
-
+  override def infl = optCombos match
+    case Some(combos) if ! combos.combosAreIdempotent => initialInfl.withDiagonal
+    case _ => initialInfl
 /**
  * Default implementation of a finite equation system.
  *

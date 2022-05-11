@@ -18,7 +18,7 @@
 
 package it.unich.scalafix
 
-import it.unich.scalafix.lattice.Domain
+import it.unich.scalafix.utils.Domain
 
 /**
  * A Combo is a way to combine two values into a new one. It is a specialization

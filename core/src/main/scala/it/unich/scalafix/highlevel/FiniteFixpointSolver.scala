@@ -18,10 +18,10 @@
 package it.unich.scalafix.highlevel
 
 import it.unich.scalafix.*
+import it.unich.scalafix.assignments.*
 import it.unich.scalafix.finite.*
 import it.unich.scalafix.graphs.*
-import it.unich.scalafix.assignments.*
-import it.unich.scalafix.lattice.Domain
+import it.unich.scalafix.utils.Domain
 
 /**
  * Commodity solver for finite and graph-based equation systems. It takes some

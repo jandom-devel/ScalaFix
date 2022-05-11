@@ -22,7 +22,6 @@ import it.unich.scalafix.finite.*
 import it.unich.scalafix.graphs.*
 import it.unich.scalafix.assignments.*
 import it.unich.scalafix.utils.Relation
-import it.unich.scalafix.lattice.given
 
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks

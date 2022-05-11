@@ -15,7 +15,7 @@
  * ScalaFix. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.unich.scalafix.lattice
+package it.unich.scalafix.utils
 
 /**
  * A `Domain` is a `PartialOrdering` where elements are endowed with an upper
@@ -30,13 +30,14 @@ trait Domain[A] extends PartialOrdering[A]:
     /** It returns an upper bound of `x` and `y`. */
     infix def upperBound(y: A): A
 
-/**
- * A domain obtained by an ordering, taking the max to be the upper bound
- * operator.
- */
-given orderingIsDomain[A](using o: Ordering[A]): Domain[A] with
-  def lteq(x: A, y: A): Boolean = o.lteq(x, y)
+object Domain:
+  /**
+   * A domain obtained by an ordering, taking the max to be the upper bound
+   * operator.
+   */
+  given orderingIsDomain[A](using o: Ordering[A]): Domain[A] with
+    override def lteq(x: A, y: A): Boolean = o.lteq(x, y)
 
-  def tryCompare(x: A, y: A): Some[Int] = o.tryCompare(x, y)
+    override def tryCompare(x: A, y: A): Some[Int] = o.tryCompare(x, y)
 
-  extension (x: A) def upperBound(y: A): A = if o.compare(x, y) <= 0 then y else x
+    extension (x: A) def upperBound(y: A): A = if o.compare(x, y) <= 0 then y else x

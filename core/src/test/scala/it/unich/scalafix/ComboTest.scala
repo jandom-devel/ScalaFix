@@ -17,8 +17,6 @@
 
 package it.unich.scalafix
 
-import it.unich.scalafix.lattice.given
-
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 

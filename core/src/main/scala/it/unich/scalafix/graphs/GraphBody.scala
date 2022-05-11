@@ -18,7 +18,7 @@
 package it.unich.scalafix.graphs
 
 import it.unich.scalafix.*
-import it.unich.scalafix.lattice.*
+import it.unich.scalafix.utils.Domain
 import it.unich.scalafix.utils.Relation
 
 /**

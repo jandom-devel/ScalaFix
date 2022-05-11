@@ -59,7 +59,7 @@ val publishSettings = Seq(
     ScmInfo(
       url("https://github.com/jandom-devel/ScalaFix"),
       "scm:git:https://github.com/jandom-devel/ScalaFix.git",
-      Some("scm:git:https://github.com/jandom-devel/ScalaFix.git")
+      Some("scm:git:ssh://git@github.com/jandom-devel/ScalaFix.git")
     )
   ),
   publishTo := {

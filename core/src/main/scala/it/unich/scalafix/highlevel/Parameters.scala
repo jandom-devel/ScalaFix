@@ -18,6 +18,7 @@
 package it.unich.scalafix.highlevel
 
 import it.unich.scalafix.*
+import java.security.DrbgParameters.Reseed
 
 /** The solvers supported by the high level fixpoint solvers. */
 enum Solver:
@@ -87,15 +88,15 @@ enum RestartStrategy:
  *   a fixpoint solver tracer.
  */
 case class Parameters[U, V](
-    solver: Solver,
     start: Assignment[U, V],
+    solver: Solver = Solver.PriorityWorkListSolver,
     comboLocation: ComboLocation = ComboLocation.Loop,
     comboScope: ComboScope = ComboScope.Standard,
     comboStrategy: ComboStrategy = ComboStrategy.TwoPhases,
     restartStrategy: RestartStrategy = RestartStrategy.None,
-    widenings: ComboAssignment[U, V] = ComboAssignment.empty,
-    narrowings: ComboAssignment[U, V] = ComboAssignment.empty,
-    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty
+    widenings: ComboAssignment[U, V] = ComboAssignment.empty[V],
+    narrowings: ComboAssignment[U, V] = ComboAssignment.empty[V],
+    tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
 )
 
 object Parameters {
@@ -113,21 +114,20 @@ object Parameters {
    *   an assignment of narrowings to unknowns
    */
   def CC77[U, V](
-      solver: Solver,
       start: Assignment[U, V],
+      solver: Solver = Solver.PriorityWorkListSolver,
       widenings: ComboAssignment[U, V],
       narrowings: ComboAssignment[U, V]
   ): Parameters[U, V] =
     Parameters[U, V](
-      solver,
-      start,
-      ComboLocation.Loop,
-      ComboScope.Standard,
-      ComboStrategy.TwoPhases,
-      RestartStrategy.None,
-      widenings,
-      narrowings,
-      FixpointSolverTracer.empty
+      start = start,
+      solver = solver,
+      comboLocation = ComboLocation.Loop,
+      comboScope = ComboScope.Standard,
+      comboStrategy = ComboStrategy.TwoPhases,
+      restartStrategy = RestartStrategy.None,
+      widenings = widenings,
+      narrowings = narrowings
     )
 
 }

@@ -60,10 +60,10 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     if x.isPosInfinity then y else x
   })
   private val CC77params = Parameters.CC77[Int, Double](
-    Solver.WorkListSolver,
-    { u => if u == 0 then 0.0 else Double.NegativeInfinity },
-    doublewidening,
-    doublenarrowing
+    start = { u => if u == 0 then 0.0 else Double.NegativeInfinity },
+    solver = Solver.WorkListSolver,
+    widenings = doublewidening,
+    narrowings = doublenarrowing
   )
 
   def assertSolution(m: Map[Int, Double])(b: Int => Double): Unit =

@@ -29,8 +29,6 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
 
-  import Parameters.*
-
   private val graph = GraphBody[Int, Double, Char](
     edgeAction = { (rho: Int => Double) =>
       {
@@ -62,7 +60,7 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
   private val doublenarrowing = ComboAssignment({ (x: Double, y: Double) =>
     if x.isPosInfinity then y else x
   })
-  private val CC77params = FiniteFixpointSolver.CC77[Int, Double](
+  private val CC77params = Parameters.CC77[Int, Double](
     Solver.WorkListSolver,
     { u => if u == 0 then 0.0 else Double.NegativeInfinity },
     doublewidening,

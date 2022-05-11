@@ -24,42 +24,11 @@ import it.unich.scalafix.assignments.*
 import it.unich.scalafix.lattice.Domain
 
 /**
- * This solver is a commodity interface for solving finite and graph-based
- * equation systems. It takes some parameters as input and plans a sequence of
- * actions in order to obtain the desired solutions as the output.
+ * Commodity solver for finite and graph-based equation systems. It takes some
+ * parameters as input and plans a sequence of actions in order to obtain the
+ * desired solutions as the output.
  */
 object FiniteFixpointSolver:
-
-  import Parameters.*
-
-  /**
-   * Returns parameters for solving an equation system with the standard CC77
-   * approach
-   *
-   * @param solver
-   *   the solver to use
-   * @param widenins
-   *   an assignment of widenings to unknowns
-   * @param narrowings
-   *   an assignment of narrowings to unknowns
-   */
-  def CC77[U, V](
-      solver: Solver,
-      start: Assignment[U, V],
-      widenings: ComboAssignment[U, V],
-      narrowings: ComboAssignment[U, V]
-  ): Params[U, V] =
-    Params[U, V](
-      solver,
-      start,
-      ComboLocation.Loop,
-      ComboScope.Standard,
-      ComboStrategy.TwoPhases,
-      RestartStrategy.None,
-      widenings,
-      narrowings,
-      FixpointSolverTracer.empty
-    )
 
   /**
    * Solves the equation system using the parameters specified in `params`.
@@ -71,7 +40,7 @@ object FiniteFixpointSolver:
    */
   def apply[U, V: Domain, E, EQS <: GraphEquationSystem[U, V, E, EQS]](
       eqs: EQS,
-      params: Params[U, V]
+      params: Parameters[U, V]
   ): MutableAssignment[U, V] =
     import params.*
 
@@ -221,36 +190,3 @@ object FiniteFixpointSolver:
               "Ordering must be hierarchical for the HierarchicalOrderingSolver to work"
             )
 
-  /**
-   * Parameters for this convenience solver.
-   *
-   * @param solver
-   *   the real solver to use.
-   * @param start
-   *   an initial assignment.
-   * @param comboLocation
-   *   where to put widenings and narrowings.
-   * @param comboScope
-   *   how to apply widenings and narrowings (standard, localized, etc...).
-   * @param comboStrategy
-   *   strategies for applying widening and arrowings.
-   * @param restartStrategy
-   *   restart strategy to apply in supported solvers.
-   * @param widenings
-   *   an assignment of widenings to unknowns
-   * @param narrowingComboAssn
-   *   an assignment of narrowings to unknowns
-   * @param tracer
-   *   a fixpoint solver tracer.
-   */
-  case class Params[U, V](
-      solver: Solver,
-      start: Assignment[U, V],
-      comboLocation: ComboLocation,
-      comboScope: ComboScope,
-      comboStrategy: ComboStrategy,
-      restartStrategy: RestartStrategy,
-      widenings: ComboAssignment[U, V],
-      narrowings: ComboAssignment[U, V],
-      tracer: FixpointSolverTracer[U, V]
-  )

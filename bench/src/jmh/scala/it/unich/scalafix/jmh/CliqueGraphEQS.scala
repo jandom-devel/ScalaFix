@@ -20,29 +20,30 @@ package it.unich.scalafix.jmh
 
 import it.unich.scalafix.*
 import it.unich.scalafix.assignments.*
-import it.unich.scalafix.finite.SimpleGraphEquationSystem
-import it.unich.scalafix.utils.Relation
-import it.unich.scalafix.lattice.given
+import it.unich.scalafix.graphs.*
+import it.unich.scalafix.utils.*
 
 /**
-  * This class represents an equation system made of equations `x(i)=x(0) upperbound c(1) uperrbound ... x(n-1)`
+  * This class represents an equation system made of equations `x(i)=x(0) upperbound c(1) upperbound ... x(n-1)`
   * for i from 0 to n-1.
   *
-  * @tparam V type of the values
   * @param n number of unknowns
   */
-class CliqueGraphEQS[V](n: Int) extends SimpleGraphEquationSystem[Int, Double, (Int, Int)](
+class CliqueGraphEQS(n: Int) extends SimpleGraphEquationSystem[Int, Double, (Int, Int)](
   unknowns = 0 until n,
   inputUnknowns = Set(0),
-  edgeAction = { (rho: Assignment[Int, Double]) => (p: (Int, Int)) => rho(p._1) + 1 },
-  sources = { (e: (Int, Int)) => Seq(e._1) },
-  target = { (e: (Int, Int)) => e._2 },
-  outgoing = { (i: Int) => (i + 1 until n) map ((i, _)) },
-  ingoing = { (i: Int) => (0 until i) map ((_, i)) }
+  initialGraph = GraphBody(
+    edgeAction = (rho: Assignment[Int, Double]) => (p: (Int, Int)) => rho(p._1) + 1,
+    sources = Relation( (e: (Int, Int)) => Set(e._1) ),
+    target = (e: (Int, Int)) => e._2,
+    outgoing = Relation ( (i: Int) => (i + 1 until n).toSet map (i -> _) ),
+    ingoing = Relation ( (i: Int) => (0 until i).toSet map (_ -> i) ),
+    combiner = scala.math.max
+  )
 ):
 
-  override val infl: Relation[Int] = Relation({ (i: Int) => (i + 1 until n).toSet })
+  override val infl: Relation[Int, Int] = Relation( (i: Int) => (i + 1 until n).toSet )
   override val body: Body[Int, Double] =
-    (rho: Assignment[Int, Double]) => (i: Int) => (0 until i) map rho reduce (_ upperBound _)
+    (rho: Assignment[Int, Double]) => (i: Int) => (0 until i) map rho reduce scala.math.max
   override val bodyWithDependencies: BodyWithDependencies[Int, Double] =
     (rho: Assignment[Int, Double]) => (i: Int) => (body(rho)(i), (0 until i).toSet)

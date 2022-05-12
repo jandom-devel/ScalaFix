@@ -1,5 +1,5 @@
 /**
- * Copyright 2015, 2016, 2017 Gianluca Amato <gianluca.amato@unich.it>
+ * Copyright 2022 Gianluca Amato <gianluca.amato@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -14,17 +14,11 @@
  * You should have received a copy of the GNU General Public License along with
  * ScalaFix. If not, see <http://www.gnu.org/licenses/>.
  */
-
-package it.unich
+package it.unich.scalafix
 
 /**
- * This package contains the core definitions used by all the ScalaFix library.
+ * This package handles equation systems derived from a control-flow graph,
+ * which are a particular case of the equation system with a finite number of
+ * unknowns.
  */
-package object scalafix:
-
-  /**
-   * The constant to use in -Xelide-below in order to remove tracing code. Note
-   * that tracing might be required to make a program work, so only elide it if
-   * you known what you are doing.
-   */
-  final val TRACING = 5000
+package object graphs

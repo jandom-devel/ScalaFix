@@ -28,7 +28,9 @@ lazy val core = project
       "org.scalatest" %% "scalatest-funspec" % "3.2.11" % Test,
       "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.15.4" % Test
-    )
+    ),
+    Compile / doc / scalacOptions ++= Seq("-doc-root-content", "rootdoc.txt"),
+    name := "ScalaFix"
   )
 
 lazy val bench = project

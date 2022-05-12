@@ -9,8 +9,7 @@ ThisBuild / scalacOptions ++= Seq(
   "-Xfatal-warnings",
   "-source",
   "future",
-  "-language:adhocExtensions",
-  "-new-syntax"
+  "-new-syntax",
 )
 
 lazy val scalafix = project
@@ -30,6 +29,7 @@ lazy val core = project
       "org.scalacheck" %% "scalacheck" % "1.15.4" % Test
     ),
     Compile / doc / scalacOptions ++= Seq("-doc-root-content", "rootdoc.txt"),
+    Test / scalacOptions ++= Seq("-language:adhocExtensions"),
     name := "ScalaFix"
   )
 
@@ -37,6 +37,9 @@ lazy val bench = project
   .dependsOn(core)
   .enablePlugins(JmhPlugin)
   .settings(noPublishSettings)
+  .settings(
+    scalacOptions ++= Seq("-language:adhocExtensions"),
+  )
 
 val noPublishSettings = Seq(
   publish / skip := true

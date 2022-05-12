@@ -9,7 +9,7 @@ ThisBuild / scalacOptions ++= Seq(
   "-Xfatal-warnings",
   "-source",
   "future",
-  "-new-syntax",
+  "-new-syntax"
 )
 
 lazy val scalafix = project
@@ -23,14 +23,29 @@ lazy val scalafix = project
 lazy val core = project
   .settings(publishSettings)
   .settings(
+    name := "ScalaFix",
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest-funspec" % "3.2.11" % Test,
       "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.15.4" % Test
     ),
-    Compile / doc / scalacOptions ++= Seq("-doc-root-content", "rootdoc.txt"),
+    Compile / doc / scalacOptions ++= Seq(
+      "-project-version",
+      version.value,
+      "-project-footer",
+      "The Jandom Development Team &mdash; Università di Chieti-Pescara, Italy",
+      "-doc-root-content",
+      "api.md",
+      "-siteroot",
+      ".",
+      "-social-links:github::https://github.com/jandom-devel/ScalaFix",
+      "-source-links:github://jandom-devel/ScalaFix/" +
+        (if (version.value.endsWith("-SNAPSHOT")) "master" else "v" + version.value),
+      "-external-mappings:.*scala.*::scaladoc3::https://scala-lang.org/api/3.x/," +
+        ".*java.*::javadoc::https://docs.oracle.com/en/java/javase/11/docs/api/java.base/",
+
+    ),
     Test / scalacOptions ++= Seq("-language:adhocExtensions"),
-    name := "ScalaFix"
   )
 
 lazy val bench = project
@@ -38,7 +53,7 @@ lazy val bench = project
   .enablePlugins(JmhPlugin)
   .settings(noPublishSettings)
   .settings(
-    scalacOptions ++= Seq("-language:adhocExtensions"),
+    scalacOptions ++= Seq("-language:adhocExtensions")
   )
 
 val noPublishSettings = Seq(

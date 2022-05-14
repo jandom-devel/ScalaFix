@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * ScalaFix. If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 import ReleaseTransformations._
 
 ThisBuild / scalaVersion := "3.1.2"
@@ -41,9 +41,9 @@ lazy val core = project
   .settings(
     name := "ScalaFix",
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest-funspec" % "3.2.11" % Test,
-      "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
-      "org.scalacheck" %% "scalacheck" % "1.15.4" % Test
+      "org.scalatest" %% "scalatest-funspec" % "3.2.12" % Test,
+      "org.scalatestplus" %% "scalacheck-1-16" % "3.2.12.0" % Test,
+      "org.scalacheck" %% "scalacheck" % "1.16.0" % Test
     ),
     Test / scalacOptions ++= Seq("-language:adhocExtensions"),
     Compile / doc / scalacOptions ++= Seq(

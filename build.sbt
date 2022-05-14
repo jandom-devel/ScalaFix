@@ -34,11 +34,9 @@ lazy val scalafix = project
   .in(file("."))
   .aggregate(core, bench)
   .settings(noPublishSettings)
-  .settings(
-    Jmh / run := (bench / Jmh / run).evaluated
-  )
 
 lazy val core = project
+  .settings(scaladocSettings)
   .settings(publishSettings)
   .settings(
     name := "ScalaFix",
@@ -47,29 +45,23 @@ lazy val core = project
       "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test,
       "org.scalacheck" %% "scalacheck" % "1.15.4" % Test
     ),
-    Compile / doc / scalacOptions ++= Seq(
-      "-project-version",
-      version.value,
-      "-project-footer",
-      "The Jandom Development Team &mdash; Università di Chieti-Pescara, Italy",
-      "-doc-root-content",
-      "api.md",
-      "-siteroot",
-      ".",
-      "-social-links:github::https://github.com/jandom-devel/ScalaFix",
-      "-source-links:github://jandom-devel/ScalaFix/" +
-        (if (version.value.endsWith("-SNAPSHOT")) "master" else "v" + version.value),
-      "-external-mappings:.*scala.*::scaladoc3::https://scala-lang.org/api/3.x/," +
-        ".*java.*::javadoc::https://docs.oracle.com/en/java/javase/11/docs/api/java.base/",
-
-    ),
     Test / scalacOptions ++= Seq("-language:adhocExtensions"),
+    Compile / doc / scalacOptions ++= Seq(
+      "-doc-root-content",
+      "core/api.md",
+      "-siteroot",
+      "core/"
+    )
   )
 
 lazy val bench = project
   .dependsOn(core)
   .enablePlugins(JmhPlugin)
+  .settings(scaladocSettings)
   .settings(noPublishSettings)
+  .settings(
+    name := "ScalaFix Benchmarks"
+  )
 
 val noPublishSettings = Seq(
   publish / skip := true
@@ -116,5 +108,19 @@ val publishSettings = Seq(
     setNextVersion,
     commitNextVersion,
     pushChanges
+  )
+)
+
+val scaladocSettings = Seq(
+  Compile / doc / scalacOptions ++= Seq(
+    "-project-version",
+    version.value,
+    "-project-footer",
+    "The Jandom Development Team &mdash; Università di Chieti-Pescara, Italy",
+    "-social-links:github::https://github.com/jandom-devel/ScalaFix",
+    "-source-links:github://jandom-devel/ScalaFix/" +
+      (if (version.value.endsWith("-SNAPSHOT")) "master" else "v" + version.value),
+    "-external-mappings:.*scala.*::scaladoc3::https://scala-lang.org/api/3.x/," +
+      ".*java.*::javadoc::https://docs.oracle.com/en/java/javase/11/docs/api/java.base/"
   )
 )

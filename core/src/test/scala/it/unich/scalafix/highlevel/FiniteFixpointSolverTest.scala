@@ -1,5 +1,6 @@
 /**
- * Copyright 2015, 2016 Gianluca Amato <gianluca.amato@unich.it>
+ * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and
+ *                       Francesca Scozzari <francesca.scozzari@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -7,7 +8,7 @@
  * License, or (at your option) any later version.
  *
  * ScalaFix is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty ofa MERCHANTABILITY or FITNESS
+ * WARRANTY; without even the implied warranty of a MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
  *

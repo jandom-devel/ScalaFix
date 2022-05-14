@@ -1,5 +1,5 @@
-/**
- * Copyright 2019, 2022 Gianluca Amato <gianluca.amato@unich.it>
+  /**
+ * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public

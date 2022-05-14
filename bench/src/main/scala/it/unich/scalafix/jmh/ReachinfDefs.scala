@@ -30,11 +30,11 @@ import scala.collection.mutable
 import java.util.concurrent.TimeUnit
 
 /**
- * This benchmark compares the round robin ScalaFix solver with two ad-hoc solvers,
- * one using hash maps for keeping the current assignment, the other using arrays.
- * Differently from other benchmarks, the payload is not completely trivial, therefore
- * we are merely measuring the over-head of ScalaFix, but assessing its impact in a
- * real case.
+ * This benchmark compares the round robin ScalaFix solver with two ad-hoc
+ * solvers, one using hash maps for keeping the current assignment, the other
+ * using arrays. Differently from other benchmarks, the payload is not
+ * completely trivial, therefore we are merely measuring the over-head of
+ * ScalaFix, but assessing its impact in a real case.
  */
 
 @State(Scope.Benchmark)
@@ -44,7 +44,12 @@ import java.util.concurrent.TimeUnit
 @Fork(value = 1)
 class ReachingDefs {
 
-  val length = 8
+  /** First unknown of the equation system. */
+  val firstUnknown = 1
+
+  /** Last unknown of the equation system. */
+  val lastUnknown = 7
+
 
   /**
    * We consider the following three address code program, with 7 definitions:
@@ -79,7 +84,7 @@ class ReachingDefs {
     },
     initialInfl = Relation(1 -> 2, 2 -> 3, 3 -> 4, 4 -> 5, 5 -> 6, 5 -> 7, 6 -> 4, 7 -> 4),
     inputUnknowns = Set(1),
-    unknowns = 1 until length
+    unknowns = firstUnknown to lastUnknown
   )
 
   /** The round robin ScalaFix analyzer. */
@@ -88,7 +93,10 @@ class ReachingDefs {
     RoundRobinSolver(eqs)(Assignment(Set()))
   }
 
-  /** An ad-hoc static analyzer using hash maps for keeping the current assignment. */
+  /**
+   * An ad-hoc static analyzer using hash maps for keeping the current
+   * assignment.
+   */
   @Benchmark
   def hashMap() = {
     val rho = mutable.Map.empty[Int, Set[Int]].withDefaultValue(Set())
@@ -98,7 +106,7 @@ class ReachingDefs {
     while dirty do
       dirty = false
       i = 1
-      while i < length do
+      while i <= lastUnknown do
         val v = rho(i)
         val vnew = bodyrho(i)
         if v != vnew then
@@ -108,17 +116,19 @@ class ReachingDefs {
     rho
   }
 
-  /** An ad-hoc static analyzer using arrays for keeping the current assignment. */
+  /**
+   * An ad-hoc static analyzer using arrays for keeping the current assignment.
+   */
   @Benchmark
   def array() = {
-    val rho = Array.fill(length)(Set[Int]())
+    val rho = Array.fill(lastUnknown+1)(Set[Int]())
     var bodyrho = eqs.body(rho)
     var dirty = true
     var i = 1
     while dirty do
       dirty = false
       i = 1
-      while i < length do
+      while i <= lastUnknown do
         val v = rho(i)
         val vnew = bodyrho(i)
         if v != vnew then

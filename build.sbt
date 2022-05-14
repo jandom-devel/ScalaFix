@@ -70,9 +70,6 @@ lazy val bench = project
   .dependsOn(core)
   .enablePlugins(JmhPlugin)
   .settings(noPublishSettings)
-  .settings(
-    scalacOptions ++= Seq("-language:adhocExtensions")
-  )
 
 val noPublishSettings = Seq(
   publish / skip := true

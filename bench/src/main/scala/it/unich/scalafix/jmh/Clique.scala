@@ -29,6 +29,16 @@ import org.openjdk.jmh.annotations.*
  * This class tests the efficiency of several fixpoint solvers on different
  * variants of the clique equation system.
  *
+ * These are the results of the benchmarks on an Intel Core i5-2500K.
+ * ```
+ * [info] Benchmark                         Mode  Cnt    Score   Error  Units
+ * [info] Clique.finite                    thrpt    5  325.181 ± 4.953  ops/s
+ * [info] Clique.finiteWithCombos          thrpt    5  320.771 ± 3.109  ops/s
+ * [info] Clique.graph                     thrpt    5   13.971 ± 0.670  ops/s
+ * [info] Clique.graphWithCombos           thrpt    5   14.030 ± 0.056  ops/s
+ * [info] Clique.graphWithLocalizedCombos  thrpt    5    6.457 ± 0.022  ops/s
+ * ```
+ *
  * @see
  *   [[CliqueEQS]]
  */

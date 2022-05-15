@@ -29,6 +29,18 @@ import org.openjdk.jmh.annotations.*
  * This class tests the efficiency of several fixpoint solvers on different
  * variants of the chain equation system.
  *
+ * These are the results of the benchmarks on an Intel Core i5-2500K.
+ * ```
+ * [info] Benchmark                    Mode  Cnt     Score    Error  Units
+ * [info] Chain.FWLFinite             thrpt    5   997.284 ±  6.771  ops/s
+ * [info] Chain.FWLGraph              thrpt    5   480.289 ±  3.566  ops/s
+ * [info] Chain.FWLGraphOptimized     thrpt    5  1047.935 ±  7.781  ops/s
+ * [info] Chain.IWLInfinite           thrpt    5   634.628 ±  7.537  ops/s
+ * [info] Chain.IWLInfiniteOptimized  thrpt    5   808.006 ± 16.231  ops/s
+ * [info] Chain.RRFinite              thrpt    5  2896.515 ± 67.808  ops/s
+ * [info] Chain.RRGraph               thrpt    5   759.892 ± 10.577  ops/s
+ * ```
+ *
  * @see
  *   [[ChainEQS]]
  */

@@ -1,6 +1,6 @@
 /**
- * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and
- *                       Francesca Scozzari <francesca.scozzari@unich.it>
+ * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and Francesca
+ * Scozzari <francesca.scozzari@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -52,9 +52,25 @@ import it.unich.scalafix.graphs.GraphEquationSystem
  *     d7 --> i = u3
  * while (e2)
  * ```
- * The example comes from: Alfred V. Aho, Ravi Sethi, Jeffrey D. Ullman.
- * Compilers. _Principles, Techniques, and Tools._ Addison-Wesley Publishing
- * Company, 1986
+ * The example comes from:
+   <blockquote>
+ * Alfred V. Aho, Ravi Sethi, Jeffrey D. Ullman.<br>
+ * <em>Compilers. Principles, Techniques, and Tools</em><br>
+ * Addison-Wesley Publishing Company, 1986
+ * </blockquote>
+ *
+ * These are the results of the benchmarks on an Intel Core i5-2500K.
+ * ```
+ * [info] Benchmark                              Mode  Cnt      Score     Error  Units
+ * [info] ReachingDefs.array                    thrpt    5  33702.740 ± 175.994  ops/s
+ * [info] ReachingDefs.arrayWithCombos          thrpt    5  21038.941 ± 157.272  ops/s
+ * [info] ReachingDefs.hashMap                  thrpt    5  33012.241 ± 317.307  ops/s
+ * [info] ReachingDefs.hashMapWithCombos        thrpt    5  21310.927 ±  71.717  ops/s
+ * [info] ReachingDefs.scalafix                 thrpt    5  33384.568 ± 119.923  ops/s
+ * [info] ReachingDefs.scalafixGraph            thrpt    5  27346.565 ± 278.974  ops/s
+ * [info] ReachingDefs.scalafixGraphWithCombos  thrpt    5  16929.174 ± 128.567  ops/s
+ * [info] ReachingDefs.scalafixWithCombos       thrpt    5  20833.308 ±  82.564  ops/s
+ * ```
  */
 
 @State(Scope.Benchmark)

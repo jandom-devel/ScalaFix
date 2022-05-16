@@ -20,6 +20,7 @@ import ReleaseTransformations._
 
 ThisBuild / scalaVersion := "3.1.2"
 ThisBuild / organization := "it.unich.scalafix"
+ThisBuild / versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
 ThisBuild / scalacOptions ++= Seq(
   "-deprecation",
   "-feature",

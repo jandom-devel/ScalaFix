@@ -31,12 +31,17 @@ import org.openjdk.jmh.annotations.*
  *
  * These are the results of the benchmarks on an Intel Core i5-2500K.
  * ```
- * [info] Benchmark                         Mode  Cnt    Score   Error  Units
- * [info] Clique.finite                    thrpt    5  325.181 ± 4.953  ops/s
- * [info] Clique.finiteWithCombos          thrpt    5  320.771 ± 3.109  ops/s
- * [info] Clique.graph                     thrpt    5   13.971 ± 0.670  ops/s
- * [info] Clique.graphWithCombos           thrpt    5   14.030 ± 0.056  ops/s
- * [info] Clique.graphWithLocalizedCombos  thrpt    5    6.457 ± 0.022  ops/s
+ * [info] Benchmark                           Mode  Cnt    Score   Error  Units
+ * [info] Clique.WLfinite                    thrpt    5  183.012 ± 2.249  ops/s
+ * [info] Clique.WLfiniteWithCombos          thrpt    5  222.433 ± 6.117  ops/s
+ * [info] Clique.WLgraph                     thrpt    5   87.586 ± 3.201  ops/s
+ * [info] Clique.WLgraphWithCombos           thrpt    5   84.117 ± 0.352  ops/s
+ * [info] Clique.WLgraphWithLocalizedCombos  thrpt    5   20.344 ± 0.065  ops/s
+ * [info] Clique.finite                      thrpt    5  190.622 ± 1.858  ops/s
+ * [info] Clique.finiteWithCombos            thrpt    5  190.462 ± 2.078  ops/s
+ * [info] Clique.graph                       thrpt    5   85.498 ± 0.730  ops/s
+ * [info] Clique.graphWithCombos             thrpt    5   86.506 ± 0.529  ops/s
+ * [info] Clique.graphWithLocalizedCombos    thrpt    5   19.188 ± 0.071  ops/s
  * ```
  *
  * @see
@@ -63,68 +68,117 @@ class Clique:
     (0 until numUnknowns).forall(i => rho(i) == initVal)
   )
 
-  private val graphEqs = CliqueEQS.createGraphEQS[Int](numUnknowns)
   private val finiteEqs = CliqueEQS.createFiniteEQS[Int](numUnknowns)
+  private val finiteEqsWithCombos = finiteEqs.withCombos(ComboAssignment(combo))
+  private val graphEqs = CliqueEQS.createGraphEQS[Int](numUnknowns)
+  private val graphEqsWithCombos = graphEqs.withCombos(ComboAssignment(combo))
+  private val ordering = DFOrdering(graphEqs)
+  private val graphEqsWithLocalizedCombos =
+    graphEqs.withLocalizedCombos(ComboAssignment(combo), ordering)
 
-  validate(RoundRobinSolver(graphEqs)(initAssignment))
   validate(RoundRobinSolver(finiteEqs)(initAssignment))
-  validate(RoundRobinSolver(finiteEqs.withCombos(ComboAssignment(combo)))(initAssignment))
+  validate(RoundRobinSolver(finiteEqsWithCombos)(initAssignment))
+  validate(RoundRobinSolver(graphEqs)(initAssignment))
+  validate(RoundRobinSolver(graphEqsWithCombos)(initAssignment))
+  validate(RoundRobinSolver(graphEqsWithLocalizedCombos)(initAssignment))
+  validate(WorkListSolver(finiteEqs)(initAssignment))
+  validate(WorkListSolver(finiteEqsWithCombos)(initAssignment))
+  validate(WorkListSolver(graphEqs)(initAssignment))
+  validate(WorkListSolver(graphEqsWithCombos)(initAssignment))
+  validate(WorkListSolver(graphEqsWithLocalizedCombos)(initAssignment))
 
   /**
-   * Benchmarks the round robin ScalaFix analyzer using the finite equation
-   * system.
+   * Benchmarks the round robin solver using the finite equation system.
    *
    * @see
-   *   [[CliqueEQS.createFiniteEQS]]*
+   *   [[CliqueEQS.createFiniteEQS]]
    */
   @Benchmark
-  def finite() =
-    RoundRobinSolver(finiteEqs)(initAssignment)
+  def finite() = RoundRobinSolver(finiteEqs)(initAssignment)
 
   /**
-   * Benchmarks the round robin ScalaFix analyzer using the finite equation
-   * system with an additional max combo at each unknown.
+   * Benchmarks the round robin solver using the finite equation system with an
+   * additional max combo at each unknown.
    *
    * @see
-   *   [[CliqueEQS.createFiniteEQS]]*
+   *   [[CliqueEQS.createFiniteEQS]]
    */
   @Benchmark
-  def finiteWithCombos() =
-    val eqs = finiteEqs.withCombos(ComboAssignment(combo))
-    RoundRobinSolver(eqs)(initAssignment)
+  def finiteWithCombos() = RoundRobinSolver(finiteEqsWithCombos)(initAssignment)
 
   /**
-   * Benchmarks the round robin ScalaFix analyzer using the graph-based equation
-   * system.
+   * Benchmarks the round robin solver using the graph-based equation system.
    *
    * @see
-   *   [[CliqueEQS.createGraphEQS]]*
+   *   [[CliqueEQS.createGraphEQS]]
    */
   @Benchmark
-  def graph() =
-    RoundRobinSolver(graphEqs)(initAssignment)
+  def graph() = RoundRobinSolver(graphEqs)(initAssignment)
 
   /**
-   * Benchmarks the round robin ScalaFix analyzer using the graph-based equation
-   * system with an additional max combo at each unknown.
+   * Benchmarks the round robin solver using the graph-based equation system
+   * with an additional max combo at each unknown.
    *
    * @see
-   *   [[CliqueEQS.createGraphEQS]]*
+   *   [[CliqueEQS.createGraphEQS]]
    */
   @Benchmark
-  def graphWithCombos() =
-    val eqs = graphEqs.withCombos(ComboAssignment(combo))
-    RoundRobinSolver(eqs)(initAssignment)
+  def graphWithCombos() = RoundRobinSolver(graphEqsWithCombos)(initAssignment)
 
   /**
-   * Benchmarks the round robin ScalaFix analyzer using the graph-based equation
-   * system with an additional max combo at each unknown.
+   * Benchmarks the round robin solver using the graph-based equation system
+   * with an additional max combo at each unknown.
    *
    * @see
-   *   [[CliqueEQS.createGraphEQS]]*
+   *   [[CliqueEQS.createGraphEQS]]
    */
   @Benchmark
-  def graphWithLocalizedCombos() =
-    val ordering = DFOrdering(finiteEqs)
-    val eqs = graphEqs.withLocalizedCombos(ComboAssignment(combo), ordering)
-    RoundRobinSolver(eqs)(initAssignment)
+  def graphWithLocalizedCombos() = RoundRobinSolver(graphEqsWithLocalizedCombos)(initAssignment)
+
+  /**
+   * Benchmarks the worklist solver using the finite equation system.
+   *
+   * @see
+   *   [[CliqueEQS.createFiniteEQS]]
+   */
+  @Benchmark
+  def WLfinite() = WorkListSolver(finiteEqs)(initAssignment)
+
+  /**
+   * Benchmarks the worklist solver using the finite equation system with an
+   * additional max combo at each unknown.
+   *
+   * @see
+   *   [[CliqueEQS.createFiniteEQS]]
+   */
+  @Benchmark
+  def WLfiniteWithCombos() = WorkListSolver(finiteEqsWithCombos)(initAssignment)
+
+  /**
+   * Benchmarks the worklist solver using the graph-based equation system.
+   *
+   * @see
+   *   [[CliqueEQS.createGraphEQS]]
+   */
+  @Benchmark
+  def WLgraph() = WorkListSolver(graphEqs)(initAssignment)
+
+  /**
+   * Benchmarks the worklist solver using the graph-based equation system with
+   * an additional max combo at each unknown.
+   *
+   * @see
+   *   [[CliqueEQS.createGraphEQS]]
+   */
+  @Benchmark
+  def WLgraphWithCombos() = WorkListSolver(graphEqsWithCombos)(initAssignment)
+
+  /**
+   * Benchmarks the worklist solver using the graph-based equation system with
+   * an additional max combo at each unknown.
+   *
+   * @see
+   *   [[CliqueEQS.createGraphEQS]]
+   */
+  @Benchmark
+  def WLgraphWithLocalizedCombos() = WorkListSolver(graphEqsWithLocalizedCombos)(initAssignment)

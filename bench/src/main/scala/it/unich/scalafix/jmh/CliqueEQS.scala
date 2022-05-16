@@ -23,6 +23,8 @@ import it.unich.scalafix.finite.*
 import it.unich.scalafix.graphs.*
 import it.unich.scalafix.utils.*
 
+import scala.collection.mutable
+
 /**
  * This object contains many factory methods which build equation systems made
  * from equations of the form `x(i) = upperBound( x(0), ..., x(n-1) )`.
@@ -30,24 +32,27 @@ import it.unich.scalafix.utils.*
 object CliqueEQS:
 
   /** Returns a graph based chain equation system with n unknowns. */
-  def createGraphEQS[V: Domain](n: Int) = GraphEquationSystem[Int, V, (Int, Int)](
-    unknowns = 0 until n,
-    inputUnknowns = Set(0),
-    initialGraph = GraphBody(
-      edgeAction = (rho: Assignment[Int, V]) => (p: (Int, Int)) => rho(p._1),
-      sources = Relation((e: (Int, Int)) => Set(e._1)),
-      target = (e: (Int, Int)) => e._2,
-      outgoing = Relation((i: Int) => (0 until n).toSet map (i -> _)),
-      ingoing = Relation((i: Int) => (0 until n).toSet map (_ -> i)),
-      combiner = summon[Domain[V]].upperBound
+  def createGraphEQS[V: Domain](n: Int) =
+    val out = (0 until n).map((i: Int) => i -> ((0 until n).toSet map (i -> _))).toMap
+    val in = (0 until n).map((i: Int) => i -> ((0 until n).toSet map (_ -> i))).toMap
+    GraphEquationSystem[Int, V, (Int, Int)](
+      unknowns = 0 until n,
+      inputUnknowns = Set(0),
+      initialGraph = GraphBody(
+        edgeAction = (rho: Assignment[Int, V]) => (p: (Int, Int)) => rho(p._1),
+        sources = Relation((e: (Int, Int)) => Set(e._1)),
+        target = (e: (Int, Int)) => e._2,
+        outgoing = Relation(out),
+        ingoing = Relation(in),
+        combiner = summon[Domain[V]].upperBound
+      )
     )
-  )
 
   /** Returns a finite equation system with n unknowns. */
   def createFiniteEQS[V: Domain](n: Int) = FiniteEquationSystem[Int, V](
     unknowns = 0 until n,
     inputUnknowns = Set(0),
     initialInfl = Relation((i: Int) => (0 until n).toSet),
-    initialBody =
-      (rho: Assignment[Int, V]) => (i: Int) => (0 until n) map rho reduce summon[Domain[V]].upperBound
+    initialBody = (rho: Assignment[Int, V]) =>
+      (i: Int) => (0 until n) map rho reduce summon[Domain[V]].upperBound
   )

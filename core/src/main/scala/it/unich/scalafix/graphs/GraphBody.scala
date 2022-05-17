@@ -148,9 +148,7 @@ case class SimpleGraphBody[U, V, E](
       val in = ingoing(x)
       if in.isEmpty
       then rho(x)
-      else
-        val contributions = for e <- in yield edgeActionRho(e)
-        contributions reduce combiner
+      else in.view map edgeActionRho reduce combiner
 
   override def addLocalizedCombos(
       combos: ComboAssignment[U, V],

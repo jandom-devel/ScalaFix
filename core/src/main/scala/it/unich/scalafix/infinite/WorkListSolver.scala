@@ -55,10 +55,11 @@ object WorkListSolver:
       infl(x) = mutable.Set.empty[U]
 
     val current = eqs.getMutableAssignment(start)
+    val eqsBodyWithDependenciesCurrent = eqs.bodyWithDependencies(current)
     tracer.initialized(current)
     while workList.nonEmpty do
       val x = workList.dequeue()
-      val (newval, dependencies) = eqs.bodyWithDependencies(current)(x)
+      val (newval, dependencies) = eqsBodyWithDependenciesCurrent(x)
       tracer.evaluated(current, x, newval)
       for y <- dependencies do
         if !current.isDefinedAt(y) then

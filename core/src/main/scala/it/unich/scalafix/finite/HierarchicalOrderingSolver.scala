@@ -51,6 +51,8 @@ object HierarchicalOrderingSolver:
     import HierarchicalOrdering.*
 
     val current = eqs.getMutableAssignment(start)
+    val eqsBodyCurrent = eqs.body(current)
+
     tracer.initialized(current)
     var stack = List.empty[Int]
     var stackdirty = List.empty[Boolean]
@@ -67,7 +69,7 @@ object HierarchicalOrderingSolver:
           dirty = false
           i += 1
         case Val(x) =>
-          val newval = eqs.body(current)(x)
+          val newval = eqsBodyCurrent(x)
           tracer.evaluated(current, x, newval)
           if newval != current(x) then
             current(x) = newval

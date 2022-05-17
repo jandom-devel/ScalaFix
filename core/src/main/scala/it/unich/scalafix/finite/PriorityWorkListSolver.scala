@@ -55,18 +55,21 @@ object PriorityWorkListSolver:
       tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
   ): MutableAssignment[U, V] =
     val current = eqs.getMutableAssignment(start)
+    val eqsBodyCurrent = eqs.body(current)
+    val eqsInfl = eqs.infl
+    val eqsUnknowns = eqs.unknowns
     tracer.initialized(current)
     val workList = mutable.PriorityQueue.empty[U](ordering)
-    workList ++= eqs.unknowns
+    workList ++= eqsUnknowns
     while workList.nonEmpty do
       val x = workList.dequeue()
-      val newval = eqs.body(current)(x)
+      val newval = eqsBodyCurrent(x)
       tracer.evaluated(current, x, newval)
       val oldval = current(x)
       if restart(newval, oldval) then
-        for y <- eqs.unknowns; if ordering.gt(y, x) do current(y) = start(y)
+        for y <- eqsUnknowns; if ordering.gt(y, x) do current(y) = start(y)
       if newval != oldval then
         current(x) = newval
-        workList ++= eqs.infl(x)
+        workList ++= eqsInfl(x)
     tracer.completed(current)
     current

@@ -1,4 +1,4 @@
- /**
+/**
  * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
@@ -142,13 +142,15 @@ case class SimpleGraphBody[U, V, E](
     combiner: (V, V) => V
 ) extends GraphBody[U, V, E]:
 
-  override def apply(rho: Assignment[U, V]) = (x: U) =>
-    val in = ingoing(x)
-    if in.isEmpty
-    then rho(x)
-    else
-      val contributions = for e <- in yield edgeAction(rho)(e)
-      contributions reduce combiner
+  override def apply(rho: Assignment[U, V]) =
+    val edgeActionRho = edgeAction(rho)
+    (x: U) =>
+      val in = ingoing(x)
+      if in.isEmpty
+      then rho(x)
+      else
+        val contributions = for e <- in yield edgeActionRho(e)
+        contributions reduce combiner
 
   override def addLocalizedCombos(
       combos: ComboAssignment[U, V],
@@ -156,11 +158,12 @@ case class SimpleGraphBody[U, V, E](
   ): GraphBody[U, V, E] =
     val newEdgeAction =
       (rho: Assignment[U, V]) =>
+        val edgeActionRho = edgeAction(rho)
         (e: E) =>
           val x = target(e)
           if combos.isDefinedAt(x) && sources(e).exists(unknownOrdering.lteq(x, _))
-          then combos(x)(rho(x), edgeAction(rho)(e))
-          else edgeAction(rho)(e)
+          then combos(x)(rho(x), edgeActionRho(e))
+          else edgeActionRho(e)
     if combos.combosAreIdempotent
     then copy(edgeAction = newEdgeAction)
     else
@@ -187,12 +190,13 @@ case class SimpleGraphBody[U, V, E](
       unknownOrdering: Ordering[U]
   )(using Domain[V]): Body[U, V] =
     (rho: Assignment[U, V]) =>
+      val edgeActionRho = edgeAction(rho)
       (x: U) =>
         val in = ingoing(x)
         if in.isEmpty then rho(x)
         else
           val contributions = for e <- in yield
-            val contrib = edgeAction(rho)(e)
+            val contrib = edgeActionRho(e)
             val comboapply = sources(e)
               .exists(unknownOrdering.lteq(x, _)) && !(contrib <= rho(x))
             (contrib, comboapply)

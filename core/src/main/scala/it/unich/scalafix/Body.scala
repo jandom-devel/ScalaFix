@@ -88,13 +88,15 @@ extension [U, V](body: Body[U, V])
     else
       val realCombos = combos.copy
       (rho: Assignment[U, V]) =>
+        val bodyRho = body(rho)
         (x: U) =>
-          val res = body(rho)(x)
+          val res = bodyRho(x)
           if realCombos.isDefinedAt(x) then
             val comboedRes = realCombos(x)(rho(x), res)
             optTracer foreach (_.comboEvaluation(rho, x, res, comboedRes))
             comboedRes
-          else res
+          else
+            res
 
 /**
  * Returns a new body in which a base ssignment is combined with this body
@@ -114,10 +116,11 @@ extension [U, V](body: Body[U, V])
 extension [U, V](body: Body[U, V])
   def addBaseAssignment(baseAssignment: PartialFunction[U, V], op: (V, V) => V): Body[U, V] =
     (rho: Assignment[U, V]) =>
+      val bodyRho = body(rho)
       (x: U) =>
         if baseAssignment.isDefinedAt(x)
-        then op(baseAssignment(x), body(rho)(x))
-        else body(rho)(x)
+        then op(baseAssignment(x), bodyRho(x))
+        else bodyRho(x)
 
 /**
  * Returns a new body which calls the specified tracer before and after
@@ -133,8 +136,9 @@ extension [U, V](body: Body[U, V])
 extension [U, V](body: Body[U, V])
   def addTracer(tracer: EquationSystemTracer[U, V]): Body[U, V] =
     (rho: Assignment[U, V]) =>
+      val bodyRho = body(rho)
       (x: U) =>
         tracer.beforeEvaluation(rho, x)
-        val res = body(rho)(x)
+        val res = bodyRho(x)
         tracer.afterEvaluation(rho, x, res)
         res

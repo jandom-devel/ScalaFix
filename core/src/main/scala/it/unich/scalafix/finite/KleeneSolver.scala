@@ -46,12 +46,15 @@ object KleeneSolver:
   ): MutableAssignment[U, V] =
     var current = eqs.getMutableAssignment(start)
     var next = eqs.getMutableAssignment(start)
+    val eqsBody = eqs.body
+    val eqsUnknows = eqs.unknowns
     tracer.initialized(current)
     var dirty = true
     while dirty do
+      val eqsBodyCurrent = eqsBody(current)
       dirty = false
-      for x <- eqs.unknowns do
-        val newval = eqs.body(current)(x)
+      for x <- eqsUnknows do
+        val newval = eqsBodyCurrent(x)
         tracer.evaluated(current, x, newval)
         if newval != current(x) then dirty = true
         next(x) = newval

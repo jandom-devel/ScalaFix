@@ -43,14 +43,15 @@ object RoundRobinSolver:
       start: Assignment[U, V],
       tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
   ): MutableAssignment[U, V] =
-
     val current = eqs.getMutableAssignment(start)
+    val eqsBodyCurrent = eqs.body(current)
+    val eqsUnknows = eqs.unknowns
     tracer.initialized(current)
     var dirty = true
     while dirty do
       dirty = false
-      for x <- eqs.unknowns do
-        val newval = eqs.body(current)(x)
+      for x <- eqsUnknows do
+        val newval = eqsBodyCurrent(x)
         tracer.evaluated(current, x, newval)
         if newval != current(x) then
           current(x) = newval

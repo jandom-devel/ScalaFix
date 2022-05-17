@@ -1,6 +1,6 @@
 /**
- * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and
- *                       Francesca Scozzari <francesca.scozzari@unich.it>
+ * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and Francesca
+ * Scozzari <francesca.scozzari@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -143,20 +143,23 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[
   override protected def initialBody: Body[U, V] =
     optLocalizedWarrowings match
       case Some((localizedWidenings, localizedNarrowings, unknownOrdering, dom)) =>
-        graph.addLocalizedWarrowing(localizedWidenings, localizedNarrowings, unknownOrdering)(using
-          dom
+        graph.addLocalizedWarrowing(localizedWidenings, localizedNarrowings, unknownOrdering)(
+          using dom
         )
       case _ => graph
 
   /** Returns the body with dependencies of the equations system. */
   override def bodyWithDependencies: BodyWithDependencies[U, V] =
+    val body = this.body
+    val graph = this.graph
     (rho: Assignment[U, V]) =>
+      val bodyRho = body(rho)
       (x: U) => {
         val deps =
           graph
             .ingoing(x)
             .foldLeft(Iterable.empty[U])((acc: Iterable[U], e: E) => acc ++ graph.sources(e))
-        val res = body(rho)(x)
+        val res = bodyRho(x)
         (res, deps)
       }
 
@@ -167,6 +170,7 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[
    * by the graph.
    */
   override def initialInfl: Relation[U, U] =
+    val graph = this.graph
     // whey are we using the graph here and not the initial graph ?
     val base = Relation((u: U) => graph.outgoing(u).view.map(graph.target).toSet)
     optLocalizedWarrowings match

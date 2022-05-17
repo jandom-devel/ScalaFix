@@ -44,19 +44,22 @@ object WorkListSolver:
       tracer: FixpointSolverTracer[U, V] = FixpointSolverTracer.empty[U, V]
   ): MutableAssignment[U, V] =
     val current = eqs.getMutableAssignment(start)
+    val eqsUnknowns = eqs.unknowns
+    val eqsBodyCurrent = eqs.body(current)
+    val eqsInfl = eqs.infl
     tracer.initialized(current)
     // is it better to use a Queue for a worklist ?
     val workList = collection.mutable.LinkedHashSet.empty[U]
-    workList ++= eqs.unknowns
+    workList ++= eqsUnknowns
     while workList.nonEmpty do
       val x = workList.head
       workList.remove(x)
-      val newval = eqs.body(current)(x)
+      val newval = eqsBodyCurrent(x)
       tracer.evaluated(current, x, newval)
       if newval != current(x) then
         current(x) = newval
         // variant with Queue
         // for (y <- eqs.infl(x); if !(workList contains y)) workList += y
-        workList ++= eqs.infl(x)
+        workList ++= eqsInfl(x)
     tracer.completed(current)
     current

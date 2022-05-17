@@ -52,12 +52,9 @@ import it.unich.scalafix.graphs.GraphEquationSystem
  *     d7 --> i = u3
  * while (e2)
  * ```
- * The example comes from:
-   <blockquote>
- * Alfred V. Aho, Ravi Sethi, Jeffrey D. Ullman.<br>
- * <em>Compilers. Principles, Techniques, and Tools</em><br>
- * Addison-Wesley Publishing Company, 1986
- * </blockquote>
+ * The example comes from: <blockquote> Alfred V. Aho, Ravi Sethi, Jeffrey D.
+ * Ullman.<br> <em>Compilers. Principles, Techniques, and Tools</em><br>
+ * Addison-Wesley Publishing Company, 1986 </blockquote>
  *
  * These are the results of the benchmarks on an Intel Core i5-2500K.
  * ```
@@ -100,7 +97,11 @@ class ReachingDefs:
     inputUnknowns = Set(1)
   )
 
+  /** Combo used in the equation systems. */
   private val combo = Combo[Set[Int]](_ ++ _, true)
+
+  /** The finite equationm system with combos. */
+  private val eqsCombo = eqs.withCombos(ComboAssignment(combo))
 
   /** The graph based body of the equation system. */
   private val graphBody = GraphBody[(Int, Boolean), Set[Int], String](
@@ -172,6 +173,16 @@ class ReachingDefs:
     inputUnknowns = Set((1, false))
   )
 
+  /** The graph-based version of the equation system wth combos. */
+  private val graphEqsCombo = graphEqs.withCombos(ComboAssignment(combo))
+
+  /** The DF ordering for the graph-based equation system. */
+  private val ordering = DFOrdering(graphEqs)
+
+  /** The graph-based version of the equation system wth localized combos. */
+  private val graphEqsLocalizedCombos =
+    graphEqs.withLocalizedCombos(ComboAssignment(combo), ordering)
+
   /** Validate the correcteness of a solution. */
   private def validate(rho: Assignment[Int, Set[Int]]) =
     assert(rho(1) == Set(1))
@@ -182,9 +193,18 @@ class ReachingDefs:
     assert(rho(6) == Set(4, 5, 6))
     assert(rho(7) == Set(3, 5, 6, 7))
 
-  validate(scalafix())
+  validate(RoundRobinSolver(eqs)(Assignment(Set())))
+  validate(RoundRobinSolver(eqsCombo)(Assignment(Set())))
   validate {
-    val rho = scalafixGraph()
+    val rho = RoundRobinSolver(graphEqs)(Assignment(Set()))
+    (i: Int) => rho(i, false)
+  }
+  validate {
+    val rho = RoundRobinSolver(graphEqsCombo)(Assignment(Set()))
+    (i: Int) => rho(i, false)
+  }
+  validate {
+    val rho = RoundRobinSolver(graphEqsLocalizedCombos)(Assignment(Set()))
     (i: Int) => rho(i, false)
   }
 
@@ -250,9 +270,7 @@ class ReachingDefs:
    * system with an additional set-union combo at each unknown.
    */
   @Benchmark
-  def scalafixWithCombos() =
-    val eqsCombo = eqs.withCombos(ComboAssignment(combo))
-    RoundRobinSolver(eqsCombo)(Assignment(Set()))
+  def scalafixWithCombos() = RoundRobinSolver(eqsCombo)(Assignment(Set()))
 
   /**
    * Benchmarks the round robin ScalaFix analyzer using the graph based equation
@@ -262,13 +280,19 @@ class ReachingDefs:
   def scalafixGraph() = RoundRobinSolver(graphEqs)(Assignment(Set()))
 
   /**
-   * Benchmarks the round robin ScalaFix analyzer using the finite equation
-   * system with an additional set-union combo at each unknown.
+   * Benchmarks the round robin ScalaFix analyzer using the graph based equation
+   * system with additional set-union combo at each unknown.
    */
   @Benchmark
-  def scalafixGraphWithCombos() =
-    val eqsCombo = graphEqs.withCombos(ComboAssignment(combo))
-    RoundRobinSolver(eqsCombo)(Assignment(Set()))
+  def scalafixGraphWithCombos() = RoundRobinSolver(graphEqsCombo)(Assignment(Set()))
+
+  /**
+   * Benchmarks the round robin ScalaFix analyzer using the graph based equation
+   * system with additional localized set-union combo at each unknown.
+   */
+  @Benchmark
+  def scalafixGraphWithLocalizedCombos() =
+    RoundRobinSolver(graphEqsLocalizedCombos)(Assignment(Set()))
 
   /**
    * Benchmarks an ad-hoc static analyzer using hash maps for keeping the

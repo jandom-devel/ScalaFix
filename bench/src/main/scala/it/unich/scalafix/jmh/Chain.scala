@@ -38,7 +38,9 @@ import org.openjdk.jmh.annotations.*
  * [info] Chain.IWLInfinite           thrpt    5    686.379 ±  47.213  ops/s
  * [info] Chain.IWLInfiniteOptimized  thrpt    5    887.838 ±  21.782  ops/s
  * [info] Chain.RRFinite              thrpt    5   5538.541 ±  31.212  ops/s
+ * [info] Chain.RRFiniteWithCombos    thrpt    5   1618.644 ±  14.872  ops/s
  * [info] Chain.RRGraph               thrpt    5   1955.393 ±  48.584  ops/s
+ * [info] Chain.RRGraphWithCombos     thrpt    5   1746.585 ±  12.367  ops/s
  * ```
  *
  * @see
@@ -57,9 +59,14 @@ class Chain:
   /** Number of unknowns. */
   private val numUnknowns = 10000
 
+  /** The combo used in benchmarks. */
+  private val combo = Combo.right[Int]
+
   private val chainGraphEqsOptimized = ChainEQS.createGraphEQSOptimized[Int](numUnknowns)
   private val chainGraphEqs = ChainEQS.createGraphEQS[Int](numUnknowns)
+  private val chainGraphWithCombosEqs = chainGraphEqs.withCombos(ComboAssignment(combo))
   private val chainFiniteEqs = ChainEQS.createFiniteEQS[Int](numUnknowns)
+  private val chainFiniteWithCombosEqs = chainGraphEqs.withCombos(ComboAssignment(combo))
   private val chainInfiniteEqsOptimized = ChainEQS.createInfiniteEQSOptimized[Int]()
   private val chainInfiniteEqs = ChainEQS.createInfiniteEQS[Int]()
 
@@ -69,7 +76,9 @@ class Chain:
 
   validate(RoundRobinSolver(chainGraphEqsOptimized)(initAssignment))
   validate(RoundRobinSolver(chainGraphEqs)(initAssignment))
+  validate(RoundRobinSolver(chainGraphWithCombosEqs)(initAssignment))
   validate(RoundRobinSolver(chainFiniteEqs)(initAssignment))
+  validate(RoundRobinSolver(chainFiniteWithCombosEqs)(initAssignment))
   validate(InfiniteWorkListSolver(chainInfiniteEqsOptimized)(initAssignment, Seq(numUnknowns)))
   validate(InfiniteWorkListSolver(chainInfiniteEqs)(initAssignment, Seq(numUnknowns)))
 
@@ -95,6 +104,16 @@ class Chain:
   def RRGraph() = RoundRobinSolver(chainGraphEqs)(initAssignment)
 
   /**
+   * Benchmarks the round robin solver on the standard graph-based chain
+   * equation system with with an additional max combo at each unknown.
+   *
+   * @see
+   *   [[ChainEQS.createGraphEQS]]
+   */
+  @Benchmark
+  def RRGraphWithCombos() = RoundRobinSolver(chainGraphWithCombosEqs)(initAssignment)
+
+  /**
    * Benchmarks the round robin solver on the finite chain equation system.
    *
    * @see
@@ -102,6 +121,16 @@ class Chain:
    */
   @Benchmark
   def RRFinite() = RoundRobinSolver(chainFiniteEqs)(initAssignment)
+
+  /**
+   * Benchmarks the round robin solver on the finite chain equation system, with
+   * an additional max combo at each unknown.
+   *
+   * @see
+   *   ChainEQS.createFiniteEQS
+   */
+  @Benchmark
+  def RRFiniteWithCombos() = RoundRobinSolver(chainFiniteWithCombosEqs)(initAssignment)
 
   /**
    * Benchmarks the worklist solver on the optimized version of the graph-based

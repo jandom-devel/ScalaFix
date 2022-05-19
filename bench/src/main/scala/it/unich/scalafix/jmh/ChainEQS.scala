@@ -36,10 +36,10 @@ object ChainEQS:
     inputUnknowns = Set(0),
     initialGraph = GraphBody(
       edgeAction = (rho: Assignment[Int, V]) => (i: Int) => rho(i),
-      sources = Relation((i: Int) => Set(i)),
+      sources = Relation((i: Int) => Seq(i)),
       target = (i: Int) => i + 1,
-      outgoing = Relation((i: Int) => if i == n - 1 then Set.empty else Set(i)),
-      ingoing = Relation((i: Int) => if i == 0 then Set.empty else Set(i - 1)),
+      outgoing = Relation((i: Int) => if i == n - 1 then Seq.empty else Seq(i)),
+      ingoing = Relation((i: Int) => if i == 0 then Seq.empty else Seq(i - 1)),
       combiner = summon[Domain[V]].upperBound
     )
   )
@@ -49,7 +49,7 @@ object ChainEQS:
     unknowns = 0 until n,
     inputUnknowns = Set(0),
     initialBody = (rho: Assignment[Int, V]) => (i: Int) => if i > 0 then rho(i - 1) else rho(0),
-    initialInfl = Relation((i: Int) => if i < n - 1 then Set(i + 1) else Set.empty)
+    initialInfl = Relation((i: Int) => if i < n - 1 then Seq(i + 1) else Seq.empty)
   )
 
   /** Returns an infinite chain equation system. */
@@ -92,15 +92,15 @@ object ChainEQS:
     override val inputUnknowns = Set(0)
     override val initialGraph = GraphBody(
       edgeAction = (rho: Assignment[Int, V]) => (i: Int) => rho(i),
-      sources = Relation((i: Int) => Set(i)),
+      sources = Relation((i: Int) => Seq(i)),
       target = (i: Int) => i + 1,
-      outgoing = Relation((i: Int) => if i == n - 1 then Set.empty else Set(i)),
-      ingoing = Relation((i: Int) => if i == 0 then Set.empty else Set(i - 1)),
+      outgoing = Relation((i: Int) => if i == n - 1 then Seq.empty else Seq(i)),
+      ingoing = Relation((i: Int) => if i == 0 then Seq.empty else Seq(i - 1)),
       combiner = summon[Domain[V]].upperBound
     )
     override val initialBody = (rho: Assignment[Int, V]) =>
       (i: Int) => if i > 0 then rho(i - 1) else rho(0)
-    override val initialInfl = Relation((i: Int) => if i < n - 1 then Set(i + 1) else Set.empty)
+    override val initialInfl = Relation((i: Int) => if i < n - 1 then Seq(i + 1) else Seq.empty)
     override val bodyWithDependencies: BodyWithDependencies[Int, V] =
       (rho: Assignment[Int, V]) =>
         (i: Int) => if i > 0 then (rho(i - 1), Seq(i - 1)) else (rho(0), Seq.empty)

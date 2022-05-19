@@ -58,15 +58,16 @@ import it.unich.scalafix.graphs.GraphEquationSystem
  *
  * These are the results of the benchmarks on an Intel Core i5-2500K.
  * ```
- * [info] Benchmark                              Mode  Cnt      Score     Error  Units
- * [info] ReachingDefs.array                    thrpt    5  33702.740 ± 175.994  ops/s
- * [info] ReachingDefs.arrayWithCombos          thrpt    5  21038.941 ± 157.272  ops/s
- * [info] ReachingDefs.hashMap                  thrpt    5  33012.241 ± 317.307  ops/s
- * [info] ReachingDefs.hashMapWithCombos        thrpt    5  21310.927 ±  71.717  ops/s
- * [info] ReachingDefs.scalafix                 thrpt    5  33384.568 ± 119.923  ops/s
- * [info] ReachingDefs.scalafixGraph            thrpt    5  27346.565 ± 278.974  ops/s
- * [info] ReachingDefs.scalafixGraphWithCombos  thrpt    5  16929.174 ± 128.567  ops/s
- * [info] ReachingDefs.scalafixWithCombos       thrpt    5  20833.308 ±  82.564  ops/s
+ * [info] Benchmark                                       Mode  Cnt      Score     Error  Units
+ * [info] ReachingDefs.array                             thrpt    5  35286.065 ± 117.418  ops/s
+ * [info] ReachingDefs.arrayWithCombos                   thrpt    5  22822.220 ± 130.105  ops/s
+ * [info] ReachingDefs.hashMap                           thrpt    5  34208.490 ±  60.324  ops/s
+ * [info] ReachingDefs.hashMapWithCombos                 thrpt    5  22031.984 ± 202.610  ops/s
+ * [info] ReachingDefs.scalafix                          thrpt    5  34324.632 ± 137.073  ops/s
+ * [info] ReachingDefs.scalafixGraph                     thrpt    5  28995.099 ± 722.278  ops/s
+ * [info] ReachingDefs.scalafixGraphWithCombos           thrpt    5  18214.238 ±  39.789  ops/s
+ * [info] ReachingDefs.scalafixGraphWithLocalizedCombos  thrpt    5  25451.629 ± 437.353  ops/s
+ * [info] ReachingDefs.scalafixWithCombos                thrpt    5  21671.204 ± 531.168  ops/s
  * ```
  */
 

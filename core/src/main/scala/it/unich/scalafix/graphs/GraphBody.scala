@@ -168,13 +168,13 @@ case class SimpleGraphBody[U, V, E](
       val newSources = (e: E) =>
         val x = target(e)
         if combos.isDefinedAt(x) && sources(e).exists(unknownOrdering.lteq(x, _))
-        then sources(e) + x
+        then x +: sources(e)
         else sources(e)
       val newOutgoing = (u: U) =>
         if combos.isDefinedAt(u)
         then
           val edges = ingoing(u).filter(e => sources(e).exists(unknownOrdering.lteq(u, _)))
-          outgoing(u) ++ edges
+          edges ++ outgoing(u)
         else outgoing(u)
       copy(
         edgeAction = newEdgeAction,

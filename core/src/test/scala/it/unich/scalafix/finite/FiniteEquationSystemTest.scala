@@ -41,7 +41,7 @@ class FiniteEquationSystemTest extends AnyFunSpec with ScalaCheckPropertyChecks:
         case 3 => rho(3)
       }
     },
-    initialInfl = Relation(0 -> Set(0, 1, 2), 1 -> Set(2), 2 -> Set(1), 3 -> Set(1, 3)),
+    initialInfl = Relation(0 -> Seq(0, 1, 2), 1 -> Seq(2), 2 -> Seq(1), 3 -> Seq(1, 3)),
     unknowns = 0 to 3,
     inputUnknowns = Set(0)
   )

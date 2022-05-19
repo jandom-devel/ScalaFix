@@ -72,10 +72,10 @@ class GraphEquationSystemTest extends AnyFunSpec:
 
     it("correctly computes the influence") {
       val infl = simpleEqs.infl
-      assertResult(Set(1))(infl(0))
-      assertResult(Set(2))(infl(1))
-      assertResult(Set(3))(infl(2))
-      assertResult(Set(1))(infl(3))
+      assertResult(Seq(1))(infl(0))
+      assertResult(Seq(2))(infl(1))
+      assertResult(Seq(3))(infl(2))
+      assertResult(Seq(1))(infl(3))
     }
 
     it("correctly adds input assignments") {
@@ -107,8 +107,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
       test(eqs2)
       for x <- unknowns do
         assert(simpleEqs.infl(x) === eqs1.infl(x))
-        // TOOD: check if toSet may be avoided
-        assert((simpleEqs.infl(x).toSet + x) === eqs2.infl(x))
+        assert(x +: simpleEqs.infl(x) === eqs2.infl(x))
     }
 
     it("correctly adds localized idempotent combos") {
@@ -132,8 +131,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
         assertResult(simpleEqs.infl(x))(eqs1.infl(x))
         if x != 1 then assertResult(simpleEqs.infl(x))(eqs2.infl(x))
         else
-          // TOOD: check if toSet may be avoided
-          assertResult(simpleEqs.infl(x).toSet + x)(eqs2.infl(x))
+          assertResult(x +: simpleEqs.infl(x))(eqs2.infl(x))
     }
 
     it("correctly traces equations") {

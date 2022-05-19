@@ -21,9 +21,11 @@ import scala.annotation.targetName
 import scala.collection.mutable
 
 /**
- * A mathematical relation over types `A` and `B`.
+ * A mathematical relation over types `A` and `B`. Although it would be more
+ * correct the to define this type as A => Set[B], sequences are much more
+ * efficients than sets.
  */
-opaque type Relation[-A, B] = A => Set[B]
+opaque type Relation[-A, B] = A => Seq[B]
 
 /**
  * Collection of private classes, factories and extension methods for the
@@ -32,19 +34,19 @@ opaque type Relation[-A, B] = A => Set[B]
 object Relation:
 
   private class WithDiagonal[A](r: Relation[A, A]) extends Relation[A, A]:
-    def apply(a: A) = r(a) + a
+    def apply(a: A) = a +: r(a)
 
-  private class FromHash[A, B](hash: collection.Map[A, Set[B]]) extends Relation[A, B]:
-    def apply(a: A) = hash.getOrElse(a, Set.empty[B])
+  private class FromHash[A, B](hash: collection.Map[A, Seq[B]]) extends Relation[A, B]:
+    def apply(a: A) = hash.getOrElse(a, Seq.empty[B])
 
-  /** Returns a relation given specified a function `A => Set[A]`. */
-  def apply[A, B](f: A => Set[B]): Relation[A, B] = f
+  /** Returns a relation given specified a function `A => Seq[A]`. */
+  def apply[A, B](f: A => Seq[B]): Relation[A, B] = f
 
   /**
    * Returns an influence relation specified by a map `hash`. For elements which
-   * are not in the keyset of `hash`, the relation returns the empty set.
+   * are not in the keyset of `hash`, the relation returns the empty sequence.
    */
-  def apply[A, B](hash: Map[A, Set[B]]): Relation[A, B] = FromHash(hash)
+  def apply[A, B](hash: Map[A, Seq[B]]): Relation[A, B] = FromHash(hash)
 
   /**
    * Returns a relation specified by its graph, i.e., iterable of pairs `a ->
@@ -53,8 +55,8 @@ object Relation:
    * they appear in graph.
    */
   def apply[A, B](graph: IterableOnce[(A, B)]): Relation[A, B] =
-    val hash = mutable.HashMap.empty[A, Set[B]]
-    for (u, v) <- graph.iterator do hash(u) = hash.getOrElse(u, Set.empty[B]) + v
+    val hash = mutable.HashMap.empty[A, Seq[B]]
+    for (u, v) <- graph.iterator do hash(u) = hash.getOrElse(u, Seq.empty[B]) :+ v
     FromHash(hash)
 
   /**
@@ -67,10 +69,10 @@ object Relation:
 
   /**
    * Returns a relation specified by the given pairs `a -> X`, each meaning that
-   * `a` is in relation with all the elements in the set `X`.
+   * `a` is in relation with all the elements in the sequence `X`.
    */
   @targetName("applySet")
-  def apply[A, B](graph: (A, Set[B])*): Relation[A, B] = FromHash(Map(graph*))
+  def apply[A, B](graph: (A, Seq[B])*): Relation[A, B] = FromHash(Map(graph*))
 
   extension [A](rel: Relation[A, A])
     /**
@@ -81,6 +83,6 @@ object Relation:
 
   extension [A, B](rel: Relation[A, B])
     /**
-     * Returns the set of elements in relation with `a`.
+     * Returns the sequence of elements in relation with `a`.
      */
-    inline def apply(a: A): Set[B] = rel.apply(a)
+    inline def apply(a: A): Seq[B] = rel.apply(a)

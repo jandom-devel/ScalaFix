@@ -172,7 +172,7 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[
   override def initialInfl: Relation[U, U] =
     val graph = this.graph
     // whey are we using the graph here and not the initial graph ?
-    val base = Relation((u: U) => graph.outgoing(u).view.map(graph.target).toSet)
+    val base = Relation((u: U) => graph.outgoing(u).map(graph.target))
     optLocalizedWarrowings match
       case Some((localizedWidenings, localizedNarrowings, unknownOrdering, dom))
           if !localizedWidenings.combosAreIdempotent || !localizedNarrowings.combosAreIdempotent =>

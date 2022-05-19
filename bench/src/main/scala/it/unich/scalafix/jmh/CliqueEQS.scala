@@ -33,14 +33,14 @@ object CliqueEQS:
 
   /** Returns a graph based chain equation system with n unknowns. */
   def createGraphEQS[V: Domain](n: Int) =
-    val out = (0 until n).map((i: Int) => i -> ((0 until n).toSet map (i -> _))).toMap
-    val in = (0 until n).map((i: Int) => i -> ((0 until n).toSet map (_ -> i))).toMap
+    val out = (0 until n).map((i: Int) => i -> ((0 until n) map (i -> _))).toMap
+    val in = (0 until n).map((i: Int) => i -> ((0 until n) map (_ -> i))).toMap
     GraphEquationSystem[Int, V, (Int, Int)](
       unknowns = 0 until n,
       inputUnknowns = Set(0),
       initialGraph = GraphBody(
         edgeAction = (rho: Assignment[Int, V]) => (p: (Int, Int)) => rho(p._1),
-        sources = Relation((e: (Int, Int)) => Set(e._1)),
+        sources = Relation((e: (Int, Int)) => Seq(e._1)),
         target = (e: (Int, Int)) => e._2,
         outgoing = Relation(out),
         ingoing = Relation(in),
@@ -52,7 +52,7 @@ object CliqueEQS:
   def createFiniteEQS[V: Domain](n: Int) = FiniteEquationSystem[Int, V](
     unknowns = 0 until n,
     inputUnknowns = Set(0),
-    initialInfl = Relation((i: Int) => (0 until n).toSet),
+    initialInfl = Relation((i: Int) => 0 until n),
     initialBody = (rho: Assignment[Int, V]) =>
       (i: Int) => (0 until n) map rho reduce summon[Domain[V]].upperBound
   )

@@ -31,17 +31,17 @@ import org.openjdk.jmh.annotations.*
  *
  * These are the results of the benchmarks on an Intel Core i5-2500K.
  * ```
- * [info] Benchmark                           Mode  Cnt    Score   Error  Units
- * [info] Clique.WLfinite                    thrpt    5  183.012 ± 2.249  ops/s
- * [info] Clique.WLfiniteWithCombos          thrpt    5  222.433 ± 6.117  ops/s
- * [info] Clique.WLgraph                     thrpt    5   87.586 ± 3.201  ops/s
- * [info] Clique.WLgraphWithCombos           thrpt    5   84.117 ± 0.352  ops/s
- * [info] Clique.WLgraphWithLocalizedCombos  thrpt    5   20.344 ± 0.065  ops/s
- * [info] Clique.finite                      thrpt    5  190.622 ± 1.858  ops/s
- * [info] Clique.finiteWithCombos            thrpt    5  190.462 ± 2.078  ops/s
- * [info] Clique.graph                       thrpt    5   85.498 ± 0.730  ops/s
- * [info] Clique.graphWithCombos             thrpt    5   86.506 ± 0.529  ops/s
- * [info] Clique.graphWithLocalizedCombos    thrpt    5   19.188 ± 0.071  ops/s
+ * [info] Benchmark                           Mode  Cnt      Score     Error  Units
+ * [info] Clique.WLfinite                    thrpt    5    170.009 ±   0.463  ops/s
+ * [info] Clique.WLfiniteWithCombos          thrpt    5    194.922 ±   0.458  ops/s
+ * [info] Clique.WLgraph                     thrpt    5    154.223 ±   0.240  ops/s
+ * [info] Clique.WLgraphWithCombos           thrpt    5    165.043 ±   2.682  ops/s
+ * [info] Clique.WLgraphWithLocalizedCombos  thrpt    5     46.668 ±   0.100  ops/s
+ * [info] Clique.finite                      thrpt    5    197.306 ±   0.729  ops/s
+ * [info] Clique.finiteWithCombos            thrpt    5    202.338 ±   0.886  ops/s
+ * [info] Clique.graph                       thrpt    5    172.844 ±   1.082  ops/s
+ * [info] Clique.graphWithCombos             thrpt    5    172.828 ±   0.853  ops/s
+ * [info] Clique.graphWithLocalizedCombos    thrpt    5     61.486 ±   0.201  ops/s
  * ```
  *
  * @see

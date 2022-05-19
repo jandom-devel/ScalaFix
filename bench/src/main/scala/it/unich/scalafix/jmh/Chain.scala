@@ -31,14 +31,14 @@ import org.openjdk.jmh.annotations.*
  *
  * These are the results of the benchmarks on an Intel Core i5-2500K.
  * ```
- * [info] Benchmark                    Mode  Cnt     Score    Error  Units
- * [info] Chain.FWLFinite             thrpt    5   997.284 ±  6.771  ops/s
- * [info] Chain.FWLGraph              thrpt    5   480.289 ±  3.566  ops/s
- * [info] Chain.FWLGraphOptimized     thrpt    5  1047.935 ±  7.781  ops/s
- * [info] Chain.IWLInfinite           thrpt    5   634.628 ±  7.537  ops/s
- * [info] Chain.IWLInfiniteOptimized  thrpt    5   808.006 ± 16.231  ops/s
- * [info] Chain.RRFinite              thrpt    5  2896.515 ± 67.808  ops/s
- * [info] Chain.RRGraph               thrpt    5   759.892 ± 10.577  ops/s
+ * [info] Benchmark                    Mode  Cnt      Score     Error  Units
+ * [info] Chain.FWLFinite             thrpt    5   1032.599 ±  87.881  ops/s
+ * [info] Chain.FWLGraph              thrpt    5    800.328 ±  17.429  ops/s
+ * [info] Chain.FWLGraphOptimized     thrpt    5   1094.958 ±   4.182  ops/s
+ * [info] Chain.IWLInfinite           thrpt    5    686.379 ±  47.213  ops/s
+ * [info] Chain.IWLInfiniteOptimized  thrpt    5    887.838 ±  21.782  ops/s
+ * [info] Chain.RRFinite              thrpt    5   5538.541 ±  31.212  ops/s
+ * [info] Chain.RRGraph               thrpt    5   1955.393 ±  48.584  ops/s
  * ```
  *
  * @see

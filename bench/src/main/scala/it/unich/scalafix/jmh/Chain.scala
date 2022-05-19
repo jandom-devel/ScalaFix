@@ -70,6 +70,10 @@ class Chain:
   private val chainInfiniteEqsOptimized = ChainEQS.createInfiniteEQSOptimized[Int]()
   private val chainInfiniteEqs = ChainEQS.createInfiniteEQS[Int]()
 
+  private val ordering = DFOrdering(chainGraphEqs)
+  private val chainGraphWithLocalizedCombosEqs =
+    chainGraphEqs.withLocalizedCombos(ComboAssignment(combo), ordering)
+
   /** Check correctness of the solution of the equation system. */
   private def validate(rho: Assignment[Int, Int]): Unit =
     for i <- 0 until numUnknowns do assert(rho(i) == initVal)

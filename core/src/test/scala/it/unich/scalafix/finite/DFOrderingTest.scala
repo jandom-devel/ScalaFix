@@ -86,9 +86,9 @@ class DFOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks {
     }
     it("has the correct influence types") {
       for (u, v) <- advancing do assertResult(Advancing, s"($u,$v)")(o.influenceType(u, v))
+      for (u, v) <- retreating do assertResult(Retreating)(o.influenceType(u, v))
+      for (u, v) <- cross do assertResult(Cross)(o.influenceType(u, v))
     }
-    for (u, v) <- retreating do assertResult(Retreating)(o.influenceType(u, v))
-    for (u, v) <- cross do assertResult(Cross)(o.influenceType(u, v))
 
     it("implements the correct ordering") {
       for x <- sequence; y <- sequence do

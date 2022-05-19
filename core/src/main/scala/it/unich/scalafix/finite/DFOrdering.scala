@@ -1,4 +1,4 @@
- /**
+/**
  * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
@@ -107,19 +107,25 @@ object DFOrdering:
 
     def initDFO() =
       val visited = mutable.LinkedHashSet.empty[U]
+      val stack = mutable.Stack.empty[Either[U, U]]
       var c = 0
-      for x <- inputUnknowns do if !(visited contains x) then dfsVisit(x)
-      for x <- unknowns do if !(visited contains x) then dfsVisit(x)
+      for x <- inputUnknowns do stack += Left(x)
+      for x <- unknowns do stack += Left(x)
 
-      def dfsVisit(u: U): Unit =
-        visited += u
-        for v <- infl(u) do
-          if !(visited contains v) then
-            dfst += (u -> v)
-            dfsVisit(v)
-          else if !dfn.isDefinedAt(v) then heads += v
-        dfn += u -> c
-        c -= 1
+      while !stack.isEmpty do
+        stack.pop match
+          case Right(u) =>
+            dfn += u -> c
+            c -= 1
+          case Left(u) if !(visited contains u) =>
+            visited += u
+            stack.push(Right(u))
+            for v <- infl(u).reverse do
+              if !(visited contains v) then
+                dfst += (u -> v)
+                stack.push(Left(v))
+              else if !dfn.isDefinedAt(v) then heads += v
+          case _ =>
 
     lazy val toSeq: Seq[U] = unknowns.toSeq.sorted(this)
 
@@ -128,7 +134,7 @@ object DFOrdering:
     /** Returns whether y is a child of x in the depth-first spanning tree. */
     @tailrec private def connected(x: U, y: U): Boolean =
       dfst.find(_._2 == y) match
-        case None => false
+        case None    => false
         case Some(z) => if z._1 == x then true else connected(x, z._1)
 
     def influenceType(x: U, y: U): InfluenceType =

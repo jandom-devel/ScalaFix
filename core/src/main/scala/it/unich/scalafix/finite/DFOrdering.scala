@@ -99,13 +99,14 @@ object DFOrdering:
     private val dfn = mutable.HashMap.empty[U, Int]
 
     // Depth-First spanning tree
-    private val dfst = mutable.Set.empty[(U, U)]
+    private var dfst = List.empty[(U, U)]
 
     // Set of heads
     private val heads = mutable.Set.empty[U]
+
     initDFO()
 
-    def initDFO() =
+    private def initDFO() =
       val visited = mutable.LinkedHashSet.empty[U]
       val stack = mutable.Stack.empty[Either[U, U]]
       var c = 0
@@ -122,7 +123,7 @@ object DFOrdering:
             stack.push(Right(u))
             for v <- infl(u).reverse do
               if !(visited contains v) then
-                dfst += (u -> v)
+                dfst = (u -> v) +: dfst
                 stack.push(Left(v))
               else if !dfn.isDefinedAt(v) then heads += v
           case _ =>

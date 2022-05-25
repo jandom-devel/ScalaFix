@@ -44,12 +44,12 @@ class GraphEquationSystemTest extends AnyFunSpec:
     target = Map('a' -> 1, 'b' -> 2, 'c' -> 3, 'd' -> 1),
     outgoing = Relation(0 -> 'a', 1 -> 'b', 2 -> 'c', 3 -> 'd'),
     ingoing = Relation(1 -> 'a', 1 -> 'd', 2-> 'b', 3 -> 'c'),
+    unknowns = unknowns,
     combiner = scala.math.max
   )
 
   private val simpleEqs = GraphEquationSystem[Int, Int, Char](
     initialGraph = graph,
-    unknowns = unknowns,
     inputUnknowns = Seq(0)
   )
   private val rho: Assignment[Int, Int] = identity[Int]

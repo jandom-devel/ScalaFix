@@ -32,7 +32,6 @@ object ChainEQS:
 
   /** Returns a graph based chain equation system with n unknowns. */
   def createGraphEQS[V: Domain](n: Int) = GraphEquationSystem(
-    unknowns = 0 until n,
     inputUnknowns = Seq(0),
     initialGraph = GraphBody(
       edgeAction = (rho: Assignment[Int, V]) => (i: Int) => rho(i),
@@ -40,6 +39,7 @@ object ChainEQS:
       target = (i: Int) => i + 1,
       outgoing = Relation((i: Int) => if i == n - 1 then Seq.empty else Seq(i)),
       ingoing = Relation((i: Int) => if i == 0 then Seq.empty else Seq(i - 1)),
+      unknowns = 0 until n,
       combiner = summon[Domain[V]].upperBound
     )
   )
@@ -88,7 +88,6 @@ object ChainEQS:
    */
   class ChainGraphEQS[V: Domain](n: Int)
       extends BaseGraphEquationSystem[Int, V, Int, ChainGraphEQS[V]]:
-    override val unknowns = 0 until n
     override val inputUnknowns = Seq(0)
     override val initialGraph = GraphBody(
       edgeAction = (rho: Assignment[Int, V]) => (i: Int) => rho(i),
@@ -96,6 +95,7 @@ object ChainEQS:
       target = (i: Int) => i + 1,
       outgoing = Relation((i: Int) => if i == n - 1 then Seq.empty else Seq(i)),
       ingoing = Relation((i: Int) => if i == 0 then Seq.empty else Seq(i - 1)),
+      unknowns = 0 until n,
       combiner = summon[Domain[V]].upperBound
     )
     override val initialBody = (rho: Assignment[Int, V]) =>

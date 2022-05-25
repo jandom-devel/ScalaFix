@@ -36,7 +36,6 @@ object CliqueEQS:
     val out = (0 until n).map((i: Int) => i -> ((0 until n) map (i -> _))).toMap
     val in = (0 until n).map((i: Int) => i -> ((0 until n) map (_ -> i))).toMap
     GraphEquationSystem[Int, V, (Int, Int)](
-      unknowns = 0 until n,
       inputUnknowns = Seq(0),
       initialGraph = GraphBody(
         edgeAction = (rho: Assignment[Int, V]) => (p: (Int, Int)) => rho(p._1),
@@ -44,6 +43,7 @@ object CliqueEQS:
         target = (e: (Int, Int)) => e._2,
         outgoing = Relation(out),
         ingoing = Relation(in),
+        unknowns = 0 until n,
         combiner = summon[Domain[V]].upperBound
       )
     )

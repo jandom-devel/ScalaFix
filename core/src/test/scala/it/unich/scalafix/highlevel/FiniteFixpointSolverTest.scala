@@ -42,12 +42,12 @@ class FiniteFixpointSolverTest extends AnyFunSpec with ScalaCheckPropertyChecks:
     target = Map('a' -> 1, 'b' -> 2, 'c' -> 3, 'd' -> 1),
     outgoing = Relation(0 -> 'a', 1 -> 'b', 2-> 'c', 3 -> 'd'),
     ingoing = Relation(1 -> 'a', 1 -> 'd', 2 -> 'b', 3 -> 'c'),
+    unknowns = Seq(0, 1, 2, 3),
     combiner = scala.math.max
   )
 
   private val simpleEqs = GraphEquationSystem[Int, Double, Char](
     initialGraph = graph,
-    unknowns = Seq(0, 1, 2, 3),
     inputUnknowns = Seq(0)
   )
   private val solution = Map[Int, Double](0 -> 0, 1 -> 11, 2 -> 10, 3 -> 11)

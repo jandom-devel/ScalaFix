@@ -93,12 +93,8 @@ trait GraphEquationSystem[U, V, E, EQS <: GraphEquationSystem[U, V, E, EQS]]
  *   the type of the equation system. Operations returning a new equation system
  *   generally return `EQS`.
  */
-abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[
-  U,
-  V,
-  E,
-  EQS
-]] extends BaseFiniteEquationSystem[U, V, EQS]
+abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[U, V, E, EQS]]
+    extends BaseFiniteEquationSystem[U, V, EQS]
     with GraphEquationSystem[U, V, E, EQS]
     with Cloneable:
 
@@ -121,6 +117,8 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[
    */
   protected var optLocalizedWarrowings
       : Option[(ComboAssignment[U, V], ComboAssignment[U, V], Ordering[U], Domain[V])] = None
+
+  override def unknowns = initialGraph.unknowns
 
   /**
    * @inheritdoc
@@ -214,7 +212,6 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[
  */
 class SimpleGraphEquationSystem[U, V, E](
     protected val initialGraph: GraphBody[U, V, E],
-    val unknowns: Iterable[U],
     val inputUnknowns: Iterable[U]
 ) extends BaseGraphEquationSystem[U, V, E, SimpleGraphEquationSystem[U, V, E]]
 
@@ -227,11 +224,9 @@ object GraphEquationSystem:
    */
   def apply[U, V, E](
       initialGraph: GraphBody[U, V, E],
-      unknowns: Iterable[U],
       inputUnknowns: Iterable[U]
   ): SimpleGraphEquationSystem[U, V, E] =
     SimpleGraphEquationSystem(
       initialGraph,
-      unknowns,
       inputUnknowns
     )

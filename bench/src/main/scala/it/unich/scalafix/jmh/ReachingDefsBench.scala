@@ -150,13 +150,13 @@ class ReachingDefsBench:
       case "5to6"  => Set(6) ++ (rho(5, false) -- Set(3))
       case "5to7"  => Set(7) ++ (rho(5, false) -- Set(1, 4))
     },
+    unknowns = ((firstUnknown to lastUnknown) map { (i: Int) => (i, false) }) ++ Seq((4, true)),
     combiner = _ ++ _
   )
 
   /** The graph-based version of the equation system. */
   private val graphEqs = GraphEquationSystem(
     initialGraph = graphBody,
-    unknowns = ((firstUnknown to lastUnknown) map { (i: Int) => (i, false) }) ++ Seq((4, true)),
     inputUnknowns = Seq((1, false))
   )
 

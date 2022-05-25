@@ -57,20 +57,23 @@ type EdgeAction[U, V, E] = Assignment[U, V] => E => V
  */
 trait GraphBody[U, V, E] extends Body[U, V]:
 
-  /** Map each edge to its source nodes */
+  /** Returns the relation mapping each edge to its source nodes */
   def sources: Relation[E, U]
 
-  /** Map each edge to its target node. */
+  /** Returns the relation mapping each edge to its target node. */
   def target: E => U
 
-  /** Map each unknown to its outgoing edges. */
+  /** Returns the relation mapping each node to its outgoing edges. */
   def outgoing: Relation[U, E]
 
-  /** Map each unknown to its ingoing edges. */
+  /** Returns the relation mapping each node to its ingoing edges. */
   def ingoing: Relation[U, E]
 
-  /** Returns the edge action of the graph. */
+  /** Returns the edge actions of the graph. */
   def edgeAction: EdgeAction[U, V, E]
+
+  /** Returns the set of unknowns, i.e., the nodes of the graph. */
+  def unknowns: Iterable[U]
 
   /**
    * Returns the operation used from combining the contributions of different
@@ -130,6 +133,8 @@ trait GraphBody[U, V, E] extends Body[U, V]:
  *   maps each unknown to the collection of edges arriving on it.
  * @param edgeAction
  *   the action of and edge over an assignment.
+ * @param unknowns
+ *   the collection of unknowns (nodes) of this graph body.
  * @param combiner
  *   rhe operation used from combining the contributions of different edges.
  */
@@ -139,6 +144,7 @@ case class SimpleGraphBody[U, V, E](
     outgoing: Relation[U, E],
     ingoing: Relation[U, E],
     edgeAction: EdgeAction[U, V, E],
+    unknowns: Iterable[U],
     combiner: (V, V) => V
 ) extends GraphBody[U, V, E]:
 
@@ -220,9 +226,10 @@ object GraphBody:
       outgoing: Relation[U, E],
       ingoing: Relation[U, E],
       edgeAction: EdgeAction[U, V, E],
+      unknowns: Iterable[U],
       combiner: (V, V) => V
   ): GraphBody[U, V, E] =
-    SimpleGraphBody(sources, target, outgoing, ingoing, edgeAction, combiner)
+    SimpleGraphBody(sources, target, outgoing, ingoing, edgeAction, unknowns, combiner)
 
 /**
  * Standard implementation of a `GraphBody` where all the data about the graph
@@ -237,6 +244,15 @@ def apply[U, V: Domain, E](
     target: E => U,
     outgoing: Relation[U, E],
     ingoing: Relation[U, E],
-    edgeAction: EdgeAction[U, V, E]
+    edgeAction: EdgeAction[U, V, E],
+    unknowns: Iterable[U]
 ): GraphBody[U, V, E] =
-  SimpleGraphBody(sources, target, outgoing, ingoing, edgeAction, summon[Domain[V]].upperBound)
+  SimpleGraphBody(
+    sources,
+    target,
+    outgoing,
+    ingoing,
+    edgeAction,
+    unknowns,
+    summon[Domain[V]].upperBound
+  )

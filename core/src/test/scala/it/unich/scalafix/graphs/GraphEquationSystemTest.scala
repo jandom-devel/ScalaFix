@@ -108,7 +108,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
       test(eqs2)
       for x <- unknowns do
         assert(simpleEqs.infl(x) === eqs1.infl(x))
-        assert(x +: simpleEqs.infl(x) === eqs2.infl(x))
+        assert(Iterable(x) ++ simpleEqs.infl(x) === eqs2.infl(x))
     }
 
     it("correctly adds localized idempotent combos") {
@@ -132,7 +132,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
         assertResult(simpleEqs.infl(x))(eqs1.infl(x))
         if x != 1 then assertResult(simpleEqs.infl(x))(eqs2.infl(x))
         else
-          assertResult(x +: simpleEqs.infl(x))(eqs2.infl(x))
+          assertResult(Iterable(x) ++ simpleEqs.infl(x))(eqs2.infl(x))
     }
 
     it("correctly traces equations") {

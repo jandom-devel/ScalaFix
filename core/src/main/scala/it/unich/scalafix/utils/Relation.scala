@@ -1,4 +1,4 @@
- /**
+/**
  * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
@@ -21,11 +21,15 @@ import scala.annotation.targetName
 import scala.collection.mutable
 
 /**
- * A mathematical relation over types `A` and `B`. Although it would be more
- * correct the to define this type as A => Set[B], sequences are much more
- * efficients than sets.
+ * A mathematical relation over types `A` and `B`.
+ *
+ * @note
+ *   Although theoretically it would be more correct to define this type as `A
+ *   \=> Set[B]`, this would force whoever calls ScalaFix to use sets for
+ *   providing relations. If the the relation is already available in another
+ *   format, this would limit data reusal.
  */
-opaque type Relation[-A, B] = A => Seq[B]
+opaque type Relation[-A, +B] = A => Iterable[B]
 
 /**
  * Collection of private classes, factories and extension methods for the
@@ -34,19 +38,19 @@ opaque type Relation[-A, B] = A => Seq[B]
 object Relation:
 
   private class WithDiagonal[A](r: Relation[A, A]) extends Relation[A, A]:
-    def apply(a: A) = a +: r(a)
+    def apply(a: A) = Iterable(a) ++ r(a)
 
-  private class FromHash[A, B](hash: collection.Map[A, Seq[B]]) extends Relation[A, B]:
-    def apply(a: A) = hash.getOrElse(a, Seq.empty[B])
+  private class FromHash[A, B](hash: collection.Map[A, Iterable[B]]) extends Relation[A, B]:
+    def apply(a: A) = hash.getOrElse(a, Iterable.empty[B])
 
   /** Returns a relation given specified a function `A => Seq[A]`. */
-  def apply[A, B](f: A => Seq[B]): Relation[A, B] = f
+  def apply[A, B](f: A => Iterable[B]): Relation[A, B] = f
 
   /**
    * Returns an influence relation specified by a map `hash`. For elements which
    * are not in the keyset of `hash`, the relation returns the empty sequence.
    */
-  def apply[A, B](hash: Map[A, Seq[B]]): Relation[A, B] = FromHash(hash)
+  def apply[A, B](hash: Map[A, Iterable[B]]): Relation[A, B] = FromHash(hash)
 
   /**
    * Returns a relation specified by its graph, i.e., iterable of pairs `a ->
@@ -71,8 +75,8 @@ object Relation:
    * Returns a relation specified by the given pairs `a -> X`, each meaning that
    * `a` is in relation with all the elements in the sequence `X`.
    */
-  @targetName("applySet")
-  def apply[A, B](graph: (A, Seq[B])*): Relation[A, B] = FromHash(Map(graph*))
+  @targetName("applyIterable")
+  def apply[A, B](graph: (A, Iterable[B])*): Relation[A, B] = FromHash(Map(graph*))
 
   extension [A](rel: Relation[A, A])
     /**
@@ -82,7 +86,5 @@ object Relation:
     def withDiagonal: Relation[A, A] = WithDiagonal(rel)
 
   extension [A, B](rel: Relation[A, B])
-    /**
-     * Returns the sequence of elements in relation with `a`.
-     */
-    inline def apply(a: A): Seq[B] = rel.apply(a)
+    /** Returns the sequence of elements in relation with `a`. */
+    inline def apply(a: A): Iterable[B] = rel.apply(a)

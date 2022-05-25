@@ -168,7 +168,7 @@ case class SimpleGraphBody[U, V, E](
       val newSources = (e: E) =>
         val x = target(e)
         if combos.isDefinedAt(x) && sources(e).exists(unknownOrdering.lteq(x, _))
-        then x +: sources(e)
+        then Iterable(x) ++ sources(e)
         else sources(e)
       val newOutgoing = (u: U) =>
         if combos.isDefinedAt(u)

@@ -21,6 +21,8 @@ import it.unich.scalafix.*
 import it.unich.scalafix.utils.Domain
 import it.unich.scalafix.utils.Relation
 
+import scala.collection.mutable
+
 /**
  * The effect of an edge `e` of a graph over an assignment `rho`.
  *
@@ -160,12 +162,19 @@ case class SimpleGraphBody[U, V, E](
       combos: ComboAssignment[U, V],
       unknownOrdering: Ordering[U]
   ): GraphBody[U, V, E] =
+    val comboEdge = mutable.Set.empty[E]
+    for
+      x <- unknowns
+      e <- ingoing(x)
+      if combos.isDefinedAt(x) && sources(e).exists(unknownOrdering.lteq(x, _))
+    do
+      comboEdge += e
     val newEdgeAction =
       (rho: Assignment[U, V]) =>
         val edgeActionRho = edgeAction(rho)
         (e: E) =>
           val x = target(e)
-          if combos.isDefinedAt(x) && sources(e).exists(unknownOrdering.lteq(x, _))
+          if comboEdge(e)
           then combos(x)(rho(x), edgeActionRho(e))
           else edgeActionRho(e)
     if combos.combosAreIdempotent
@@ -173,14 +182,12 @@ case class SimpleGraphBody[U, V, E](
     else
       val newSources = (e: E) =>
         val x = target(e)
-        if combos.isDefinedAt(x) && sources(e).exists(unknownOrdering.lteq(x, _))
+        if comboEdge(e)
         then Iterable(x) ++ sources(e)
         else sources(e)
       val newOutgoing = (u: U) =>
         if combos.isDefinedAt(u)
-        then
-          val edges = ingoing(u).filter(e => sources(e).exists(unknownOrdering.lteq(u, _)))
-          edges ++ outgoing(u)
+        then ingoing(u).filter(comboEdge) ++ outgoing(u)
         else outgoing(u)
       copy(
         edgeAction = newEdgeAction,

@@ -120,6 +120,13 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[U
 
   override def unknowns = initialGraph.unknowns
 
+  override protected def clone(): EQS =
+    val that = super.clone().asInstanceOf[EQS]
+    that._graph = None
+    that
+
+  private var _graph: Option[GraphBody[U, V, E]] = None
+
   /**
    * @inheritdoc
    *
@@ -128,10 +135,14 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[U
    *   system, eventually adding localized combos as requested by the user.
    */
   override def graph: GraphBody[U, V, E] =
-    optLocalizedCombos match
-      case Some((localizedCombos, unknownOrdering)) =>
-        initialGraph.addLocalizedCombos(localizedCombos, unknownOrdering)
-      case _ => initialGraph
+    if _graph.isEmpty then
+      _graph = Some(
+        optLocalizedCombos match
+              case Some((localizedCombos, unknownOrdering)) =>
+                initialGraph.addLocalizedCombos(localizedCombos, unknownOrdering)
+              case _ => initialGraph
+      )
+    _graph.get
 
   /**
    * @inheritdoc

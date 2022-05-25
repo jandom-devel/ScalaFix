@@ -38,21 +38,20 @@ class HierarchicalOrderingTest extends AnyFunSpec with TableDrivenPropertyChecks
   private val out2 = "HierarchicalOrdering( 3 ( 2 1 ) 0 )"
 
   private val graph = Seq(
-    1 -> 3,
     1 -> 2,
+    1 -> 3,
     2 -> 3,
     3 -> 4,
-    4 -> 6,
     4 -> 5,
-    4 -> 8,
+    4 -> 6,
+    4 -> 3,
     5 -> 7,
     6 -> 7,
-    7 -> 4,
     7 -> 8,
-    8 -> 4,
+    7 -> 4,
+    8 -> 9,
     8 -> 3,
     8 -> 10,
-    8 -> 9,
     9 -> 1,
     10 -> 7
   )

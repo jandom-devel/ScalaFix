@@ -28,21 +28,20 @@ class DFOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks {
 
   // This example comes from "Aho, Sethi, Ullman - Compilers: Principles, Techniques and Tool - Addison Wesley"
   private val graph = Relation(
-    1 -> 3,
     1 -> 2,
+    1 -> 3,
     2 -> 3,
     3 -> 4,
-    4 -> 6,
     4 -> 5,
-    4 -> 8,
+    4 -> 6,
+    4 -> 3,
     5 -> 7,
     6 -> 7,
-    7 -> 4,
     7 -> 8,
-    8 -> 4,
+    7 -> 4,
+    8 -> 9,
     8 -> 3,
     8 -> 10,
-    8 -> 9,
     9 -> 1,
     10 -> 7
   )
@@ -58,17 +57,16 @@ class DFOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks {
       1 -> 3,
       2 -> 3,
       3 -> 4,
-      4 -> 6,
       4 -> 5,
-      4 -> 8,
+      4 -> 6,
+      4 -> 3,
       5 -> 7,
       6 -> 7,
-      7 -> 4,
       7 -> 8,
-      8 -> 4,
+      7 -> 4,
+      8 -> 10,
       8 -> 3,
       8 -> 9,
-      8 -> 10,
       9 -> 1,
       10 -> 7
   )

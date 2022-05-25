@@ -25,9 +25,9 @@ import scala.collection.mutable
 /**
  * This class represents a depth-first ordering of a set of unknowns, as it
  * appears in the Aho, Sethi, Ullman book on compilers. It extends the concept
- * of unknown ordering, since it allows to classify an hypothetical influence
- * between unknowns in one of the three categories denoted as Advancing,
- * Retreating and Cross influence.
+ * of unknown ordering, since it allows to classify an influence between
+ * unknowns in one of the three categories denoted as `Advancing`, `Retreating`
+ * and `Cross`.
  *
  * @tparam U
  *   the type for the unknowns
@@ -37,7 +37,8 @@ abstract class DFOrdering[U] extends UnknownOrdering[U]:
   import DFOrdering.InfluenceType
 
   /**
-   * It returns the type of an influence u -> v.
+   * Returns the type of an influence `u -> v`. If `u` does not influence `v`,
+   * then `Cross` is returned.
    *
    * @param u
    *   source node
@@ -46,15 +47,12 @@ abstract class DFOrdering[U] extends UnknownOrdering[U]:
    */
   def influenceType(u: U, v: U): InfluenceType
 
-/**
- * The companion class for a DFOrdering defines the required enumerations and
- * factory methods.
- */
+/** Defines enumerations and factory methods for the [[DFOrdering]] class. */
 object DFOrdering:
 
   /**
-   * Influences may be of three different types: Advancing, Retreating and
-   * Cross.
+   * Categories of the influences. Each influence is assigned to one of three
+   * different categories: `Advancing`, `Retreating` and `Cross`.
    */
   enum InfluenceType:
     case Advancing, Retreating, Cross
@@ -82,9 +80,9 @@ object DFOrdering:
    *
    * @param infl
    *   the influence relation between unknowns
-   * @param the
-   *   set of all unknowns
-   * @param entries
+   * @param unknowns
+   *   the set of all unknowns
+   * @param inputUnknowns
    *   nodes from which to start the visit.
    */
   private final class DFOrderingFromInfl[U](
@@ -95,11 +93,11 @@ object DFOrdering:
 
     import DFOrdering.InfluenceType.*
 
-    // Internal computation
+    // Number associated to each unknown
     private val dfn = mutable.HashMap.empty[U, Int]
 
-    // Depth-First spanning tree
-    private var dfst = List.empty[(U, U)]
+    // Parent of an unknown in the depth-first spanning forest
+    private var parent = mutable.Map.empty[U, U]
 
     // Set of heads
     private val heads = mutable.Set.empty[U]
@@ -109,38 +107,43 @@ object DFOrdering:
     private def initDFO() =
       val visited = mutable.LinkedHashSet.empty[U]
       val stack = mutable.Stack.empty[Either[U, U]]
-      var c = 0
+      var c = Integer.MAX_VALUE
       for x <- inputUnknowns do stack += Left(x)
       for x <- unknowns do stack += Left(x)
 
       while !stack.isEmpty do
         stack.pop match
           case Right(u) =>
-            dfn += u -> c
+            dfn(u) = c
             c -= 1
           case Left(u) if !(visited contains u) =>
             visited += u
             stack.push(Right(u))
-            for v <- infl(u).reverse do
+            for v <- infl(u) do
               if !(visited contains v) then
-                dfst = (u -> v) +: dfst
+                parent(v) = u
                 stack.push(Left(v))
               else if !dfn.isDefinedAt(v) then heads += v
           case _ =>
 
-    lazy val toSeq: Seq[U] = unknowns.toSeq.sorted(this)
+    override lazy val toSeq: Seq[U] = unknowns.toSeq.sorted(this)
 
-    def compare(x: U, y: U): Int = scala.math.signum(dfn(x) - dfn(y))
+    override def compare(x: U, y: U): Int = scala.math.signum(dfn(x) - dfn(y))
 
-    /** Returns whether y is a child of x in the depth-first spanning tree. */
+    /**
+     * Returns whether y is a descendent of x in the depth-first spanning
+     * forest.
+     */
     @tailrec private def connected(x: U, y: U): Boolean =
-      dfst.find(_._2 == y) match
-        case None    => false
-        case Some(z) => if z._1 == x then true else connected(x, z._1)
+      if x == y then true
+      else
+        parent.get(y) match
+          case None    => false
+          case Some(u) => connected(x, u)
 
-    def influenceType(x: U, y: U): InfluenceType =
+    override def influenceType(x: U, y: U): InfluenceType =
       if y <= x then Retreating
       else if connected(x, y) then Advancing
       else Cross
 
-    def isHead(u: U): Boolean = heads contains u
+    override def isHead(u: U): Boolean = heads contains u

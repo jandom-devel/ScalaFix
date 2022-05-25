@@ -31,22 +31,23 @@ import org.openjdk.jmh.annotations.*
  *
  * These are the results of the benchmarks on an Intel Core i5-2500K.
  * ```
- * [info] Benchmark                    Mode  Cnt      Score     Error  Units
- * [info] Chain.FWLFinite             thrpt    5   1032.599 ±  87.881  ops/s
- * [info] Chain.FWLGraph              thrpt    5    800.328 ±  17.429  ops/s
- * [info] Chain.FWLGraphOptimized     thrpt    5   1094.958 ±   4.182  ops/s
- * [info] Chain.IWLInfinite           thrpt    5    686.379 ±  47.213  ops/s
- * [info] Chain.IWLInfiniteOptimized  thrpt    5    887.838 ±  21.782  ops/s
- * [info] Chain.RRFinite              thrpt    5   5538.541 ±  31.212  ops/s
- * [info] Chain.RRFiniteWithCombos    thrpt    5   1618.644 ±  14.872  ops/s
- * [info] Chain.RRGraph               thrpt    5   1955.393 ±  48.584  ops/s
- * [info] Chain.RRGraphWithCombos     thrpt    5   1746.585 ±  12.367  ops/s
+ * [info] Benchmark                          Mode  Cnt     Score    Error  Units
+ * [info] Chain.FWLFinite                   thrpt    5  1089.263 ± 15.523  ops/s
+ * [info] Chain.FWLGraph                    thrpt    5   789.915 ±  2.185  ops/s
+ * [info] Chain.FWLGraphOptimized           thrpt    5  1111.895 ±  3.244  ops/s
+ * [info] Chain.IWLInfinite                 thrpt    5   739.240 ±  2.131  ops/s
+ * [info] Chain.IWLInfiniteOptimized        thrpt    5   795.049 ± 11.447  ops/s
+ * [info] Chain.RRFinite                    thrpt    5  5513.842 ± 11.899  ops/s
+ * [info] Chain.RRFiniteWithCombos          thrpt    5  1849.733 ±  8.432  ops/s
+ * [info] Chain.RRGraph                     thrpt    5  1901.863 ±  7.061  ops/s
+ * [info] Chain.RRGraphWithCombos           thrpt    5  1674.762 ±  6.008  ops/s
+ * [info] Chain.RRGraphWithLocalizedCombos  thrpt    5  1127.178 ±  3.856  ops/s
  * ```
  *
  * @see
  *   [[ChainEQS]]
  */
-@State(Scope.Benchmark)
+@State(Scope.Thread)
 @Warmup(iterations = 3)
 @Fork(value = 1)
 class Chain:
@@ -70,7 +71,7 @@ class Chain:
   private val chainInfiniteEqsOptimized = ChainEQS.createInfiniteEQSOptimized[Int]()
   private val chainInfiniteEqs = ChainEQS.createInfiniteEQS[Int]()
 
-  private val ordering = DFOrdering(chainGraphEqs)
+  private var ordering = DFOrdering(chainGraphEqs)
   private val chainGraphWithLocalizedCombosEqs =
     chainGraphEqs.withLocalizedCombos(ComboAssignment(combo), ordering)
 
@@ -83,6 +84,7 @@ class Chain:
   validate(RoundRobinSolver(chainGraphWithCombosEqs)(initAssignment))
   validate(RoundRobinSolver(chainFiniteEqs)(initAssignment))
   validate(RoundRobinSolver(chainFiniteWithCombosEqs)(initAssignment))
+  validate(RoundRobinSolver(chainGraphWithLocalizedCombosEqs)(initAssignment))
   validate(InfiniteWorkListSolver(chainInfiniteEqsOptimized)(initAssignment, Seq(numUnknowns)))
   validate(InfiniteWorkListSolver(chainInfiniteEqs)(initAssignment, Seq(numUnknowns)))
 
@@ -95,7 +97,6 @@ class Chain:
    */
   def RRGraphOptimized() =
     val result = RoundRobinSolver(chainGraphEqsOptimized)(initAssignment)
-    validate(result)
 
   /**
    * Benchmarks the round robin solver on the standard graph-based chain
@@ -118,10 +119,22 @@ class Chain:
   def RRGraphWithCombos() = RoundRobinSolver(chainGraphWithCombosEqs)(initAssignment)
 
   /**
+   * Benchmarks the round robin solver on the standard graph-based chain
+   * equation system with with an additional max localized combo at each
+   * unknown.
+   *
+   * @see
+   *   [[ChainEQS.createGraphEQS]]
+   */
+  @Benchmark
+  def RRGraphWithLocalizedCombos() =
+    RoundRobinSolver(chainGraphWithLocalizedCombosEqs)(initAssignment)
+
+  /**
    * Benchmarks the round robin solver on the finite chain equation system.
    *
    * @see
-   *   ChainEQS.createFiniteEQS
+   *   [[ChainEQS.createFiniteEQS]]
    */
   @Benchmark
   def RRFinite() = RoundRobinSolver(chainFiniteEqs)(initAssignment)
@@ -131,7 +144,7 @@ class Chain:
    * an additional max combo at each unknown.
    *
    * @see
-   *   ChainEQS.createFiniteEQS
+   *   [[ChainEQS.createFiniteEQS]]
    */
   @Benchmark
   def RRFiniteWithCombos() = RoundRobinSolver(chainFiniteWithCombosEqs)(initAssignment)

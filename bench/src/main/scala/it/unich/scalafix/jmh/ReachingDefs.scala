@@ -21,15 +21,14 @@ package it.unich.scalafix.jmh
 import it.unich.scalafix.*
 import it.unich.scalafix.assignments.*
 import it.unich.scalafix.finite.*
+import it.unich.scalafix.graphs.*
 import it.unich.scalafix.utils.Relation
-
-import org.openjdk.jmh.annotations.*
 
 import scala.collection.mutable
 
+import org.openjdk.jmh.annotations.*
+
 import java.util.concurrent.TimeUnit
-import it.unich.scalafix.graphs.GraphBody
-import it.unich.scalafix.graphs.GraphEquationSystem
 
 /**
  * This benchmark compares different round robin solvers, either based on
@@ -70,7 +69,8 @@ import it.unich.scalafix.graphs.GraphEquationSystem
  * [info] ReachingDefs.scalafixWithCombos                thrpt    5  21671.204 ± 531.168  ops/s
  * ```
  */
-
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.MICROSECONDS)
 @State(Scope.Benchmark)
 @Warmup(iterations = 3)
 @Fork(value = 1)

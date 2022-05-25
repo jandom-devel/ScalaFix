@@ -25,6 +25,8 @@ import it.unich.scalafix.utils.*
 
 import org.openjdk.jmh.annotations.*
 
+import java.util.concurrent.TimeUnit
+
 /**
  * This class tests the efficiency of several fixpoint solvers on different
  * variants of the clique equation system.
@@ -47,6 +49,8 @@ import org.openjdk.jmh.annotations.*
  * @see
  *   [[CliqueEQS]]
  */
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.MICROSECONDS)
 @State(Scope.Benchmark)
 @Warmup(iterations = 3)
 @Fork(value = 1)

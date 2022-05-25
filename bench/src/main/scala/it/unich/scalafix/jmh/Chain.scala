@@ -25,6 +25,8 @@ import it.unich.scalafix.utils.*
 
 import org.openjdk.jmh.annotations.*
 
+import java.util.concurrent.TimeUnit
+
 /**
  * This class tests the efficiency of several fixpoint solvers on different
  * variants of the chain equation system.
@@ -47,6 +49,9 @@ import org.openjdk.jmh.annotations.*
  * @see
  *   [[ChainEQS]]
  */
+
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.MICROSECONDS)
 @State(Scope.Thread)
 @Warmup(iterations = 3)
 @Fork(value = 1)

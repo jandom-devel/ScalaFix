@@ -1,6 +1,6 @@
 /**
- * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and
- *                       Francesca Scozzari <francesca.scozzari@unich.it>
+ * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and Francesca
+ * Scozzari <francesca.scozzari@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -38,11 +38,23 @@ import it.unich.scalafix.utils.Relation
 trait FiniteEquationSystem[U, V, EQS <: FiniteEquationSystem[U, V, EQS]]
     extends EquationSystem[U, V, EQS]:
 
-  /** The collection of all unknowns. */
-  val unknowns: Iterable[U]
+  /**
+   * The collection of all the unknowns.
+   *
+   * @note
+   *   Although theoretically it would be more correct to replace this type with
+   *   `Set[U]`, this would make data reuse harder.
+   */
+  def unknowns: Iterable[U]
 
-  /** The unknowns which may be considered the input to this equation system. */
-  val inputUnknowns: Set[U]
+  /**
+   * The unknowns which may be considered the input to this equation system.
+   *
+   * @note
+   *   Although theoretically it would be more correct to replace this type with
+   *   `Set[U]`, this would make data reuse harder.
+   */
+  def inputUnknowns: Iterable[U]
 
   /**
    * The static relation between an unknown `x` and the unknowns `y` it
@@ -75,8 +87,9 @@ abstract class BaseFiniteEquationSystem[U, V, EQS <: BaseFiniteEquationSystem[U,
 
   /** @inheritdoc */
   override def infl = optCombos match
-    case Some(combos) if ! combos.combosAreIdempotent => initialInfl.withDiagonal
-    case _ => initialInfl
+    case Some(combos) if !combos.combosAreIdempotent => initialInfl.withDiagonal
+    case _                                           => initialInfl
+
 /**
  * Default implementation of a finite equation system.
  *
@@ -97,7 +110,7 @@ class SimpleFiniteEquationSystem[U, V](
     protected val initialBody: Body[U, V],
     protected val initialInfl: Relation[U, U],
     val unknowns: Iterable[U],
-    val inputUnknowns: Set[U]
+    val inputUnknowns: Iterable[U]
 ) extends BaseFiniteEquationSystem[U, V, SimpleFiniteEquationSystem[U, V]]
 
 /** Collection of factory methods for finite equation systems. */
@@ -112,6 +125,6 @@ object FiniteEquationSystem:
       initialBody: Body[U, V],
       initialInfl: Relation[U, U],
       unknowns: Iterable[U],
-      inputUnknowns: Set[U]
+      inputUnknowns: Iterable[U]
   ): SimpleFiniteEquationSystem[U, V] =
     SimpleFiniteEquationSystem(initialBody, initialInfl, unknowns, inputUnknowns)

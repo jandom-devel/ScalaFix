@@ -95,7 +95,7 @@ class ReachingDefsBench:
     },
     initialInfl = Relation(1 -> 2, 2 -> 3, 3 -> 4, 4 -> 5, 5 -> 6, 5 -> 7, 6 -> 4, 7 -> 4),
     unknowns = firstUnknown to lastUnknown,
-    inputUnknowns = Set(1)
+    inputUnknowns = Seq(1)
   )
 
   /** Combo used in the equation systems. */
@@ -171,7 +171,7 @@ class ReachingDefsBench:
   private val graphEqs = GraphEquationSystem(
     initialGraph = graphBody,
     unknowns = ((firstUnknown to lastUnknown) map { (i: Int) => (i, false) }) ++ Seq((4, true)),
-    inputUnknowns = Set((1, false))
+    inputUnknowns = Seq((1, false))
   )
 
   /** The graph-based version of the equation system wth combos. */

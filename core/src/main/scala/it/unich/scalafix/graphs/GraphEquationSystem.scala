@@ -215,7 +215,7 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[
 class SimpleGraphEquationSystem[U, V, E](
     protected val initialGraph: GraphBody[U, V, E],
     val unknowns: Iterable[U],
-    val inputUnknowns: Set[U]
+    val inputUnknowns: Iterable[U]
 ) extends BaseGraphEquationSystem[U, V, E, SimpleGraphEquationSystem[U, V, E]]
 
 /** Collection of factory methods for graph-based equation systems. */
@@ -228,7 +228,7 @@ object GraphEquationSystem:
   def apply[U, V, E](
       initialGraph: GraphBody[U, V, E],
       unknowns: Iterable[U],
-      inputUnknowns: Set[U]
+      inputUnknowns: Iterable[U]
   ): SimpleGraphEquationSystem[U, V, E] =
     SimpleGraphEquationSystem(
       initialGraph,

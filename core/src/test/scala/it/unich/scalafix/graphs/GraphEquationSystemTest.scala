@@ -29,7 +29,7 @@ import org.scalatest.funspec.AnyFunSpec
 
 class GraphEquationSystemTest extends AnyFunSpec:
 
-  private val unknowns = Set(0, 1, 2, 3)
+  private val unknowns = Seq(0, 1, 2, 3)
 
   private val graph = GraphBody[Int, Int, Char](
     edgeAction = { (rho: Int => Int) =>
@@ -50,7 +50,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
   private val simpleEqs = GraphEquationSystem[Int, Int, Char](
     initialGraph = graph,
     unknowns = unknowns,
-    inputUnknowns = Set(0)
+    inputUnknowns = Seq(0)
   )
   private val rho: Assignment[Int, Int] = identity[Int]
 

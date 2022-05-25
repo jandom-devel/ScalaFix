@@ -33,7 +33,7 @@ object ChainEQS:
   /** Returns a graph based chain equation system with n unknowns. */
   def createGraphEQS[V: Domain](n: Int) = GraphEquationSystem(
     unknowns = 0 until n,
-    inputUnknowns = Set(0),
+    inputUnknowns = Seq(0),
     initialGraph = GraphBody(
       edgeAction = (rho: Assignment[Int, V]) => (i: Int) => rho(i),
       sources = Relation((i: Int) => Seq(i)),
@@ -47,7 +47,7 @@ object ChainEQS:
   /** Returns a finite chain equation system with n unknowns. */
   def createFiniteEQS[V: Domain](n: Int) = FiniteEquationSystem[Int, V](
     unknowns = 0 until n,
-    inputUnknowns = Set(0),
+    inputUnknowns = Seq(0),
     initialBody = (rho: Assignment[Int, V]) => (i: Int) => if i > 0 then rho(i - 1) else rho(0),
     initialInfl = Relation((i: Int) => if i < n - 1 then Seq(i + 1) else Seq.empty)
   )
@@ -89,7 +89,7 @@ object ChainEQS:
   class ChainGraphEQS[V: Domain](n: Int)
       extends BaseGraphEquationSystem[Int, V, Int, ChainGraphEQS[V]]:
     override val unknowns = 0 until n
-    override val inputUnknowns = Set(0)
+    override val inputUnknowns = Seq(0)
     override val initialGraph = GraphBody(
       edgeAction = (rho: Assignment[Int, V]) => (i: Int) => rho(i),
       sources = Relation((i: Int) => Seq(i)),

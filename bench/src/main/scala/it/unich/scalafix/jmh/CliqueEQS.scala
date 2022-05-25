@@ -37,7 +37,7 @@ object CliqueEQS:
     val in = (0 until n).map((i: Int) => i -> ((0 until n) map (_ -> i))).toMap
     GraphEquationSystem[Int, V, (Int, Int)](
       unknowns = 0 until n,
-      inputUnknowns = Set(0),
+      inputUnknowns = Seq(0),
       initialGraph = GraphBody(
         edgeAction = (rho: Assignment[Int, V]) => (p: (Int, Int)) => rho(p._1),
         sources = Relation((e: (Int, Int)) => Seq(e._1)),
@@ -51,7 +51,7 @@ object CliqueEQS:
   /** Returns a finite equation system with n unknowns. */
   def createFiniteEQS[V: Domain](n: Int) = FiniteEquationSystem[Int, V](
     unknowns = 0 until n,
-    inputUnknowns = Set(0),
+    inputUnknowns = Seq(0),
     initialInfl = Relation((i: Int) => 0 until n),
     initialBody = (rho: Assignment[Int, V]) =>
       (i: Int) => (0 until n) map rho reduce summon[Domain[V]].upperBound

@@ -1,6 +1,6 @@
 /**
- * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and
- *                       Francesca Scozzari <francesca.scozzari@unich.it>
+ * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and Francesca
+ * Scozzari <francesca.scozzari@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -113,7 +113,9 @@ abstract class BaseEquationSystem[U, V, EQS <: BaseEquationSystem[U, V, EQS]]
   protected var optCombos: Option[ComboAssignment[U, V]] = None
 
   /**
-   * An optional specification for a base assignment we want to add to the equation system. */
+   * An optional specification for a base assignment we want to add to the
+   * equation system.
+   */
   protected var optBaseAssignment: Option[(PartialFunction[U, V], (V, V) => V)] = None
 
   /** An optional tracer for monitoring the execution of the body. */
@@ -138,13 +140,13 @@ abstract class BaseEquationSystem[U, V, EQS <: BaseEquationSystem[U, V, EQS]]
   override def body: Body[U, V] =
     val basedBody = optBaseAssignment match
       case Some(baseAssignment, op) => initialBody.addBaseAssignment(baseAssignment, op)
-      case None => initialBody
+      case None                     => initialBody
     val comboedBody = optCombos match
       case Some(combos) => basedBody.addCombos(combos, optTracer)
-      case None => basedBody
+      case None         => basedBody
     optTracer match
       case Some(tracer) => comboedBody.addTracer(tracer)
-      case None => comboedBody
+      case None         => comboedBody
 
   /**
    * Returns the body with dependencies of the equations system. It is
@@ -204,6 +206,5 @@ object EquationSystem:
    *   combos, base assignments or tracers, the initial body is manipulated in
    *   order to obtain the real body of the equation system.
    */
-  def apply[U, V](initialBody: Body[U, V]): SimpleEquationSystem[U, V] = SimpleEquationSystem(
-    initialBody
-  )
+  def apply[U, V](initialBody: Body[U, V]): SimpleEquationSystem[U, V] =
+    SimpleEquationSystem(initialBody)

@@ -1,6 +1,6 @@
 /**
- * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and
- *                       Francesca Scozzari <francesca.scozzari@unich.it>
+ * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and Francesca
+ * Scozzari <francesca.scozzari@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -22,14 +22,14 @@ import it.unich.scalafix.finite.UnknownOrdering
 import it.unich.scalafix.utils.Domain
 
 /**
- * A ComboAssignment maps a subset of unknowns to a Combo. When `isDefinedAt(u)`
- * is false for a given unknown `u`, the corresponding `apply(u)` should be a
- * right combo.
+ * A `ComboAssignment` maps a subset of unknowns to a `Combo`. When
+ * `isDefinedAt(u)` is false for a given unknown `u`, the corresponding
+ * `apply(u)` should be a right combo.
  *
- * As it was the case for Combo, a ComboAssignent is also a blueprint for
- * buildind equivalent ComboAssignments. Each ComboAssignmant has a copy method
- * which should produce a functionally equivalent copy of `this`. The copy
- * method should try to minimize object duplication.
+ * As it was the case for `Combo`, a `ComboAssignent` is also a blueprint for
+ * buildind equivalent `ComboAssignments`. Each `ComboAssignmant` has a `copy`
+ * method which should produce a functionally equivalent copy of `this`. The
+ * `copy` method should try to minimize object duplication.
  */
 abstract class ComboAssignment[-U, V] extends PartialFunction[U, Combo[V]]:
   /**
@@ -54,16 +54,17 @@ abstract class ComboAssignment[-U, V] extends PartialFunction[U, Combo[V]]:
   def copy: ComboAssignment[U, V]
 
   /**
-   * Restrict the domain of this combo assignment. The new domain is the
+   * Restricts the domain of this combo assignment. The new domain is the
    * intersection of the old domain and the set whose characteristic function is
    * `domain`.
    */
   def restrict[U1 <: U](domain: U1 => Boolean): ComboAssignment[U1, V] =
-    if isEmpty then this
+    if isEmpty
+    then this
     else ComboAssignment.RestrictAssignment(this, domain)
 
   /**
-   * Restrict the domain of this combo assignment. The new domain is the
+   * Restricts the domain of this combo assignment. The new domain is the
    * intersection of the old domain and the set of head nodes according to the
    * provided graph ordering.
    */
@@ -178,7 +179,8 @@ object ComboAssignment:
    *   the template for combo to be returned at each program point
    */
   def apply[V](combo: Combo[V]): ComboAssignment[Any, V] =
-    if combo.isImmutable then ConstantAssignment(combo)
+    if combo.isImmutable
+    then ConstantAssignment(combo)
     else TemplateAssignment(combo)
 
   /**
@@ -218,5 +220,6 @@ object ComboAssignment:
       widenings: ComboAssignment[U, V],
       narrowings: ComboAssignment[U, V]
   ): ComboAssignment[U, V] =
-    if widenings.combosAreRight && narrowings.combosAreRight then ComboAssignment(Combo.right[V])
+    if widenings.combosAreRight && narrowings.combosAreRight
+    then ComboAssignment(Combo.right[V])
     else WarrowingAssignment(widenings, narrowings)

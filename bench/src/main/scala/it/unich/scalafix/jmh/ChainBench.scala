@@ -55,7 +55,7 @@ import java.util.concurrent.TimeUnit
 @State(Scope.Thread)
 @Warmup(iterations = 3)
 @Fork(value = 1)
-class Chain:
+class ChainBench:
   /** Constant value of the initial assignment. */
   private val initVal = 1
 

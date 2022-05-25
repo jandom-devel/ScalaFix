@@ -1,5 +1,5 @@
- /**
- * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and
+/**
+ * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -53,22 +53,22 @@ class DFOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks {
   private val cross = Set(2 -> 3, 5 -> 7)
 
   private val graph2 = Relation(
-      1 -> 2,
-      1 -> 3,
-      2 -> 3,
-      3 -> 4,
-      4 -> 5,
-      4 -> 6,
-      4 -> 3,
-      5 -> 7,
-      6 -> 7,
-      7 -> 8,
-      7 -> 4,
-      8 -> 10,
-      8 -> 3,
-      8 -> 9,
-      9 -> 1,
-      10 -> 7
+    1 -> 2,
+    1 -> 3,
+    2 -> 3,
+    3 -> 4,
+    4 -> 5,
+    4 -> 6,
+    4 -> 3,
+    5 -> 7,
+    6 -> 7,
+    7 -> 8,
+    7 -> 4,
+    8 -> 10,
+    8 -> 3,
+    8 -> 9,
+    9 -> 1,
+    10 -> 7
   )
   private val sequence2 = (1 to 8).toList :+ 10 :+ 9
 

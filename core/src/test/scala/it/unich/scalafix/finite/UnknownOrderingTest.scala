@@ -1,5 +1,5 @@
  /**
- * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and
+ * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -21,7 +21,7 @@ import org.scalacheck.Gen
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class GraphOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks:
+class UnknownOrderingTest extends AnyFunSpec with ScalaCheckPropertyChecks:
 
   describe("A trivial graph ordering") {
     it("returns the original sequence") {

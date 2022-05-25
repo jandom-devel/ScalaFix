@@ -16,11 +16,12 @@
  * ScalaFix. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package it.unich.scalafix.finite
+package it.unich.scalafix.graphs
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 
 import it.unich.scalafix.*
+import it.unich.scalafix.finite.*
 import it.unich.scalafix.graphs.*
 import it.unich.scalafix.utils.Relation
 
@@ -91,7 +92,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
     }
 
     it("correctly adds combos") {
-      def test(eqs: FiniteEquationSystem[Int, Int, ?]) =
+      def test(eqs: GraphEquationSystem[Int, Int, ?, ?]) =
         val body = eqs.body
         assertResult(0)(body(rho)(0))
         assertResult(7)(body(rho)(1))
@@ -111,7 +112,7 @@ class GraphEquationSystemTest extends AnyFunSpec:
     }
 
     it("correctly adds localized idempotent combos") {
-      def test(eqs: FiniteEquationSystem[Int, Int, ?]) =
+      def test(eqs: GraphEquationSystem[Int, Int, ?, ?]) =
         val body = eqs.body
         val rho2: Assignment[Int, Int] = { (x: Int) => if x == 0 then 9 else x }
         assertResult(0)(body(rho)(0))

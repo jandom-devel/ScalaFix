@@ -54,7 +54,7 @@ import java.util.concurrent.TimeUnit
 @State(Scope.Benchmark)
 @Warmup(iterations = 3)
 @Fork(value = 1)
-class Clique:
+class CliqueBench:
   /** Constant value of the initial assignment. */
   private val initVal = 1
 

@@ -74,7 +74,7 @@ import java.util.concurrent.TimeUnit
 @State(Scope.Benchmark)
 @Warmup(iterations = 3)
 @Fork(value = 1)
-class ReachingDefs:
+class ReachingDefsBench:
 
   /** First unknown of the equation system. */
   private val firstUnknown = 1

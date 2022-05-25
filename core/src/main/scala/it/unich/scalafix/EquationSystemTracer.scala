@@ -1,6 +1,6 @@
 /**
- * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and
- *                       Francesca Scozzari <francesca.scozzari@unich.it>
+ * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and Francesca
+ * Scozzari <francesca.scozzari@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -23,8 +23,8 @@ import java.io.PrintStream
 import scala.annotation.elidable
 
 /**
- * Implements some methods which are called by equation systems when certain
- * events occurs. They may be used for debugging, tracing, etc...
+ * Contains methods which are called by equation systems when certain events
+ * occurs. They may be used for debugging, tracing, etc...
  *
  * @tparam U
  *   the type of unknowns supported by this tracer

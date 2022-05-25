@@ -1,5 +1,5 @@
- /**
- * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and
+/**
+ * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -95,8 +95,7 @@ extension [U, V](body: Body[U, V])
             val comboedRes = realCombos(x)(rho(x), res)
             optTracer foreach (_.comboEvaluation(rho, x, res, comboedRes))
             comboedRes
-          else
-            res
+          else res
 
 /**
  * Returns a new body in which a base ssignment is combined with this body

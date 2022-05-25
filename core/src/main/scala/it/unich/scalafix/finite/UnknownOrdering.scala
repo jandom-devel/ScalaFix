@@ -1,5 +1,5 @@
  /**
- * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and
+ * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -36,11 +36,11 @@ trait UnknownOrdering[U] extends Ordering[U]:
   /** It returns whether `u` is an head element. */
   def isHead(u: U): Boolean
 
-  /** Defines the prefix of this object's toString representation. */
+  /** Defines the prefix of this object's `toString` representation. */
   protected def stringPrefix = "UnknownOrdering"
 
   /**
-   * Converts an UnknownOrdering into a string composed by the sequence of its
+   * Converts an `UnknownOrdering` into a string composed by the sequence of its
    * elements in the correct order. Head elements are marked with parenthesis.
    */
   override def toString: String =

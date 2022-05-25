@@ -1,6 +1,6 @@
 /**
- * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and
- *                       Francesca Scozzari <francesca.scozzari@unich.it>
+ * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it> and Francesca
+ * Scozzari <francesca.scozzari@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -21,12 +21,12 @@ package it.unich.scalafix
 import it.unich.scalafix.utils.Domain
 
 /**
- * A Combo is a way to combine two values into a new one. It is a specialization
- * of the functional type `(V,V) => V`, where the first parameter is the old
- * value of an unknown and the second parameter is the new contribution. Both
- * widenings and narrowings are examples of combos. Combos are mutable, i.e.,
- * the apply method may give different results for the same input when called
- * multiple times.
+ * A `Combo` is a way to combine two values into a new one. It is a
+ * specialization of the functional type `(V,V) => V`, where the first parameter
+ * is the old value of an unknown and the second parameter is the new
+ * contribution. Both widenings and narrowings are examples of combos. Combos
+ * are mutable, i.e., the apply method may give different results for the same
+ * input when called multiple times.
  *
  * Another function of combos is to be blueprints for building other equivalent
  * combos. Each combo has a copy method which should produce a functionally
@@ -46,7 +46,7 @@ import it.unich.scalafix.utils.Domain
  */
 
 abstract class Combo[V] extends ((V, V) => V):
-  /**
+  /*
    * I do not like very much the fact Combo is both a combo and its blueprint.
    * Having two separate classes would be better from the point of view of the
    * separation of concerns, but this solution is quite convenient. We do not
@@ -187,5 +187,6 @@ object Combo:
    *   a narrowing over V
    */
   def warrowing[V: Domain](widening: Combo[V], narrowing: Combo[V]): Combo[V] =
-    if widening.isRight && narrowing.isRight then right[V]
+    if widening.isRight && narrowing.isRight
+    then right[V]
     else Warrowing(widening, narrowing)

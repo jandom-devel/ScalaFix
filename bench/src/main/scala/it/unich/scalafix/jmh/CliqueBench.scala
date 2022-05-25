@@ -31,21 +31,6 @@ import java.util.concurrent.TimeUnit
  * This class tests the efficiency of several fixpoint solvers on different
  * variants of the clique equation system.
  *
- * These are the results of the benchmarks on an Intel Core i5-2500K.
- * ```
- * [info] Benchmark                           Mode  Cnt      Score     Error  Units
- * [info] Clique.WLfinite                    thrpt    5    170.009 ±   0.463  ops/s
- * [info] Clique.WLfiniteWithCombos          thrpt    5    194.922 ±   0.458  ops/s
- * [info] Clique.WLgraph                     thrpt    5    154.223 ±   0.240  ops/s
- * [info] Clique.WLgraphWithCombos           thrpt    5    165.043 ±   2.682  ops/s
- * [info] Clique.WLgraphWithLocalizedCombos  thrpt    5     46.668 ±   0.100  ops/s
- * [info] Clique.finite                      thrpt    5    197.306 ±   0.729  ops/s
- * [info] Clique.finiteWithCombos            thrpt    5    202.338 ±   0.886  ops/s
- * [info] Clique.graph                       thrpt    5    172.844 ±   1.082  ops/s
- * [info] Clique.graphWithCombos             thrpt    5    172.828 ±   0.853  ops/s
- * [info] Clique.graphWithLocalizedCombos    thrpt    5     61.486 ±   0.201  ops/s
- * ```
- *
  * @see
  *   [[CliqueEQS]]
  */

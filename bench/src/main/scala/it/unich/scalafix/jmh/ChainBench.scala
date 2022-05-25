@@ -31,21 +31,6 @@ import java.util.concurrent.TimeUnit
  * This class tests the efficiency of several fixpoint solvers on different
  * variants of the chain equation system.
  *
- * These are the results of the benchmarks on an Intel Core i5-2500K.
- * ```
- * [info] Benchmark                          Mode  Cnt     Score    Error  Units
- * [info] Chain.FWLFinite                   thrpt    5  1089.263 ± 15.523  ops/s
- * [info] Chain.FWLGraph                    thrpt    5   789.915 ±  2.185  ops/s
- * [info] Chain.FWLGraphOptimized           thrpt    5  1111.895 ±  3.244  ops/s
- * [info] Chain.IWLInfinite                 thrpt    5   739.240 ±  2.131  ops/s
- * [info] Chain.IWLInfiniteOptimized        thrpt    5   795.049 ± 11.447  ops/s
- * [info] Chain.RRFinite                    thrpt    5  5513.842 ± 11.899  ops/s
- * [info] Chain.RRFiniteWithCombos          thrpt    5  1849.733 ±  8.432  ops/s
- * [info] Chain.RRGraph                     thrpt    5  1901.863 ±  7.061  ops/s
- * [info] Chain.RRGraphWithCombos           thrpt    5  1674.762 ±  6.008  ops/s
- * [info] Chain.RRGraphWithLocalizedCombos  thrpt    5  1127.178 ±  3.856  ops/s
- * ```
- *
  * @see
  *   [[ChainEQS]]
  */

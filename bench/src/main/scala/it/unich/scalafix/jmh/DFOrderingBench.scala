@@ -25,14 +25,8 @@ import org.openjdk.jmh.annotations.*
 import java.util.concurrent.TimeUnit
 
 /**
- * These are the results of the benchmarks on an Intel Core i5-2400.
- * ```
- * [info] Benchmark                     Mode  Cnt      Score      Error  Units
- * [info] DFOrderingBench.chainFinite   avgt    5    210.092 ±   10.190  us/op
- * [info] DFOrderingBench.chainGraph    avgt    5    209.472 ±    1.986  us/op
- * [info] DFOrderingBench.cliqueFinite  avgt    5  62627.133 ± 3335.524  us/op
- * [info] DFOrderingBench.cliqueGraph   avgt    5  81215.303 ± 3659.380  us/op
- * ```
+ * This class tests the efficiency of the computation of of the depth-first
+ * ordering of the unknowns of an equation system.
  */
 @BenchmarkMode(Array(Mode.AverageTime))
 @OutputTimeUnit(TimeUnit.MICROSECONDS)

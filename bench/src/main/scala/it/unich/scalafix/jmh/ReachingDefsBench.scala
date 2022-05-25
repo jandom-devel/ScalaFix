@@ -54,20 +54,6 @@ import java.util.concurrent.TimeUnit
  * The example comes from: <blockquote> Alfred V. Aho, Ravi Sethi, Jeffrey D.
  * Ullman.<br> <em>Compilers. Principles, Techniques, and Tools</em><br>
  * Addison-Wesley Publishing Company, 1986 </blockquote>
- *
- * These are the results of the benchmarks on an Intel Core i5-2500K.
- * ```
- * [info] Benchmark                                       Mode  Cnt      Score     Error  Units
- * [info] ReachingDefs.array                             thrpt    5  35286.065 ± 117.418  ops/s
- * [info] ReachingDefs.arrayWithCombos                   thrpt    5  22822.220 ± 130.105  ops/s
- * [info] ReachingDefs.hashMap                           thrpt    5  34208.490 ±  60.324  ops/s
- * [info] ReachingDefs.hashMapWithCombos                 thrpt    5  22031.984 ± 202.610  ops/s
- * [info] ReachingDefs.scalafix                          thrpt    5  34324.632 ± 137.073  ops/s
- * [info] ReachingDefs.scalafixGraph                     thrpt    5  28995.099 ± 722.278  ops/s
- * [info] ReachingDefs.scalafixGraphWithCombos           thrpt    5  18214.238 ±  39.789  ops/s
- * [info] ReachingDefs.scalafixGraphWithLocalizedCombos  thrpt    5  25451.629 ± 437.353  ops/s
- * [info] ReachingDefs.scalafixWithCombos                thrpt    5  21671.204 ± 531.168  ops/s
- * ```
  */
 @BenchmarkMode(Array(Mode.AverageTime))
 @OutputTimeUnit(TimeUnit.MICROSECONDS)

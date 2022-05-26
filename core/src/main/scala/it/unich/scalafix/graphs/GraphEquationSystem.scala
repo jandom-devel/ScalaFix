@@ -103,7 +103,7 @@ abstract class BaseGraphEquationSystem[U, V, E, EQS <: BaseGraphEquationSystem[U
    * localized combos, the initial graph is manipulated in order to obtain the
    * real graph.
    */
-  protected val initialGraph: GraphBody[U, V, E]
+  protected def initialGraph: GraphBody[U, V, E]
 
   /**
    * An optional specification of the localized combos we want to apply to the

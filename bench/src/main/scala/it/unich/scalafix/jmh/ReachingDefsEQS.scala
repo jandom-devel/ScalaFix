@@ -21,6 +21,7 @@ import it.unich.scalafix.*
 import it.unich.scalafix.finite.*
 import it.unich.scalafix.graphs.*
 import it.unich.scalafix.utils.*
+import scala.compiletime.ops.boolean
 
 /**
  * This object contain many implementations of an equation system for reaching
@@ -66,7 +67,7 @@ object ReachingDefsEQS:
     inputUnknowns = Seq(1)
   )
 
-  /** Retuens a graph-based equation system. */
+  /** Returns a graph-based equation system. */
   def createGraphEQS() =
     val graphBody = GraphBody[(Int, Boolean), Set[Int], String](
       sources = Relation(
@@ -135,3 +136,48 @@ object ReachingDefsEQS:
       initialGraph = graphBody,
       inputUnknowns = Seq((1, false))
     )
+
+  object ReachingDefsGraphBodyBuilder extends GraphBodyBuilder[String, String, Set[Int]]:
+    val n1 = addNode("1")
+    val n2 = addNode("2")
+    val n3 = addNode("3")
+    val n4 = addNode("4")
+    val n4p = addNode("4'")
+    val n5 = addNode("5")
+    val n6 = addNode("6")
+    val n7 = addNode("7")
+    addEdge("*to1", Seq(), n1, _ => Set(1) -- Set(4, 7))
+    addEdge("1to2", Seq(n1), n2, rho => Set(2) ++ (rho(n1) -- Set(5)))
+    addEdge("2to3", Seq(n2), n3, rho => Set(3) ++ (rho(n2) -- Set(6)))
+    addEdge("3to4'", Seq(n3), n4p, _(n3))
+    addEdge("6to4'", Seq(n6), n4p, _(n6))
+    addEdge("7to4'", Seq(n7), n4p, _(n7))
+    addEdge("4'to4", Seq(n4p), n4, (rho) => Set(4) ++ (rho(n4p) -- Set(1, 7)))
+    addEdge("4to5", Seq(n4), n5, rho => Set(5) ++ (rho(n4) -- Set(2)))
+    addEdge("5to6", Seq(n5), n6, rho => Set(6) ++ (rho(n5) -- Set(3)))
+    addEdge("5to7", Seq(n5), n7, rho => Set(7) ++ (rho(n5) -- Set(1, 4)))
+
+  /**
+   * Returns a graph-based equation system construed over a graph body builder.
+   */
+  def createGraphBuilderEQS() = GraphBuilderEquationSystem(
+    ReachingDefsGraphBodyBuilder,
+    _ ++ _,
+    Seq(ReachingDefsGraphBodyBuilder.n1)
+  )
+
+  /**
+   * Validates an asssignment for the equation system returned by
+   * [[createGraphBuilderEQS]].
+   */
+  def validateGraphBuilderAssignment(
+      rho: Assignment[ReachingDefsGraphBodyBuilder.U, Set[Int]]
+  ): Unit =
+    import ReachingDefsGraphBodyBuilder.*
+    assert(rho(n1) == Set(1))
+    assert(rho(n2) == Set(1, 2))
+    assert(rho(n3) == Set(1, 2, 3))
+    assert(rho(n4) == Set(2, 3, 4, 5, 6))
+    assert(rho(n5) == Set(3, 4, 5, 6))
+    assert(rho(n6) == Set(4, 5, 6))
+    assert(rho(n7) == Set(3, 5, 6, 7))

@@ -23,36 +23,95 @@ import it.unich.scalafix.finite.*
 import it.unich.scalafix.graphs.*
 import it.unich.scalafix.utils.*
 
+import java.lang.Math.floorMod
+
 import scala.collection.mutable
 
 /**
- * This object contains many factory methods which build equation systems made
- * from equations of the form `x(i) = upperBound( x(0), ..., x(n-1) )`.
+ * This class represents a graph based equation system whose unknowns are
+ * integers from `0` to `n-1` and each equation has the form `rho(i) =
+ * op(rho((i-m) mod n)) \/ ... \/ op(rho(i))` where `x mod n` is the POSITIVE
+ * remainder of the integer division `x/n`, `\/` is the upper bound of the
+ * domain `V` and `op` is a selectable transformation operator, which defaults
+ * to identity.
+ *
+ * When `m` and `n` are equals, the graph underlying the equation systen is a
+ * complete directed graph.
+ *
+ * @param n
+ *   number of unknowns
+ * @param m
+ *   out-degree of each node
+ * @param op
+ *   trasformation operator
+ */
+class GraphCliqueEQS[V: Domain](n: Int, m: Int, op: V => V = identity[V])
+    extends BaseGraphEquationSystem[Int, V, (Int, Int), GraphCliqueEQS[V]]:
+
+  private val out =
+    for i <- 0 until n
+    yield for j <- 0 until m
+    yield i -> ((i + j) % n)
+
+  private val in =
+    for i <- 0 until n
+    yield for j <- 0 until m
+    yield floorMod(i - j, n) -> i
+
+  val inputUnknowns = Seq(0)
+
+  val initialGraph = GraphBody(
+    edgeAction = (rho: Assignment[Int, V]) => p => op(rho(p._1)),
+    sources = Relation(p => Seq(p._1)),
+    target = p => p._2,
+    outgoing = Relation(out),
+    ingoing = Relation(in),
+    unknowns = 0 until n,
+    combiner = summon[Domain[V]].upperBound
+  )
+
+/**
+ * This is similar to [[GraphCliqueEQS]], but the result is a finire equation
+ * system instead of a graph based equation system.
+ */
+class FiniteCliqueEQS[V: Domain](n: Int, m: Int, op: V => V = identity[V])
+    extends BaseFiniteEquationSystem[Int, V, FiniteCliqueEQS[V]]:
+
+  val unknowns = 0 until n
+  val inputUnknowns = Seq(0)
+  val initialInfl = Relation((i: Int) => (0 until m) map (j => (i + j) % n))
+  val initialBody = (rho: Assignment[Int, V]) =>
+    (i: Int) =>
+      (0 until m) map (j => op(rho(floorMod(i - j, n)))) reduce summon[Domain[V]].upperBound
+
+/**
+ * This object contains many factory methods which build equation systems based
+ * on [[GraphCliqueEQS]] or [[FiniteCliqueEQS]].
  */
 object CliqueEQS:
 
-  /** Returns a graph based chain equation system with n unknowns. */
-  def createGraphEQS[V: Domain](n: Int) =
-    val out = (0 until n).map((i: Int) => i -> ((0 until n) map (i -> _))).toMap
-    val in = (0 until n).map((i: Int) => i -> ((0 until n) map (_ -> i))).toMap
-    GraphEquationSystem[Int, V, (Int, Int)](
-      inputUnknowns = Seq(0),
-      initialGraph = GraphBody(
-        edgeAction = (rho: Assignment[Int, V]) => (p: (Int, Int)) => rho(p._1),
-        sources = Relation((e: (Int, Int)) => Seq(e._1)),
-        target = (e: (Int, Int)) => e._2,
-        outgoing = Relation(out),
-        ingoing = Relation(in),
-        unknowns = 0 until n,
-        combiner = summon[Domain[V]].upperBound
-      )
-    )
+  /**
+   * Builds a full [[GraphCliqueEQS]] with `n` unknowns, nodes of out-degree `n`
+   * and identity transformation operator.
+   */
+  def createGraphEQS[V: Domain](n: Int): GraphCliqueEQS[V] = new GraphCliqueEQS(n, n)
 
-  /** Returns a finite equation system with n unknowns. */
-  def createFiniteEQS[V: Domain](n: Int) = FiniteEquationSystem[Int, V](
-    unknowns = 0 until n,
-    inputUnknowns = Seq(0),
-    initialInfl = Relation((i: Int) => 0 until n),
-    initialBody = (rho: Assignment[Int, V]) =>
-      (i: Int) => (0 until n) map rho reduce summon[Domain[V]].upperBound
-  )
+  /**
+   * Builds a [[GraphCliqueEQS]] with `n` unknowns, nodes of out-degree `m` and
+   * `op` as the transformation operator.
+   */
+  def createGraphEQS[V: Domain](n: Int, m: Int, op: V => V = identity[V]): GraphCliqueEQS[V] =
+    new GraphCliqueEQS(n, m, op)
+
+  /**
+   * Builds a [[FiniteCliqueEQS]] with `n` unknowns, each depending on all the
+   * unknowns, with identity transformation operator.
+   */
+  def createFiniteEQS[V: Domain](n: Int): FiniteCliqueEQS[V] = new FiniteCliqueEQS(n, n)
+
+  /**
+   * Builds a [[FiniteCliqueEQS]] with `n` unknowns, each depending on the
+   * previous `m` unknowns, and `op` as the transformation operator.
+   */
+  def createFiniteEQS[V: Domain](n: Int, m: Int, op: V => V = identity[V]): FiniteCliqueEQS[V] =
+    new FiniteCliqueEQS(n, m, op)

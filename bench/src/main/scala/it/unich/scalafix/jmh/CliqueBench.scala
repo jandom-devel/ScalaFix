@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit
 
 /**
  * This class tests the efficiency of several fixpoint solvers on different
- * variants of the clique equation system.
+ * variants of the full clique equation system.
  *
  * @see
  *   [[CliqueEQS]]
@@ -40,11 +40,12 @@ import java.util.concurrent.TimeUnit
 @Warmup(iterations = 3)
 @Fork(value = 1)
 class CliqueBench:
-  /** Constant value of the initial assignment. */
+
+  /** Value for the first unknown in the initial assignment. */
   private val initVal = 1
 
   /** Initial assignment. */
-  private val initAssignment = Assignment(initVal)
+  private val initAssignment = (i: Int) => if (i == 0) then initVal else 0
 
   /** Number of unknowns. */
   private val numUnknowns = 500
@@ -54,9 +55,10 @@ class CliqueBench:
 
   /** Check correctness of the solution of the equation system. */
   private def validate(rho: Assignment[Int, Int]) = assert(
-    (0 until numUnknowns).forall(i => rho(i) == initVal)
+    0 until numUnknowns forall (rho(_) == initVal)
   )
 
+  // The equation systems we use for benchmarks
   private val finiteEqs = CliqueEQS.createFiniteEQS[Int](numUnknowns)
   private val finiteEqsWithCombos = finiteEqs.withCombos(ComboAssignment(combo))
   private val graphEqs = CliqueEQS.createGraphEQS[Int](numUnknowns)
@@ -65,6 +67,7 @@ class CliqueBench:
   private val graphEqsWithLocalizedCombos =
     graphEqs.withLocalizedCombos(ComboAssignment(combo), ordering)
 
+  // Check correctness of equation solvers
   validate(RoundRobinSolver(finiteEqs)(initAssignment))
   validate(RoundRobinSolver(finiteEqsWithCombos)(initAssignment))
   validate(RoundRobinSolver(graphEqs)(initAssignment))

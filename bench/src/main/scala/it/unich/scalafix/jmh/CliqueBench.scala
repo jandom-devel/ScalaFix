@@ -41,28 +41,38 @@ import java.util.concurrent.TimeUnit
 @Fork(value = 1)
 class CliqueBench:
 
-  /** Value for the first unknown in the initial assignment. */
+  /** Value for the first unknown in the base assignment. */
   private val initVal = 1
 
   /** Initial assignment. */
-  private val initAssignment = (i: Int) => if (i == 0) then initVal else 0
+  private val initAssignment = Assignment(0)
 
   /** Number of unknowns. */
-  private val numUnknowns = 500
+  private val numUnknowns = 200
 
   /** The combo used in benchmarks. */
   private val combo = Combo[Int](scala.math.max, true)
 
   /** Check correctness of the solution of the equation system. */
-  private def validate(rho: Assignment[Int, Int]) = assert(
-    0 until numUnknowns forall (rho(_) == initVal)
-  )
+  private def validate(rho: Assignment[Int, Int]) =
+    assert(
+      0 until numUnknowns forall (rho(_) == initVal)
+    )
 
   // The equation systems we use for benchmarks
-  private val finiteEqs = CliqueEQS.createFiniteEQS[Int](numUnknowns)
-  private val finiteEqsWithCombos = finiteEqs.withCombos(ComboAssignment(combo))
-  private val graphEqs = CliqueEQS.createGraphEQS[Int](numUnknowns)
-  private val graphEqsWithCombos = graphEqs.withCombos(ComboAssignment(combo))
+  private val finiteEqs =
+    CliqueEQS
+      .createFiniteEQS[Int](numUnknowns)
+      .withBaseAssignment(Map(0 -> initVal), scala.math.max)
+  private val finiteEqsWithCombos =
+    finiteEqs.withCombos(ComboAssignment(combo))
+
+  private val graphEqs =
+    CliqueEQS
+      .createGraphEQS[Int](numUnknowns)
+      .withBaseAssignment(Map(0 -> initVal), scala.math.max)
+  private val graphEqsWithCombos =
+    graphEqs.withCombos(ComboAssignment(combo))
   private val ordering = DFOrdering(graphEqs)
   private val graphEqsWithLocalizedCombos =
     graphEqs.withLocalizedCombos(ComboAssignment(combo), ordering)

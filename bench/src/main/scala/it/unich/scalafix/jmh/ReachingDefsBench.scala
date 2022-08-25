@@ -19,10 +19,7 @@
 package it.unich.scalafix.jmh
 
 import it.unich.scalafix.*
-import it.unich.scalafix.assignments.*
 import it.unich.scalafix.finite.*
-import it.unich.scalafix.graphs.*
-import it.unich.scalafix.utils.Relation
 
 import scala.collection.mutable
 
@@ -62,27 +59,7 @@ import java.util.concurrent.TimeUnit
 @Fork(value = 1)
 class ReachingDefsBench:
 
-  /** First unknown of the equation system. */
-  private val firstUnknown = 1
-
-  /** Last unknown of the equation system. */
-  private val lastUnknown = 7
-
-  /** The finite equation system. */
-  private val eqs = FiniteEquationSystem[Int, Set[Int]](
-    initialBody = (rho: Int => Set[Int]) => {
-      case 1 => Set(1) -- Set(4, 7)
-      case 2 => Set(2) ++ (rho(1) -- Set(5))
-      case 3 => Set(3) ++ (rho(2) -- Set(7))
-      case 4 => Set(4) ++ (rho(3) ++ rho(7) ++ rho(6) -- Set(1, 7))
-      case 5 => Set(5) ++ (rho(4) -- Set(2))
-      case 6 => Set(6) ++ (rho(5) -- Set(3))
-      case 7 => Set(7) ++ (rho(5) -- Set(1, 4))
-    },
-    initialInfl = Relation(1 -> 2, 2 -> 3, 3 -> 4, 4 -> 5, 5 -> 6, 5 -> 7, 6 -> 4, 7 -> 4),
-    unknowns = firstUnknown to lastUnknown,
-    inputUnknowns = Seq(1)
-  )
+  val eqs = ReachingDefsEQS.createFiniteEQS()
 
   /** Combo used in the equation systems. */
   private val combo = Combo[Set[Int]](_ ++ _, true)
@@ -90,75 +67,7 @@ class ReachingDefsBench:
   /** The finite equationm system with combos. */
   private val eqsCombo = eqs.withCombos(ComboAssignment(combo))
 
-  /** The graph based body of the equation system. */
-  private val graphBody = GraphBody[(Int, Boolean), Set[Int], String](
-    sources = Relation(
-      "1to2" -> (1, false),
-      "2to3" -> (2, false),
-      "3to4'" -> (3, false),
-      "6to4'" -> (3, false),
-      "7to4'" -> (3, false),
-      "4'to4" -> (4, true),
-      "4to5" -> (4, false),
-      "5to6" -> (5, false),
-      "5to7" -> (5, false)
-    ),
-    target = Map(
-      "*to1" -> (1, false),
-      "1to2" -> (2, false),
-      "2to3" -> (3, false),
-      "3to4'" -> (4, true),
-      "6to4'" -> (4, true),
-      "7to4'" -> (4, true),
-      "4'to4" -> (4, false),
-      "4to5" -> (5, false),
-      "5to6" -> (6, false),
-      "5to7" -> (7, false)
-    ),
-    ingoing = Relation(
-      (1, false) -> "*to1",
-      (2, false) -> "1to2",
-      (3, false) -> "2to3",
-      (4, true) -> "3to4'",
-      (4, true) -> "6to4'",
-      (4, true) -> "7to4'",
-      (4, false) -> "4'to4",
-      (5, false) -> "4to5",
-      (6, false) -> "5to6",
-      (7, false) -> "5to7"
-    ),
-    outgoing = Relation(
-      (1, false) -> "1to2",
-      (2, false) -> "2to3",
-      (3, false) -> "3to4'",
-      (4, true) -> "4'to4",
-      (4, false) -> "4to5",
-      (5, false) -> "5to6",
-      (5, false) -> "5to7",
-      (6, false) -> "6to4'",
-      (7, false) -> "7to4'"
-    ),
-    edgeAction = (rho: Assignment[(Int, Boolean), Set[Int]]) => {
-      case "*to1"  => Set(1) -- Set(4, 7)
-      case "1to2"  => Set(2) ++ (rho(1, false) -- Set(5))
-      case "2to3"  => Set(3) ++ (rho(2, false) -- Set(6))
-      case "3to4'" => rho(3, false)
-      case "6to4'" => rho(6, false)
-      case "7to4'" => rho(7, false)
-      case "4'to4" => Set(4) ++ (rho(4, true) -- Set(1, 7))
-      case "4to5"  => Set(5) ++ (rho(4, false) -- Set(2))
-      case "5to6"  => Set(6) ++ (rho(5, false) -- Set(3))
-      case "5to7"  => Set(7) ++ (rho(5, false) -- Set(1, 4))
-    },
-    unknowns = ((firstUnknown to lastUnknown) map { (i: Int) => (i, false) }) ++ Seq((4, true)),
-    combiner = _ ++ _
-  )
-
-  /** The graph-based version of the equation system. */
-  private val graphEqs = GraphEquationSystem(
-    initialGraph = graphBody,
-    inputUnknowns = Seq((1, false))
-  )
+  val graphEqs = ReachingDefsEQS.createGraphEQS()
 
   /** The graph-based version of the equation system wth combos. */
   private val graphEqsCombo = graphEqs.withCombos(ComboAssignment(combo))
@@ -210,7 +119,7 @@ class ReachingDefsBench:
     while dirty do
       dirty = false
       i = 1
-      while i <= lastUnknown do
+      while i <= ReachingDefsEQS.lastUnknown do
         val v = rho(i)
         val vnew = bodyrho(i)
         val vres = if withCombos then vnew ++ vnew else vnew
@@ -228,14 +137,14 @@ class ReachingDefsBench:
    *   if true, an additional set-union combo is added to all the unknowns.
    */
   private def arraySolve(withWidening: Boolean) =
-    val rho = Array.fill(lastUnknown + 1)(Set[Int]())
+    val rho = Array.fill(ReachingDefsEQS.lastUnknown + 1)(Set[Int]())
     var bodyrho = eqs.body(rho)
     var dirty = true
     var i = 1
     while dirty do
       dirty = false
       i = 1
-      while i <= lastUnknown do
+      while i <= ReachingDefsEQS.lastUnknown do
         val v = rho(i)
         val vnew = bodyrho(i)
         val vres = if withWidening then vnew ++ vnew else vnew

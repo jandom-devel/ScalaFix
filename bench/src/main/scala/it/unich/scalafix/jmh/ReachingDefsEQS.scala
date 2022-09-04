@@ -1,5 +1,6 @@
 /**
  * Copyright 2015 - 2022 Gianluca Amato <gianluca.amato@unich.it>
+ *                   and Francesca Scozzari <francesca.scozzari@unich.it>
  *
  * This file is part of ScalaFix. ScalaFix is free software: you can
  * redistribute it and/or modify it under the terms of the GNU General Public
@@ -24,8 +25,8 @@ import it.unich.scalafix.utils.*
 import scala.compiletime.ops.boolean
 
 /**
- * This object contain many implementations of an equation system for reaching
- * definition analisys of the folling three-address code program:
+ * This object contains many implementations of an equation system for reaching
+ * definition analysis of the following three-address code program:
  * ```
  * d1 --> i = m-1;
  * d2 --> j = n;
@@ -56,8 +57,8 @@ object ReachingDefsEQS:
     initialBody = (rho: Int => Set[Int]) => {
       case 1 => Set(1) -- Set(4, 7)
       case 2 => Set(2) ++ (rho(1) -- Set(5))
-      case 3 => Set(3) ++ (rho(2) -- Set(7))
-      case 4 => Set(4) ++ (rho(3) ++ rho(7) ++ rho(6) -- Set(1, 7))
+      case 3 => Set(3) ++ (rho(2) -- Set(6))
+      case 4 => Set(4) ++ (rho(3) ++ rho(6) ++ rho(7) -- Set(1, 7))
       case 5 => Set(5) ++ (rho(4) -- Set(2))
       case 6 => Set(6) ++ (rho(5) -- Set(3))
       case 7 => Set(7) ++ (rho(5) -- Set(1, 4))

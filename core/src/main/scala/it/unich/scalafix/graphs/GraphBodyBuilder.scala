@@ -47,7 +47,7 @@ open class GraphBodyBuilder[LN, LE, V]:
    * A mutable assignment for equation system built with [[GraphBodyBuilder]].
    *
    * This mutable assignment is implemented by endowing each node with an
-   * `assignments` field, which is an [[ArrayBuffer]] of elements of type `V`.
+   * `assignments` field, which is a [[collection.mutable.ArrayBuffer]] of elements of type `V`.
    * Each index of the array corresponds to a different assignment. A global
    * counter keep track of the next available index which may be allocated by a
    * `GraphMutableAssignment`.

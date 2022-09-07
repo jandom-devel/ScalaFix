@@ -39,7 +39,7 @@ class MapBasedMutableAssignment[U, V](
 
   private val m = factory.empty.withDefault(rho)
 
-  export m.{apply, update, isDefinedAt, keys as unknowns}
+  export m.{apply, update, isDefinedAt, iterator, keys as unknowns}
 
   /**
    * @inheritdoc

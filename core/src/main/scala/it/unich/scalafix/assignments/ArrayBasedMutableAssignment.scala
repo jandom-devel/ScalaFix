@@ -55,6 +55,9 @@ class ArrayBasedMutableAssignment[V: ClassTag](
   /** @inheritdoc */
   override def unknowns = (0 until size).filter(changed(_))
 
+  /** @inheritdoc */
+  override def iterator = (0 until size).view.map( x => (x, this(x)) ).iterator
+
   /**
    * @inheritdoc
    *

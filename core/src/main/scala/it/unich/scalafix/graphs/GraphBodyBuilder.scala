@@ -23,9 +23,10 @@ import it.unich.scalafix.utils.*
 import scala.collection.mutable
 
 /**
- * This class may be used to build a [[GraphBody]] using an imperativeprogramming style.
- * Moreover, it introduce mutable assignments implemented directly as fields of nodes,
- * which should be faster than hashmap based assignments.
+ * This class may be used to build a [[GraphBody]] using an
+ * imperativeprogramming style. Moreover, it introduce mutable assignments
+ * implemented directly as fields of nodes, which should be faster than hashmap
+ * based assignments.
  *
  * @tparam LN
  *   type of labels for nodes
@@ -47,10 +48,10 @@ open class GraphBodyBuilder[LN, LE, V]:
    * A mutable assignment for equation system built with [[GraphBodyBuilder]].
    *
    * This mutable assignment is implemented by endowing each node with an
-   * `assignments` field, which is a [[collection.mutable.ArrayBuffer]] of elements of type `V`.
-   * Each index of the array corresponds to a different assignment. A global
-   * counter keep track of the next available index which may be allocated by a
-   * `GraphMutableAssignment`.
+   * `assignments` field, which is a [[collection.mutable.ArrayBuffer]] of
+   * elements of type `V`. Each index of the array corresponds to a different
+   * assignment. A global counter keep track of the next available index which
+   * may be allocated by a `GraphMutableAssignment`.
    */
   class GraphMutableAssignment(rho: Assignment[U, V]) extends MutableAssignment[U, V]:
     private var idx = lastIdx
@@ -58,8 +59,17 @@ open class GraphBodyBuilder[LN, LE, V]:
     for u <- GraphBodyBuilder.this.unknowns do u.assignments.addOne(None)
 
     override def unknowns =
-      GraphBodyBuilder.this.unknowns.view filter (_.assignments(idx).isDefined)
+      GraphBodyBuilder.this.unknowns.view
+        .filter(_.assignments(idx).isDefined)
 
+    override def iterator =
+      GraphBodyBuilder.this.unknowns.view
+        .flatMap(u =>
+          u.assignments(idx) match
+            case Some(v) => Some((u, v))
+            case _       => None
+        )
+        .iterator
     override def isDefinedAt(u: U) = u.assignments(idx).isDefined
 
     override def update(u: U, v: V) = u.assignments(idx) = Some(v)

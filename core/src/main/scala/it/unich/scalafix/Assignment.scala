@@ -19,6 +19,8 @@ package it.unich.scalafix
 
 import it.unich.scalafix.assignments.*
 
+import scala.collection.AbstractMap
+
 /**
  * An assignment is just an alias for a functon from unknowns to values.
  *
@@ -39,12 +41,17 @@ type Assignment[-U, +V] = (U => V)
  * @tparam V
  *   type for values
  */
-trait MutableAssignment[U, V] extends Assignment[U, V]:
+trait MutableAssignment[U, V] extends Assignment[U, V] with Iterable[(U,V)]:
   /**
    * An iterable of the unknowns which have been explicitly modified after
    * creation.
    */
   def unknowns: Iterable[U]
+
+  /**
+   * An iterator over pairs (unknown, value)
+   */
+  override def iterator: Iterator[(U, V)]
 
   /**
    * Determines whether the unknown `u` has been explicitly modified after

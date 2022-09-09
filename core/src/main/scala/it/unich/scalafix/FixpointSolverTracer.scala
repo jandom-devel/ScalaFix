@@ -170,5 +170,6 @@ object FixpointSolverTracer {
     DebugFixpointSolverTracer(ps)
 
   /** Returns a tracer which keeps track of performance measures. */
-  def performance[U, V] = PerformanceFixpointSolverTracer()
+  def performance[U, V]: FixpointSolverTracer[U, V]
+    = PerformanceFixpointSolverTracer()
 }
